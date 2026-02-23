@@ -3,10 +3,18 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { JobComponent } from './pages/job/job.component';
+import { VehicleComponent } from './pages/vehicle/vehicle.component';
+import { DeclutterComponent } from './pages/declutter/declutter.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    DashboardComponent,
+    JobComponent,
+    VehicleComponent,
+    DeclutterComponent
   ],
   imports: [
     BrowserModule,
