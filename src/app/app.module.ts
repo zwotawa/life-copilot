@@ -11,7 +11,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { GoalCardComponent } from './shared/goal-card/goal-card.component';
-import {MatCardModule} from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
+import { MatInputModule } from '@angular/material/input';
+import { ListItemComponent } from './shared/list-item/list-item.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +22,8 @@ import {MatCardModule} from '@angular/material/card';
     JobComponent,
     VehicleComponent,
     DeclutterComponent,
-    GoalCardComponent
+    GoalCardComponent,
+    ListItemComponent
   ],
   imports: [
     BrowserModule,
@@ -28,8 +31,8 @@ import {MatCardModule} from '@angular/material/card';
     BrowserAnimationsModule,
     MatToolbarModule,
     MatButtonModule,
-    MatCardModule
-  ],
+    MatCardModule,
+    MatInputModule  ],
   providers: [],
   bootstrap: [AppComponent]
 })

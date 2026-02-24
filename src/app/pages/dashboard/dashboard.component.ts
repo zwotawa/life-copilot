@@ -1,4 +1,7 @@
+import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { InboxItem } from 'src/app/core/inbox.model';
+import { loadInbox, saveInbox } from 'src/app/core/inbox.storage';
 
   export interface GoalCard {
     title: string;
@@ -28,11 +31,42 @@ export class DashboardComponent implements OnInit {
     }
   ];
 
-  constructor() { }
+  public items: InboxItem[];
+  public newText :string = '';
+  public addDisabled: boolean = true;
+
+  constructor() { 
+    this.items = loadInbox();
+  }
 
   ngOnInit(): void {
   }
 
+  public updateNewText(event: Event): void {
+    this.newText = (event.target as HTMLInputElement).value;
+    this.addDisabledCheck();
+  }
+
+  public addItem(): void {
+    const newId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+    const item: InboxItem = {
+      id: newId,
+      text: this.newText,
+      createdAt: formatDate(new Date(), 'yyyy-MM-dd HH:mm', 'en')
+    }
+    console.log(item);
+
+    const items: InboxItem[] = [item, ...this.items];
+
+    console.log(items);
+
+    saveInbox(items);
+    this.items = loadInbox();
+  }
   
+  private addDisabledCheck(): void {
+    if( this.newText == '') this.addDisabled = true;
+    else this.addDisabled = false;
+  }
 
 }
