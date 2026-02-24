@@ -1,0 +1,15 @@
+<mat-card appearance="outlined">
+    <mat-card-header>
+        <h3>{{ cardData?.title }}</h3>
+    </mat-card-header>
+    <mat-card-content>
+        Why: {{ cardData?.why }}
+    </mat-card-content>
+    <mat-card-content>
+        Next Action:
+        {{ cardData?.nextAction }}
+    </mat-card-content>
+    <mat-card-actions>
+        <button onclick="alert()">Start 10 minutes</button>
+    </mat-card-actions>
+</mat-card>
