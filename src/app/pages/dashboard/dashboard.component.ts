@@ -54,11 +54,11 @@ export class DashboardComponent implements OnInit {
       text: this.newText,
       createdAt: formatDate(new Date(), 'yyyy-MM-dd HH:mm', 'en')
     }
-    console.log(item);
 
     const items: InboxItem[] = [item, ...this.items];
 
-    console.log(items);
+    //save limit of 50 items
+    if(items.length > 49) return;
 
     saveInbox(items);
     this.items = loadInbox();
