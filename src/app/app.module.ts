@@ -7,6 +7,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { JobComponent } from './pages/job/job.component';
 import { VehicleComponent } from './pages/vehicle/vehicle.component';
 import { DeclutterComponent } from './pages/declutter/declutter.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { DeclutterComponent } from './pages/declutter/declutter.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    BrowserAnimationsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
