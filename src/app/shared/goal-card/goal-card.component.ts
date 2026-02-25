@@ -9,10 +9,15 @@ import { GoalCard } from 'src/app/pages/dashboard/dashboard.component';
 export class GoalCardComponent implements OnInit {
 
   @Input() cardData?: GoalCard;
+
+  public actionsLength: number = 0;
   
   constructor() { }
 
   ngOnInit(): void {
+    if(this.cardData) {
+      this.actionsLength = this.cardData.nextActions.length;
+    }
   }
 
 }
