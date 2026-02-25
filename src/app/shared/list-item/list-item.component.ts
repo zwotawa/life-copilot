@@ -15,72 +15,40 @@ export class ListItemComponent implements OnInit {
 
   @Input() itemData?: InboxItem;
 
-  private jobActions: GoalAction[] = [];
-  private vehicleActions: GoalAction[] = [];
-  private declutterActions: GoalAction[] = [];
-
-
-
   constructor() { }
 
   ngOnInit(): void {
   }
 
-  public convertToJobAction(): void {
-    const newId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+  public moveToGoal(goal: string) {
+
     if(this.itemData) {
       const action: GoalAction = {
-        id: newId,
+        id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
         text: this.itemData.text,
         createdAt: this.itemData.createdAt,
         sourceInboxId: this.itemData.id
       }
 
-      this.jobActions = loadJobActions();
-
-      const updatedJobActions: GoalAction[] = [action, ...this.jobActions];
-
-      saveJobActions(updatedJobActions);
-
-      this.removeInboxItemById(this.itemData.id);
-    }
-  }
-
-  public convertToVehicleAction(): void {
-    const newId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-    if(this.itemData) {
-      const action: GoalAction = {
-        id: newId,
-        text: this.itemData.text,
-        createdAt: this.itemData.createdAt,
-        sourceInboxId: this.itemData.id
+      switch (goal) {
+        case 'job':
+          const jobActions = loadJobActions();
+          const updatedJobActions: GoalAction[] = [action, ...jobActions];
+          saveJobActions(updatedJobActions);
+          break;
+        case 'vehicle':
+          const vehicleActions = loadVehicleActions();
+          const updatedVehicleActions: GoalAction[] = [action, ...vehicleActions];
+          saveVehicleActions(updatedVehicleActions);
+          break;
+        case 'declutter':
+          const declutterActions = loadDeclutterActions();
+          const updatedDeclutterActions: GoalAction[] = [action, ...declutterActions];
+          saveDeclutterActions(updatedDeclutterActions);
+          break;
+        default:
+          break;
       }
-
-      this.vehicleActions = loadVehicleActions();
-
-      const updatedVehicleActions: GoalAction[] = [action, ...this.vehicleActions];
-
-      saveVehicleActions(updatedVehicleActions);
-
-      this.removeInboxItemById(this.itemData.id);
-    }
-  }
-
-  public convertToDeclutterAction(): void {
-    const newId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-    if(this.itemData) {
-      const action: GoalAction = {
-        id: newId,
-        text: this.itemData.text,
-        createdAt: this.itemData.createdAt,
-        sourceInboxId: this.itemData.id
-      }
-
-      this.declutterActions = loadDeclutterActions();
-
-      const updatedDeclutterActions: GoalAction[] = [action, ...this.declutterActions];
-
-      saveDeclutterActions(updatedDeclutterActions);
 
       this.removeInboxItemById(this.itemData.id);
     }
@@ -89,7 +57,6 @@ export class ListItemComponent implements OnInit {
   private removeInboxItemById(idToRemove: string): void {
     const items: InboxItem[] = loadInbox();
     const updatedInboxItems: InboxItem[] = items.filter(item => item.id !== idToRemove);
-
     saveInbox(updatedInboxItems);
   }
 }

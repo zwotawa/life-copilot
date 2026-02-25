@@ -4,4 +4,10 @@
 
 .dashboard-card {
     padding: 8px;
+    flex-grow: 1;
+}
+
+.add-idea {
+    display: flex;
+    justify-content: center;
 }
