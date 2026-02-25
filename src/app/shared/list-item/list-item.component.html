@@ -1,5 +1,9 @@
 <div class="list-item">
     <p>{{ itemData?.createdAt }} &NonBreakingSpace;</p>
     <p>{{ itemData?.text }} &NonBreakingSpace;</p>
+    <button (click)="convertToJobAction()">Job</button>
+    <button (click)="convertToVehicleAction()">Vehicle</button>
+    <button (click)="convertToDeclutterAction()">Declutter</button>
+
     <button>Done</button>
 </div>
