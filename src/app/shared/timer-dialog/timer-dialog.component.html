@@ -1,0 +1,6 @@
+<div mat-dialog-title>{{ actionText }}</div>
+<mat-dialog-content> {{ countdown$ | async | secondsToMinutes }} </mat-dialog-content>
+<mat-dialog-actions class="dialog-buttons" *ngIf="countdownComplete">
+    <button mat-dialog-close>Stop</button>
+    <button (click)="restartTimer()">Continue</button>
+</mat-dialog-actions>

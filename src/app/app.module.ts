@@ -14,6 +14,11 @@ import { GoalCardComponent } from './shared/goal-card/goal-card.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { ListItemComponent } from './shared/list-item/list-item.component';
+import { TimerDialogComponent } from './shared/timer-dialog/timer-dialog.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatRadioModule } from '@angular/material/radio';
+import { SecondsToMinutesPipe } from './shared/pipes/seconds-to-minutes.pipe';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -23,7 +28,9 @@ import { ListItemComponent } from './shared/list-item/list-item.component';
     VehicleComponent,
     DeclutterComponent,
     GoalCardComponent,
-    ListItemComponent
+    ListItemComponent,
+    TimerDialogComponent,
+    SecondsToMinutesPipe
   ],
   imports: [
     BrowserModule,
@@ -32,7 +39,11 @@ import { ListItemComponent } from './shared/list-item/list-item.component';
     MatToolbarModule,
     MatButtonModule,
     MatCardModule,
-    MatInputModule  ],
+    MatInputModule,
+    MatDialogModule,
+    MatRadioModule,
+    FormsModule
+  ],
   providers: [],
   bootstrap: [AppComponent]
 })

@@ -1,6 +1,8 @@
-<mat-card appearance="outlined">
-    <mat-card-header>
-        <h3>{{ cardData?.title }} ({{ actionsLength }})</h3>
+<mat-card class="goal-card" appearance="outlined">
+    <mat-card-header class="card-content">
+        <mat-card-title>
+            <h3>{{ cardData?.title }} ({{ actionsLength }})</h3>
+        </mat-card-title>
     </mat-card-header>
     <mat-card-content>
         Why: {{ cardData?.why }}
@@ -8,10 +10,14 @@
     <mat-card-content>
         Next Actions:
         <div class="action-list">
-            <p *ngFor="let action of cardData?.nextActions | slice:0:3">{{ action.text }}</p>
+            <mat-radio-group [(ngModel)]="selection" name="actions">
+                <div *ngFor="let action of cardData?.nextActions | slice:0:3; let i = index">
+                    <mat-radio-button value="{{i}}">{{ action.text }}</mat-radio-button>
+                </div>
+            </mat-radio-group>
         </div>
     </mat-card-content>
-    <mat-card-actions>
-        <button onclick="alert()">Start 10 minutes</button>
+    <mat-card-actions class="card-content">
+        <button (click)="openTimerDialog()">Start 10 minutes</button>
     </mat-card-actions>
 </mat-card>
