@@ -12,7 +12,7 @@ export class TimerDialogComponent implements OnInit {
 
   private goalType: string = '';
   public actionText: string = '';
-  public secondsLeft: number = 5;
+  public secondsLeft: number = 600;
   public isRunning: boolean = false;
   public countdown$: Observable<number> = new Observable();
   public countdownComplete: boolean = false;
