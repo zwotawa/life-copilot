@@ -36,7 +36,7 @@ export class GoalCardComponent implements OnInit {
     const dialogRef = this.dialog.open(TimerDialogComponent, {
       height: '400px',
       width: '600px',
-      data: { goalType: this.cardData?.title, goalAction: this.cardData?.nextActions[this.selection]}
+      data: { goalType: this.cardData?.title, goal: this.cardData?.nextActions[this.selection]}
     });
   }
   

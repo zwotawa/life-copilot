@@ -34,7 +34,22 @@ export class TimerDialogComponent implements OnInit {
     this.startTimer();
   }
 
-    public restartTimer(): void {
+  private startTimer(): void {
+    this.countdown$ = this.pauseResume$.pipe(
+      switchMap(running => running ? timer(0, 1000)  : NEVER ),
+      map(() => {
+        if(this.secondsLeft > 0) {
+          this.secondsLeft--;
+        } 
+        else {
+          this.countdownComplete = true;
+        }
+        return this.secondsLeft;
+      })
+    )
+  } 
+
+  public restartTimer(): void {
     this.secondsLeft = 600;
     this.countdownComplete = false;
     this.pauseResume$.next(true)
@@ -57,7 +72,7 @@ export class TimerDialogComponent implements OnInit {
     const updatedCompletedActions: GoalAction[] = [updatedGoalAction, ...completedActions]
     saveCompletedActions(updatedCompletedActions);
 
-    switch(this.goalType) {
+    switch(this.goalType.toLowerCase()) {
       case 'job':
         removeJobActionById(this.data.goal.id);
         break;
@@ -71,15 +86,4 @@ export class TimerDialogComponent implements OnInit {
         break;
     }
   }
-
-  private startTimer(): void {
-    this.countdown$ = this.pauseResume$.pipe(
-      switchMap(running => running ? timer(0, 1000)  : NEVER ),
-      map(() => {
-        if(this.secondsLeft > 0) this.secondsLeft--;
-        else this.countdownComplete = true;
-        return this.secondsLeft;
-      })
-    )
-  } 
 }
