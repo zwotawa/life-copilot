@@ -3,4 +3,5 @@ export interface GoalAction {
     text?: string;
     createdAt?: string;
     sourceInboxId?: string;
+    completedAt?: string;
 }

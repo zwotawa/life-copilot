@@ -3,6 +3,12 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TimerDialogData } from '../goal-card/goal-card.component';
 import { SecondsToMinutesPipe } from '../pipes/seconds-to-minutes.pipe';
 import { map, Observable, timer, BehaviorSubject, Subject, switchMap, NEVER } from 'rxjs';
+import { GoalAction } from 'src/app/core/goal-action.model';
+import { loadCompletedActions, saveCompletedActions } from 'src/app/core/completed-action.storage';
+import { formatDate } from '@angular/common';
+import { removeJobActionById } from 'src/app/core/job-action.storage';
+import { removeVehicleActionById } from 'src/app/core/vehicle-action.storage';
+import { removeDeclutterActionById } from 'src/app/core/declutter-action.storage';
 
 @Component({
   selector: 'app-timer-dialog',
@@ -13,7 +19,7 @@ export class TimerDialogComponent implements OnInit {
 
   public goalType: string = '';
   public actionText: string = '';
-  public secondsLeft: number = 5;
+  public secondsLeft: number = 600;
   public isRunning: boolean = true;
   public countdown$: Observable<number> = new Observable();
   public countdownComplete: boolean = false;
@@ -24,26 +30,11 @@ export class TimerDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.goalType = this.data.goalType;
-    this.actionText = this.data.actionText;
+    this.actionText = this.data.goal.text ? this.data.goal.text : '';
     this.startTimer();
   }
 
-  private startTimer(): void {
-    this.countdown$ = this.pauseResume$.pipe(
-      switchMap(running => running ? timer(0, 1000)  : NEVER ),
-      map(() => {
-        if(this.secondsLeft > 0) {
-          this.secondsLeft--;
-        }
-        else {
-          this.countdownComplete = true;
-        }
-        return this.secondsLeft;
-      })
-    )
-  } 
-
-  public restartTimer(): void {
+    public restartTimer(): void {
     this.secondsLeft = 600;
     this.countdownComplete = false;
     this.pauseResume$.next(true)
@@ -54,4 +45,41 @@ export class TimerDialogComponent implements OnInit {
     this.isRunning = !this.isRunning;
   }
 
+  public moveToCompleted(): void {
+    const updatedGoalAction: GoalAction = {
+      id: this.data.goal.id,
+      text: this.data.goal.text,
+      createdAt: this.data.goal.createdAt,
+      sourceInboxId: this.data.goal.sourceInboxId,
+      completedAt: formatDate(new Date(), 'yyyy-MM-dd HH:mm', 'en')
+    }
+    const completedActions: GoalAction[] = loadCompletedActions();
+    const updatedCompletedActions: GoalAction[] = [updatedGoalAction, ...completedActions]
+    saveCompletedActions(updatedCompletedActions);
+
+    switch(this.goalType) {
+      case 'job':
+        removeJobActionById(this.data.goal.id);
+        break;
+      case 'vehicle':
+        removeVehicleActionById(this.data.goal.id);
+        break;
+      case 'declutter':
+        removeDeclutterActionById(this.data.goal.id);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private startTimer(): void {
+    this.countdown$ = this.pauseResume$.pipe(
+      switchMap(running => running ? timer(0, 1000)  : NEVER ),
+      map(() => {
+        if(this.secondsLeft > 0) this.secondsLeft--;
+        else this.countdownComplete = true;
+        return this.secondsLeft;
+      })
+    )
+  } 
 }

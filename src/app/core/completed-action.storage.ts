@@ -1,9 +1,9 @@
 import { GoalAction } from "./goal-action.model";
 
 
-const KEY = 'lifeCopilot.actions.declutter';
+const KEY = 'lifeCopilot.actions.completed';
 
-export function loadDeclutterActions(): GoalAction[] {
+export function loadCompletedActions(): GoalAction[] {
     try {
         const raw = localStorage.getItem(KEY);
         if(!raw) return [];
@@ -14,12 +14,12 @@ export function loadDeclutterActions(): GoalAction[] {
     }
 }
 
-export function saveDeclutterActions(items: GoalAction[]): void {
+export function saveCompletedActions(items: GoalAction[]): void {
     localStorage.setItem(KEY, JSON.stringify(items));
 }
 
-export function removeDeclutterActionById(idToRemove: string): void {
-    const items: GoalAction[] = loadDeclutterActions();
+export function removeCompletedActionById(idToRemove: string): void {
+    const items: GoalAction[] = loadCompletedActions();
     const updatedInboxItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
-    saveDeclutterActions(updatedInboxItems);
+    saveCompletedActions(updatedInboxItems);
 }

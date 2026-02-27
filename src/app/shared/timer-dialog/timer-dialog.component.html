@@ -8,7 +8,7 @@
     <button mat-dialog-close>Close</button>
 </mat-dialog-actions>
 <mat-dialog-actions class="dialog-buttons" *ngIf="countdownComplete">
-    <button>Mark Done</button>
+    <button (click)="moveToCompleted()">Mark Done</button>
     <button (click)="restartTimer()">Continue</button>
     <button mat-dialog-close>Stop</button>
 </mat-dialog-actions>

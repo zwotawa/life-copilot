@@ -3,10 +3,11 @@ import { GoalCard } from 'src/app/pages/dashboard/dashboard.component';
 import { TimerDialogComponent } from '../timer-dialog/timer-dialog.component';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
+import { GoalAction } from 'src/app/core/goal-action.model';
 
 export interface TimerDialogData {
   goalType: string;
-  actionText: string;
+  goal: GoalAction;
 }
 
 
@@ -35,7 +36,7 @@ export class GoalCardComponent implements OnInit {
     const dialogRef = this.dialog.open(TimerDialogComponent, {
       height: '400px',
       width: '600px',
-      data: { goalType: this.cardData?.title, actionText: this.cardData?.nextActions[this.selection].text}
+      data: { goalType: this.cardData?.title, goalAction: this.cardData?.nextActions[this.selection]}
     });
   }
   

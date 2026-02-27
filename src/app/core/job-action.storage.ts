@@ -18,7 +18,7 @@ export function saveJobActions(items: GoalAction[]): void {
     localStorage.setItem(KEY, JSON.stringify(items));
 }
 
-export function removeInboxItemById(idToRemove: string): void {
+export function removeJobActionById(idToRemove: string): void {
     const items: GoalAction[] = loadJobActions();
     const updatedInboxItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
     saveJobActions(updatedInboxItems);
