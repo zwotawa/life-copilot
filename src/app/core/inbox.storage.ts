@@ -17,3 +17,9 @@ export function loadInbox(): InboxItem[] {
 export function saveInbox(items: InboxItem[]): void {
     localStorage.setItem(KEY, JSON.stringify(items));
 }
+
+export function removeInboxItemById(idToRemove: string): void {
+    const items: InboxItem[] = loadInbox();
+    const updatedInboxItems: InboxItem[] = items.filter(item => item.id !== idToRemove);
+    saveInbox(updatedInboxItems);
+}

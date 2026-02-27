@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { GoalAction } from 'src/app/core/goal-action.model';
 import { InboxItem } from 'src/app/core/inbox.model';
-import { loadInbox, saveInbox } from 'src/app/core/inbox.storage';
+import { loadInbox, removeInboxItemById, saveInbox } from 'src/app/core/inbox.storage';
 import { loadJobActions, saveJobActions } from 'src/app/core/job-action.storage';
 import { loadVehicleActions, saveVehicleActions } from 'src/app/core/vehicle-action.storage';
 import { loadDeclutterActions, saveDeclutterActions } from 'src/app/core/declutter-action.storage';
@@ -50,13 +50,7 @@ export class ListItemComponent implements OnInit {
           break;
       }
 
-      this.removeInboxItemById(this.itemData.id);
+      removeInboxItemById(this.itemData.id);
     }
-  }
-
-  private removeInboxItemById(idToRemove: string): void {
-    const items: InboxItem[] = loadInbox();
-    const updatedInboxItems: InboxItem[] = items.filter(item => item.id !== idToRemove);
-    saveInbox(updatedInboxItems);
   }
 }

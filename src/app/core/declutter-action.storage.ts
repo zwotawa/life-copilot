@@ -17,3 +17,9 @@ export function loadDeclutterActions(): GoalAction[] {
 export function saveDeclutterActions(items: GoalAction[]): void {
     localStorage.setItem(KEY, JSON.stringify(items));
 }
+
+export function removeInboxItemById(idToRemove: string): void {
+    const items: GoalAction[] = loadDeclutterActions();
+    const updatedInboxItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
+    saveDeclutterActions(updatedInboxItems);
+}

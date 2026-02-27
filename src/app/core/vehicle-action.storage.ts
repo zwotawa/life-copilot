@@ -17,3 +17,9 @@ export function loadVehicleActions(): GoalAction[] {
 export function saveVehicleActions(items: GoalAction[]): void {
     localStorage.setItem(KEY, JSON.stringify(items));
 }
+
+export function removeInboxItemById(idToRemove: string): void {
+    const items: GoalAction[] = loadVehicleActions();
+    const updatedInboxItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
+    saveVehicleActions(updatedInboxItems);
+}
