@@ -5,7 +5,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class SecondsToMinutesPipe implements PipeTransform {
   transform(totalSeconds: number | null): string {
-      if(totalSeconds) {
+      if(totalSeconds != null) {
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
 

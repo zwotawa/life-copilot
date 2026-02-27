@@ -1,6 +1,14 @@
+<h1>{{ goalType }}</h1>
 <div mat-dialog-title>{{ actionText }}</div>
-<mat-dialog-content> {{ countdown$ | async | secondsToMinutes }} </mat-dialog-content>
+<mat-dialog-content *ngIf="!countdownComplete"> {{ countdown$ | async | secondsToMinutes }} </mat-dialog-content>
+<mat-dialog-content *ngIf="countdownComplete">Time's Up!</mat-dialog-content>
+<mat-dialog-actions class="dialog-buttons" *ngIf="!countdownComplete">
+    <button (click)="pauseResume()">Start/Pause</button>
+    <button (click)="restartTimer()">Reset</button>
+    <button mat-dialog-close>Close</button>
+</mat-dialog-actions>
 <mat-dialog-actions class="dialog-buttons" *ngIf="countdownComplete">
-    <button mat-dialog-close>Stop</button>
+    <button>Mark Done</button>
     <button (click)="restartTimer()">Continue</button>
+    <button mat-dialog-close>Stop</button>
 </mat-dialog-actions>

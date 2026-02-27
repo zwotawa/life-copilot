@@ -2,7 +2,7 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TimerDialogData } from '../goal-card/goal-card.component';
 import { SecondsToMinutesPipe } from '../pipes/seconds-to-minutes.pipe';
-import { map, Observable, takeWhile, timer } from 'rxjs';
+import { map, Observable, timer, BehaviorSubject, Subject, switchMap, scan, NEVER } from 'rxjs';
 @Component({
   selector: 'app-timer-dialog',
   templateUrl: './timer-dialog.component.html',
@@ -10,12 +10,14 @@ import { map, Observable, takeWhile, timer } from 'rxjs';
 })
 export class TimerDialogComponent implements OnInit {
 
-  private goalType: string = '';
+  public goalType: string = '';
   public actionText: string = '';
-  public secondsLeft: number = 600;
-  public isRunning: boolean = false;
+  public secondsLeft: number = 5;
+  public isRunning: boolean = true;
   public countdown$: Observable<number> = new Observable();
   public countdownComplete: boolean = false;
+  public pauseResume$: BehaviorSubject<boolean> = new BehaviorSubject(this.isRunning);
+
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: TimerDialogData) { }
 
@@ -26,20 +28,29 @@ export class TimerDialogComponent implements OnInit {
   }
 
   private startTimer(): void {
-    this.countdown$ = timer(0, 1000).pipe(
+    this.countdown$ = this.pauseResume$.pipe(
+      switchMap(running => running ? timer(0, 1000)  : NEVER ),
       map(() => {
-        this.secondsLeft--;
-        if (this.secondsLeft == 0) this.countdownComplete = true;
+        if(this.secondsLeft > 0) {
+          this.secondsLeft--;
+        }
+        else {
+          this.countdownComplete = true;
+        }
         return this.secondsLeft;
-      }),
-      takeWhile(value => value >= 0)
-    );
+      })
+    )
   } 
 
   public restartTimer(): void {
     this.secondsLeft = 600;
     this.countdownComplete = false;
-    this.startTimer();
+    this.pauseResume$.next(true)
+  }
+
+  public pauseResume(): void {
+    this.pauseResume$.next(!this.isRunning);
+    this.isRunning = !this.isRunning;
   }
 
 }
