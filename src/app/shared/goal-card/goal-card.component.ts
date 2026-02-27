@@ -8,6 +8,7 @@ import { GoalAction } from 'src/app/core/goal-action.model';
 export interface TimerDialogData {
   goalType: string;
   goal: GoalAction;
+  goalReason: string;
 }
 
 
@@ -36,7 +37,11 @@ export class GoalCardComponent implements OnInit {
     const dialogRef = this.dialog.open(TimerDialogComponent, {
       height: '400px',
       width: '600px',
-      data: { goalType: this.cardData?.title, goal: this.cardData?.nextActions[this.selection]}
+      data: { 
+        goalType: this.cardData?.title, 
+        goal: this.cardData?.nextActions[this.selection],
+        goalReason: this.cardData?.why
+      }
     });
   }
   
