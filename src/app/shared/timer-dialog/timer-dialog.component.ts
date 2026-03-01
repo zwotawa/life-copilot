@@ -9,14 +9,11 @@ import { formatDate } from '@angular/common';
 import { removeJobActionById } from 'src/app/core/job-action.storage';
 import { removeVehicleActionById } from 'src/app/core/vehicle-action.storage';
 import { removeDeclutterActionById } from 'src/app/core/declutter-action.storage';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 interface StuckReasons {
   reason: string;
   fix: string;
 }
-
-
 
 @Component({
   selector: 'app-timer-dialog',
@@ -54,7 +51,7 @@ export class TimerDialogComponent implements OnInit {
 
   public goalType: string = '';
   public actionText: string = '';
-  public secondsLeft: number = 600;
+  public secondsLeft: number = 5;
   public isRunning: boolean = true;
   public goalReason: string = '';
   public countdown$: Observable<number> = new Observable();
@@ -62,13 +59,11 @@ export class TimerDialogComponent implements OnInit {
   public pauseResume$: BehaviorSubject<boolean> = new BehaviorSubject(this.isRunning);
   public stuckButtonsShown: boolean = false;
   public reasonFix: number = -1;
-
+  private totalSecondsPassed = 0;
 
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: TimerDialogData,
-    private sanitizer: DomSanitizer
-  ) { }
+    @Inject(MAT_DIALOG_DATA) public data: TimerDialogData) { }
 
   ngOnInit(): void {
     this.goalType = this.data.goalType;
@@ -93,6 +88,7 @@ export class TimerDialogComponent implements OnInit {
   } 
 
   public restartTimer(): void {
+    this.totalSecondsPassed = 600 - this.secondsLeft;
     this.secondsLeft = 600;
     this.countdownComplete = false;
     this.pauseResume$.next(true)
@@ -100,17 +96,22 @@ export class TimerDialogComponent implements OnInit {
 
   public pauseResume(): void {
     this.pauseResume$.next(!this.isRunning);
+    if(this.stuckButtonsShown) this.stuckButtonsShown = false;
     this.isRunning = !this.isRunning;
   }
 
   public moveToCompleted(): void {
+    this.totalSecondsPassed += 600 - this.secondsLeft;
     const updatedGoalAction: GoalAction = {
       id: this.data.goal.id,
       text: this.data.goal.text,
       createdAt: this.data.goal.createdAt,
       sourceInboxId: this.data.goal.sourceInboxId,
-      completedAt: formatDate(new Date(), 'yyyy-MM-dd HH:mm', 'en')
+      completedAt: formatDate(new Date(), 'yyyy-MM-dd HH:mm', 'en'),
+      durationSeconds: this.totalSecondsPassed,
+      goalKey: this.goalType
     }
+
     const completedActions: GoalAction[] = loadCompletedActions();
     const updatedCompletedActions: GoalAction[] = [updatedGoalAction, ...completedActions]
     saveCompletedActions(updatedCompletedActions);
@@ -132,7 +133,8 @@ export class TimerDialogComponent implements OnInit {
 
   public showStuckButtons(): void {
     this.pauseResume$.next(false);
-    this.stuckButtonsShown = !this.stuckButtonsShown;
+    this.isRunning = false;
+    this.stuckButtonsShown = true;
   }
 
   public fixText(reason: number): void {
@@ -144,6 +146,7 @@ export class TimerDialogComponent implements OnInit {
     this.stuckButtonsShown = !this.stuckButtonsShown;
     this.actionText = this.stuckReasons[taskNumber].fix;
     this.secondsLeft = 120;
+    this.totalSecondsPassed = 0;
     this.pauseResume$.next(true);
   }
 }

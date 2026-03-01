@@ -1,5 +1,6 @@
 import { formatDate } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { loadCompletedActions } from 'src/app/core/completed-action.storage';
 import { loadDeclutterActions } from 'src/app/core/declutter-action.storage';
 import { GoalAction } from 'src/app/core/goal-action.model';
 import { InboxItem } from 'src/app/core/inbox.model';
@@ -39,6 +40,8 @@ export class DashboardComponent implements OnInit {
   public newText :string = '';
   public addDisabled: boolean = true;
   public inboxCount = 0;
+  public todaysCompletedActions: GoalAction[] = [];
+  public todaysWinCount: number = 0;
 
   constructor() { 
     this.items = loadInbox();
@@ -46,6 +49,11 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.inboxCount = this.items.length;
+    this.loadTodaysCompletedActions();
+  }
+
+  ngAfterViewInit() {
+  
   }
 
   public updateNewText(event: Event): void {
@@ -57,7 +65,7 @@ export class DashboardComponent implements OnInit {
     const newId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
     const item: InboxItem = {
       id: newId,
-      text: this.newText,
+      text: this.newText.trim(),
       createdAt: formatDate(new Date(), 'yyyy-MM-dd HH:mm', 'en')
     }
 
@@ -76,4 +84,23 @@ export class DashboardComponent implements OnInit {
     else this.addDisabled = false;
   }
 
+  private loadTodaysCompletedActions(): void {
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    this.todaysCompletedActions = loadCompletedActions().filter((goalAction) => {
+      //normalize data to match format of todays date above and compare
+      const isoString = goalAction.completedAt?.replace(' ', 'T');
+      if(isoString) {
+        const date = new Date(isoString);
+        const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+        return startOfDate.getTime() === startOfToday.getTime();
+      } 
+      else return;
+    });
+
+    this.todaysWinCount = this.todaysCompletedActions.length;
+    console.log(this.todaysCompletedActions);
+  }
 }

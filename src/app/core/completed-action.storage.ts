@@ -8,7 +8,7 @@ export function loadCompletedActions(): GoalAction[] {
         const raw = localStorage.getItem(KEY);
         if(!raw) return [];
         const parsed = JSON.parse(raw) as GoalAction[];
-        return Array.isArray(parsed) ? parsed : [];
+        return Array.isArray(parsed) ? parsed.slice(0, 201) : [];
     } catch {
         return [];
     }

@@ -1,4 +1,8 @@
 <div class="body">
+    <div>Today's Wins ({{ todaysWinCount }})</div>
+    <div *ngFor="let action of todaysCompletedActions">
+        [{{ action.goalKey }}]  {{ action.text }} -  {{ action.completedAt }}
+    </div>
     <div class="add-idea">
         <form>
             <mat-form-field>
