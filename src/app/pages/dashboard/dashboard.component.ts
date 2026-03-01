@@ -42,6 +42,7 @@ export class DashboardComponent implements OnInit {
   public inboxCount = 0;
   public todaysCompletedActions: GoalAction[] = [];
   public todaysWinCount: number = 0;
+  public streakCount = 0;
 
   constructor() { 
     this.items = loadInbox();
@@ -50,6 +51,7 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.inboxCount = this.items.length;
     this.loadTodaysCompletedActions();
+    this.completedActionsStreak();
   }
 
   ngAfterViewInit() {
@@ -101,6 +103,23 @@ export class DashboardComponent implements OnInit {
     });
 
     this.todaysWinCount = this.todaysCompletedActions.length;
-    console.log(this.todaysCompletedActions);
+  }
+
+  private completedActionsStreak(): void {
+    const completedActions: GoalAction[] = loadCompletedActions();
+
+    const today: Date = new Date();
+    const previousDay: Date = new Date(today);
+    previousDay.setDate(today.getDate() - 1);
+    const formattedPreviousDay: string = previousDay.toISOString().split('T')[0];
+
+    completedActions.forEach(action => {
+      if (action.completedAt?.includes(formattedPreviousDay)) {
+        this.streakCount += 1;
+        previousDay.setDate(previousDay.getDate() - 1);
+      } else {
+        return;
+      }
+    });
   }
 }

@@ -1,8 +1,10 @@
 <div class="body">
     <div>Today's Wins ({{ todaysWinCount }})</div>
+    <div *ngIf="!todaysWinCount">No wins yet - start a 2-minute rescue sprint</div>
     <div *ngFor="let action of todaysCompletedActions">
         [{{ action.goalKey }}]  {{ action.text }} -  {{ action.completedAt }}
     </div>
+    <div>Streak: {{ streakCount }}</div>
     <div class="add-idea">
         <form>
             <mat-form-field>
