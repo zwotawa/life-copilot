@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { GoalAction } from 'src/app/core/goal-action.model';
+import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { InboxItem } from 'src/app/core/inbox.model';
 import { loadInbox, removeInboxItemById, saveInbox } from 'src/app/core/inbox.storage';
 import { loadJobActions, saveJobActions } from 'src/app/core/job-action.storage';
@@ -20,12 +20,13 @@ export class ListItemComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  public moveToGoal(goal: string) {
+  public moveToGoal(goal: GoalKey) {
 
     if(this.itemData) {
       const action: GoalAction = {
         id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
         text: this.itemData.text,
+        goalKey: goal,
         createdAt: this.itemData.createdAt,
         sourceInboxId: this.itemData.id
       }

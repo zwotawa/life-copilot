@@ -2,13 +2,14 @@ import { GoalAction } from "./goal-action.model";
 
 
 const KEY = 'lifeCopilot.actions.completed';
+const MAX_ITEMS = 200;
 
 export function loadCompletedActions(): GoalAction[] {
     try {
         const raw = localStorage.getItem(KEY);
         if(!raw) return [];
         const parsed = JSON.parse(raw) as GoalAction[];
-        return Array.isArray(parsed) ? parsed.slice(0, 201) : [];
+        return Array.isArray(parsed) ? parsed.slice(0, MAX_ITEMS) : [];
     } catch {
         return [];
     }
@@ -20,6 +21,6 @@ export function saveCompletedActions(items: GoalAction[]): void {
 
 export function removeCompletedActionById(idToRemove: string): void {
     const items: GoalAction[] = loadCompletedActions();
-    const updatedInboxItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
-    saveCompletedActions(updatedInboxItems);
+    const updatedCompletedItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
+    saveCompletedActions(updatedCompletedItems);
 }

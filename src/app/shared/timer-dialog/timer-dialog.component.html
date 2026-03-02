@@ -7,35 +7,46 @@
     </mat-card-subtitle>
 </mat-card-header>
 <div mat-dialog-title>{{ actionText }}</div>
-<mat-dialog-content *ngIf="!countdownComplete"> {{ countdown$ | async | secondsToMinutes }} </mat-dialog-content>
-<mat-dialog-content *ngIf="countdownComplete">Time's Up!</mat-dialog-content>
-<div *ngIf="!countdownComplete">
-    <mat-dialog-actions class="dialog-buttons">
-        <button (click)="pauseResume()">Start/Pause</button>
-        <button (click)="restartTimer()">Reset</button>
-        <button mat-dialog-close>Close</button>
-    </mat-dialog-actions>
-    <mat-dialog-actions class="dialog-buttons">
-        <button (click)="showStuckButtons()" *ngIf="!stuckButtonsShown">I'm Stuck</button>
-        <div *ngIf="stuckButtonsShown">What am I avoiding?
-            <div>
-                <button 
-                    *ngFor="let reason of stuckReasons; let i = index"
-                    (click)="fixText(i)"
-                    >{{ reason.reason }}
-                </button>
-            </div>
-            <div *ngFor="let reason of stuckReasons; let i = index">
-                <div *ngIf="i == reasonFix">
-                    {{ reason.fix }}
-                    <button (click)="switchToQuickTask(i)">Do 2 minutes</button>
+<div *ngIf="!completed">
+    <mat-dialog-content *ngIf="!countdownComplete"> {{ countdown$ | async | secondsToMinutes }} </mat-dialog-content>
+    <mat-dialog-content *ngIf="countdownComplete">Time's Up!</mat-dialog-content>
+</div>
+<div *ngIf="completed">Win Logged!</div>
+<div *ngIf="!completed">
+    <div *ngIf="!countdownComplete">
+        <mat-dialog-actions class="dialog-buttons">
+            <button (click)="pauseResume()">Start/Pause</button>
+            <button (click)="restartTimer()">Reset</button>
+            <button mat-dialog-close>Close</button>
+        </mat-dialog-actions>
+        <mat-dialog-actions class="dialog-buttons">
+            <button (click)="showStuckButtons()" *ngIf="!stuckButtonsShown">I'm Stuck</button>
+            <div *ngIf="stuckButtonsShown">What am I avoiding?
+                <div>
+                    <button 
+                        *ngFor="let reason of stuckReasons; let i = index"
+                        (click)="fixText(i)"
+                        >{{ reason.reason }}
+                    </button>
+                </div>
+                <div *ngFor="let reason of stuckReasons; let i = index">
+                    <div *ngIf="i == reasonFix">
+                        {{ reason.fix }}
+                        <button (click)="switchToQuickTask(i)">Do 2 minutes</button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </mat-dialog-actions>
+    </div>
+    <mat-dialog-actions class="dialog-buttons" *ngIf="countdownComplete">
+        <button (click)="moveToCompleted()">Mark Done</button>
+        <button (click)="restartTimer()">Do Another 10</button>
+        <button mat-dialog-close>Stop</button>
     </mat-dialog-actions>
 </div>
-<mat-dialog-actions class="dialog-buttons" *ngIf="countdownComplete">
-    <button (click)="moveToCompleted()">Mark Done</button>
-    <button (click)="restartTimer()">Do Another 10</button>
-    <button mat-dialog-close>Stop</button>
-</mat-dialog-actions>
+<div *ngIf="completed">
+    <mat-dialog-actions>
+        <button matDialogClose>Close</button>"
+    </mat-dialog-actions>
+    <p>This counts toward Today's Wins.</p>
+</div>

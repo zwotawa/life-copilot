@@ -2,14 +2,14 @@ import { formatDate } from '@angular/common';
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { loadCompletedActions } from 'src/app/core/completed-action.storage';
 import { loadDeclutterActions } from 'src/app/core/declutter-action.storage';
-import { GoalAction } from 'src/app/core/goal-action.model';
+import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { InboxItem } from 'src/app/core/inbox.model';
 import { loadInbox, saveInbox } from 'src/app/core/inbox.storage';
 import { loadJobActions } from 'src/app/core/job-action.storage';
 import { loadVehicleActions } from 'src/app/core/vehicle-action.storage';
 
   export interface GoalCard {
-    title: string;
+    goalKey: GoalKey;
     why: string;
     nextActions: GoalAction[];
   }
@@ -22,15 +22,15 @@ import { loadVehicleActions } from 'src/app/core/vehicle-action.storage';
 export class DashboardComponent implements OnInit {
 
   public goalCards: GoalCard[] = [
-    { title: 'Job',
+    { goalKey: 'job',
       why: 'to secure retirement funds',
       nextActions: loadJobActions()
     },
-    { title: 'Vehicle',
+    { goalKey: 'vehicle',
       why: 'to go to land',
       nextActions: loadVehicleActions()
     },
-    { title: 'Declutter',
+    { goalKey: 'declutter',
       why: 'peace of mind',
       nextActions: loadDeclutterActions()
     }
@@ -108,15 +108,20 @@ export class DashboardComponent implements OnInit {
   private completedActionsStreak(): void {
     const completedActions: GoalAction[] = loadCompletedActions();
 
+    if(this.todaysWinCount) {
+      this.streakCount += 1;
+    }
+
     const today: Date = new Date();
     const previousDay: Date = new Date(today);
     previousDay.setDate(today.getDate() - 1);
-    const formattedPreviousDay: string = previousDay.toISOString().split('T')[0];
+    let formattedPreviousDay: string = previousDay.toISOString().split('T')[0];
 
     completedActions.forEach(action => {
       if (action.completedAt?.includes(formattedPreviousDay)) {
         this.streakCount += 1;
         previousDay.setDate(previousDay.getDate() - 1);
+        formattedPreviousDay = previousDay.toDateString().split('T')[0];
       } else {
         return;
       }

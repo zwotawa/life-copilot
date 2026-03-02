@@ -3,7 +3,7 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TimerDialogData } from '../goal-card/goal-card.component';
 import { SecondsToMinutesPipe } from '../pipes/seconds-to-minutes.pipe';
 import { map, Observable, timer, BehaviorSubject, Subject, switchMap, NEVER } from 'rxjs';
-import { GoalAction } from 'src/app/core/goal-action.model';
+import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { loadCompletedActions, saveCompletedActions } from 'src/app/core/completed-action.storage';
 import { formatDate } from '@angular/common';
 import { removeJobActionById } from 'src/app/core/job-action.storage';
@@ -49,7 +49,7 @@ export class TimerDialogComponent implements OnInit {
     }
   ]
 
-  public goalType: string = '';
+  public goalType: GoalKey;
   public actionText: string = '';
   public secondsLeft: number = 5;
   public isRunning: boolean = true;
@@ -59,14 +59,16 @@ export class TimerDialogComponent implements OnInit {
   public pauseResume$: BehaviorSubject<boolean> = new BehaviorSubject(this.isRunning);
   public stuckButtonsShown: boolean = false;
   public reasonFix: number = -1;
+  public completed: boolean = false;
   private totalSecondsPassed = 0;
 
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: TimerDialogData) { }
+    @Inject(MAT_DIALOG_DATA) public data: TimerDialogData) {
+      this.goalType = this.data.goalKey;
+     }
 
   ngOnInit(): void {
-    this.goalType = this.data.goalType;
     this.actionText = this.data.goal.text ? this.data.goal.text : '';
     this.goalReason = this.data.goalReason
     this.startTimer();
@@ -129,6 +131,8 @@ export class TimerDialogComponent implements OnInit {
       default:
         break;
     }
+
+    this.completed = true;
   }
 
   public showStuckButtons(): void {
