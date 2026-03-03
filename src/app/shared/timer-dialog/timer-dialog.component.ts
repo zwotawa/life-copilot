@@ -109,7 +109,7 @@ export class TimerDialogComponent implements OnInit {
       text: this.data.goal.text,
       createdAt: this.data.goal.createdAt,
       sourceInboxId: this.data.goal.sourceInboxId,
-      completedAt: formatDate(new Date(), 'yyyy-MM-dd HH:mm', 'en'),
+      completedAt: Date.now(),
       durationSeconds: this.totalSecondsPassed,
       goalKey: this.goalType
     }

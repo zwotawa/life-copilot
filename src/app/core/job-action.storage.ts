@@ -20,6 +20,6 @@ export function saveJobActions(items: GoalAction[]): void {
 
 export function removeJobActionById(idToRemove: string): void {
     const items: GoalAction[] = loadJobActions();
-    const updatedInboxItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
-    saveJobActions(updatedInboxItems);
+    const updatedJobActionItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
+    saveJobActions(updatedJobActionItems);
 }

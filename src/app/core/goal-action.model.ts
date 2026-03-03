@@ -4,8 +4,8 @@ export interface GoalAction {
     id: string;
     text: string;
     goalKey: GoalKey;
-    createdAt: string;
+    createdAt: number;
     sourceInboxId?: string;
-    completedAt?: string;
+    completedAt?: number;
     durationSeconds?: number;
 }

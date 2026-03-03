@@ -7,6 +7,7 @@ import { InboxItem } from 'src/app/core/inbox.model';
 import { loadInbox, saveInbox } from 'src/app/core/inbox.storage';
 import { loadJobActions } from 'src/app/core/job-action.storage';
 import { loadVehicleActions } from 'src/app/core/vehicle-action.storage';
+import { isSameDay } from 'src/app/shared/utility/same-day-comparison';
 
   export interface GoalCard {
     goalKey: GoalKey;
@@ -68,7 +69,7 @@ export class DashboardComponent implements OnInit {
     const item: InboxItem = {
       id: newId,
       text: this.newText.trim(),
-      createdAt: formatDate(new Date(), 'yyyy-MM-dd HH:mm', 'en')
+      createdAt: Date.now()
     }
 
     const items: InboxItem[] = [item, ...this.items];
@@ -88,17 +89,12 @@ export class DashboardComponent implements OnInit {
 
   private loadTodaysCompletedActions(): void {
     const today = new Date();
-    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     this.todaysCompletedActions = loadCompletedActions().filter((goalAction) => {
-      //normalize data to match format of todays date above and compare
-      const isoString = goalAction.completedAt?.replace(' ', 'T');
-      if(isoString) {
-        const date = new Date(isoString);
-        const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-        return startOfDate.getTime() === startOfToday.getTime();
-      } 
+      if(goalAction.completedAt) {
+        const actionDate: Date = new Date(goalAction.completedAt);
+        return isSameDay(today, actionDate);
+      }
       else return;
     });
 
@@ -113,17 +109,39 @@ export class DashboardComponent implements OnInit {
     }
 
     const today: Date = new Date();
+    console.log('today', today);
     const previousDay: Date = new Date(today);
     previousDay.setDate(today.getDate() - 1);
-    let formattedPreviousDay: string = previousDay.toISOString().split('T')[0];
+
+    let previouslyMatchedDay: Date | null = null;
 
     completedActions.forEach(action => {
-      if (action.completedAt?.includes(formattedPreviousDay)) {
-        this.streakCount += 1;
-        previousDay.setDate(previousDay.getDate() - 1);
-        formattedPreviousDay = previousDay.toDateString().split('T')[0];
-      } else {
-        return;
+      //if completed action isn't null continue check
+      if(action.completedAt) {
+        console.log('action.completedAt exists');
+        const actionDate: Date = new Date(action.completedAt);
+
+        //if previously matched date exists 
+        if(previouslyMatchedDay) {
+          console.log('previously matched dat exists');
+          //and it matches the currect action, skip to the next action
+          if( isSameDay(actionDate, previouslyMatchedDay)) {
+            console.log('this day has already been recorded for the streak');
+            return;
+          }
+        
+        }
+        //if it's a new unmatched date, check if it matches the new previous day  
+          if(isSameDay(new Date(actionDate), previousDay)) {
+            this.streakCount += 1;
+            previouslyMatchedDay = actionDate;
+            console.log('match', actionDate, previousDay);
+            previousDay.setDate(previousDay.getDate() - 1);
+          } else {
+            console.log('no match', actionDate, previousDay);
+            return;
+          }
+        
       }
     });
   }

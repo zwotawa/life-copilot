@@ -20,6 +20,6 @@ export function saveDeclutterActions(items: GoalAction[]): void {
 
 export function removeDeclutterActionById(idToRemove: string): void {
     const items: GoalAction[] = loadDeclutterActions();
-    const updatedInboxItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
-    saveDeclutterActions(updatedInboxItems);
+    const updatedDeclutterActionItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
+    saveDeclutterActions(updatedDeclutterActionItems);
 }

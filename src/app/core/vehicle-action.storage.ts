@@ -20,6 +20,6 @@ export function saveVehicleActions(items: GoalAction[]): void {
 
 export function removeVehicleActionById(idToRemove: string): void {
     const items: GoalAction[] = loadVehicleActions();
-    const updatedInboxItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
-    saveVehicleActions(updatedInboxItems);
+    const updatedVehicleActionItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
+    saveVehicleActions(updatedVehicleActionItems);
 }
