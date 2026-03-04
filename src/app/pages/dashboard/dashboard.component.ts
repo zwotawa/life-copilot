@@ -109,7 +109,6 @@ export class DashboardComponent implements OnInit {
     }
 
     const today: Date = new Date();
-    console.log('today', today);
     const previousDay: Date = new Date(today);
     previousDay.setDate(today.getDate() - 1);
 
@@ -118,15 +117,12 @@ export class DashboardComponent implements OnInit {
     completedActions.forEach(action => {
       //if completed action isn't null continue check
       if(action.completedAt) {
-        console.log('action.completedAt exists');
         const actionDate: Date = new Date(action.completedAt);
 
         //if previously matched date exists 
         if(previouslyMatchedDay) {
-          console.log('previously matched dat exists');
           //and it matches the currect action, skip to the next action
           if( isSameDay(actionDate, previouslyMatchedDay)) {
-            console.log('this day has already been recorded for the streak');
             return;
           }
         
@@ -135,10 +131,8 @@ export class DashboardComponent implements OnInit {
           if(isSameDay(new Date(actionDate), previousDay)) {
             this.streakCount += 1;
             previouslyMatchedDay = actionDate;
-            console.log('match', actionDate, previousDay);
             previousDay.setDate(previousDay.getDate() - 1);
           } else {
-            console.log('no match', actionDate, previousDay);
             return;
           }
         

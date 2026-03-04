@@ -19,6 +19,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
 import { SecondsToMinutesPipe } from './shared/pipes/seconds-to-minutes.pipe';
 import { FormsModule } from '@angular/forms';
+import { CapitalilzeFirstLetter } from './shared/pipes/capitalize-first-letter.pipe';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { FormsModule } from '@angular/forms';
     GoalCardComponent,
     ListItemComponent,
     TimerDialogComponent,
-    SecondsToMinutesPipe
+    SecondsToMinutesPipe,
+    CapitalilzeFirstLetter
   ],
   imports: [
     BrowserModule,
