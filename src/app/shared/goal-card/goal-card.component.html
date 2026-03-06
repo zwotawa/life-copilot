@@ -12,7 +12,11 @@
             <div class="action-list">
                 <mat-radio-group [(ngModel)]="currentSelectionId" name="'actions.'{{cardData?.goalKey}}">
                     <div *ngFor="let action of cardData?.nextActions | slice:0:3; trackBy: trackById">
-                        <mat-radio-button value="{{action.id}}" (change)="saveSelection(action.id)">{{ action.text }}</mat-radio-button>
+                        <mat-radio-button 
+                            value="{{action.id}}" 
+                            (change)="saveSelection(action.id)"
+                            >{{ action.text }}
+                        </mat-radio-button>
                     </div>
                 </mat-radio-group>
             </div>

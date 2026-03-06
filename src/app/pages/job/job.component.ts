@@ -7,6 +7,9 @@ import { Component, OnInit } from '@angular/core';
 })
 export class JobComponent implements OnInit {
 
+  public stages: string[] = ['toApply', 'applied', 'follouUp', 'interview'];
+  public cardsInStage: number = 0;
+
   constructor() { }
 
   ngOnInit(): void {
