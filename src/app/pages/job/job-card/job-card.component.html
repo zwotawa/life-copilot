@@ -6,12 +6,20 @@
         <p>Next Action: {{ jobCardData.nextAction }}</p>
     </mat-card-content>
     <mat-card-actions>
-        <button (click)="moveCard(jobCardData, back)">
-            <mat-icon>Arrow Back</mat-icon>
-        </button>
-        <button (click)="moveCard(jobCardData, forward)">
-            <mat-icon>Arrow Forward</mat-icon>
-        </button>
+        <div>
+            <button *ngIf="!(jobCardData.stage == 'toApply')" (click)="moveCard(jobCardData, back)">
+                <mat-icon>Arrow Back</mat-icon>
+            </button>
+            <button *ngIf="!(jobCardData.stage == 'interview')" (click)="moveCard(jobCardData, forward)">
+                <mat-icon>Arrow Forward</mat-icon>
+            </button>
+        </div>
+        <div *ngIf="jobCardData.stage == 'followUp' || jobCardData.stage == 'applied'">
+            <button>Add follow-up action</button>
+        </div>
     </mat-card-actions>
-    <mat-card-footer>Touched: {{ jobCardData.lastTouchedAt }}</mat-card-footer>
+    <mat-card-footer>
+        <p>Touched: {{ jobCardData.lastTouchedAt }}</p>
+        <p *ngIf="stale">Stale</p>
+    </mat-card-footer>   
 </mat-card>

@@ -36,7 +36,12 @@ export class JobComponent implements OnInit {
   }
 
   public stageCards(stage: JobStage): JobCard[] {
-    return this.jobCards.filter(card => card.stage == stage);
+    return this.jobCards.filter(card => card.stage == stage).sort((a, b) => {
+      const dateA = new Date(a.lastTouchedAt).getTime();
+      const dateB = new Date(b.lastTouchedAt).getTime();
+
+      return dateB - dateA;
+    });
   }
 
 }
