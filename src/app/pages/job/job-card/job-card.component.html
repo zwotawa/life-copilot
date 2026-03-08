@@ -1,0 +1,17 @@
+<mat-card>
+    <mat-card-content>
+        <p>Company: {{ jobCardData.company }}</p>
+        <p>Role: {{ jobCardData.role }}</p>
+        <p>Link: {{ jobCardData.link }}</p>
+        <p>Next Action: {{ jobCardData.nextAction }}</p>
+    </mat-card-content>
+    <mat-card-actions>
+        <button (click)="moveCard(jobCardData, back)">
+            <mat-icon>Arrow Back</mat-icon>
+        </button>
+        <button (click)="moveCard(jobCardData, forward)">
+            <mat-icon>Arrow Forward</mat-icon>
+        </button>
+    </mat-card-actions>
+    <mat-card-footer>Touched: {{ jobCardData.lastTouchedAt }}</mat-card-footer>
+</mat-card>

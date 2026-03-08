@@ -20,6 +20,8 @@ import { MatRadioModule } from '@angular/material/radio';
 import { SecondsToMinutesPipe } from './shared/pipes/seconds-to-minutes.pipe';
 import { FormsModule } from '@angular/forms';
 import { CapitalilzeFirstLetter } from './shared/pipes/capitalize-first-letter.pipe';
+import { JobCardComponent } from './pages/job/job-card/job-card.component';
+import { MatIconModule } from '@angular/material/icon'
 
 @NgModule({
   declarations: [
@@ -32,7 +34,8 @@ import { CapitalilzeFirstLetter } from './shared/pipes/capitalize-first-letter.p
     ListItemComponent,
     TimerDialogComponent,
     SecondsToMinutesPipe,
-    CapitalilzeFirstLetter
+    CapitalilzeFirstLetter,
+    JobCardComponent
   ],
   imports: [
     BrowserModule,
@@ -44,7 +47,8 @@ import { CapitalilzeFirstLetter } from './shared/pipes/capitalize-first-letter.p
     MatInputModule,
     MatDialogModule,
     MatRadioModule,
-    FormsModule
+    FormsModule,
+    MatIconModule
   ],
   providers: [],
   bootstrap: [AppComponent]
