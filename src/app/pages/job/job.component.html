@@ -1,5 +1,6 @@
 <div class="body-container">
     <div *ngFor="let stage of stages" class="column">
+        <p>{{ stage | capitalizeFirstLetter }}</p>
         <p>Count: {{ stageCards(stage) ? stageCards(stage).length : 0}}</p>
         <div *ngFor="let card of stageCards(stage)">
             <app-job-card [jobCardData]="card" (moveEvent)="moveCard($event)"></app-job-card>

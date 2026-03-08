@@ -8,18 +8,18 @@
     <mat-card-actions>
         <div>
             <button *ngIf="!(jobCardData.stage == 'toApply')" (click)="moveCard(jobCardData, back)">
-                <mat-icon>Arrow Back</mat-icon>
+                <mat-icon>arrow_back</mat-icon>
             </button>
             <button *ngIf="!(jobCardData.stage == 'interview')" (click)="moveCard(jobCardData, forward)">
-                <mat-icon>Arrow Forward</mat-icon>
+                <mat-icon>arrow_forward</mat-icon>
             </button>
         </div>
         <div *ngIf="jobCardData.stage == 'followUp' || jobCardData.stage == 'applied'">
-            <button>Add follow-up action</button>
+            <button (click)="addJobAction()">Add follow-up action</button>
         </div>
     </mat-card-actions>
     <mat-card-footer>
-        <p>Touched: {{ jobCardData.lastTouchedAt }}</p>
+        <p>Touched: {{ jobCardData.lastTouchedAt | date }}</p>
         <p *ngIf="stale">Stale</p>
     </mat-card-footer>   
 </mat-card>
