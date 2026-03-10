@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: life-copilot-db
+    environment:
+      POSTGRES_USER: lifecopilot
+      POSTGRES_PASSWORD: lifecopilot
+      POSTGRES_DB: lifecopilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - lifecopilot_pg:/var/lib/postgresql/data
+
+volumes:
+  lifecopilot_pg:

@@ -1,5 +1,5 @@
 <div class="list-item">
-    <p>{{ itemData?.createdAt }} &NonBreakingSpace;</p>
+    <p>{{ itemData?.createdAt | date }} &NonBreakingSpace;</p>
     <p>{{ itemData?.text }} &NonBreakingSpace;</p>
     <button (click)="moveToGoal('job')">Job</button>
     <button (click)="moveToGoal('vehicle')">Vehicle</button>
