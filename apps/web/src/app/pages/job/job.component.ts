@@ -1,7 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { JobCard, JobStage } from 'src/app/core/job-pipeline.model';
 import { loadJobCards, saveJobCards, updateJobCard } from 'src/app/core/job-pipeline.storage';
 import { CardMovement } from './job-card/job-card.component';
+import { JobService } from './job.service';
+import { Observable, Subscription } from 'rxjs';
+
+interface Stage {
+  stageName: JobStage,
+  stageCards: JobCard[]
+}
 
 @Component({
   selector: 'app-job',
@@ -10,17 +17,35 @@ import { CardMovement } from './job-card/job-card.component';
 })
 export class JobComponent implements OnInit {
 
-  public stages: JobStage[] = ['toApply', 'applied', 'followUp', 'interview'];
+  public stages: Stage[] = [{
+    stageName:'toApply',
+    stageCards: []
+   },
+   {
+    stageName: 'applied',
+    stageCards: [] 
+    },
+    {
+      stageName: 'followUp',
+      stageCards: []
+    },
+    {
+      stageName: 'interview',
+      stageCards: []
+    }];
   public jobCards: JobCard[] = <JobCard[]>[];
+  public isLoading: boolean = false;
+  public error: string | null = null;
+  private subscriptions: Subscription[] = [];
 
-  constructor() { }
+  constructor(private jobService: JobService) { }
 
   ngOnInit(): void {
-    this.jobCards = loadJobCards();
+    this.refresh();
   }
 
   public moveCard(cardMovement: CardMovement): void {
-    const currentStage: number = this.stages.findIndex((stage) => cardMovement.card.stage == stage);
+    const currentStage: number = this.stages.findIndex((stage) => cardMovement.card.stage == stage.stageName);
     let newStage: number = -1;
     if(cardMovement.moveDirection == 'back') {
       newStage = currentStage - 1;
@@ -30,19 +55,52 @@ export class JobComponent implements OnInit {
     }
 
     const updatedCard: JobCard = JSON.parse(JSON.stringify(cardMovement.card));
-    updatedCard.stage = this.stages[newStage];
+    updatedCard.stage = this.stages[newStage].stageName;
     updatedCard.lastTouchedAt = Date.now();
+
+    this.subscriptions.push(this.jobService.updateJob(updatedCard).subscribe({
+      next: () => { this.refresh() },
+      error: (err) => { console.error(err) }
+    }));
 
     updateJobCard(updatedCard);
   }
 
-  public stageCards(stage: JobStage): JobCard[] {
+  private refresh(): void {
+    this.isLoading = true;
+    this.error = null;
+
+    this.subscriptions?.push(this.jobService.getJobs().subscribe({
+      next: (cards) => {
+        this.jobCards = cards;
+        this.isLoading = false;
+        this.populateStageCards();
+      },
+      error: (err) => {
+        this.error = 'Failed to load jobs';
+        this.isLoading = false;
+        console.error(err);
+      }
+    }));
+  }
+
+  private stageCards(stage: JobStage): JobCard[] {
     return this.jobCards.filter(card => card.stage == stage).sort((a, b) => {
       const dateA = new Date(a.lastTouchedAt).getTime();
       const dateB = new Date(b.lastTouchedAt).getTime();
 
       return dateB - dateA;
     });
+  }
+
+  private populateStageCards(): void {
+    this.stages.forEach(stage => {
+      stage.stageCards = this.stageCards(stage.stageName);
+    });
+  }
+
+  ngOnDestroy() {
+    this.subscriptions?.forEach(sub => sub.unsubscribe());
   }
 
 }

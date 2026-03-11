@@ -1,9 +1,13 @@
-<div class="body-container">
-    <div *ngFor="let stage of stages" class="column">
-        <p>{{ stage | capitalizeFirstLetter }}</p>
-        <p>Count: {{ stageCards(stage) ? stageCards(stage).length : 0}}</p>
-        <div *ngFor="let card of stageCards(stage)">
-            <app-job-card [jobCardData]="card" (moveEvent)="moveCard($event)"></app-job-card>
+<div>
+    <div *ngIf="isLoading">Loading...</div>
+    <div *ngIf="error">{{ error }}</div>
+    <div *ngIf="!isLoading" class="body-container">
+        <div *ngFor="let stage of stages" class="column">
+            <p>{{ stage.stageName | capitalizeFirstLetter }}</p>
+            <p>Count: {{ stage.stageCards ? stage.stageCards.length : 0}}</p>
+            <div *ngFor="let card of stage.stageCards">
+                <app-job-card [jobCardData]="card" (moveEvent)="moveCard($event)"></app-job-card>
+            </div>
         </div>
     </div>
 </div>

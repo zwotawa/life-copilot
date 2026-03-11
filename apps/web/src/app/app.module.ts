@@ -22,6 +22,8 @@ import { FormsModule } from '@angular/forms';
 import { CapitalilzeFirstLetter } from './shared/pipes/capitalize-first-letter.pipe';
 import { JobCardComponent } from './pages/job/job-card/job-card.component';
 import { MatIconModule } from '@angular/material/icon'
+import { JobService } from './pages/job/job.service';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -48,7 +50,8 @@ import { MatIconModule } from '@angular/material/icon'
     MatDialogModule,
     MatRadioModule,
     FormsModule,
-    MatIconModule
+    MatIconModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]
