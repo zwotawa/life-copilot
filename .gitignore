@@ -43,4 +43,6 @@ testem.log
 Thumbs.db
 
 # api
-apps/api/LifeCopilot.Api/obj/Debug/*
+apps/api/LifeCopilot.Api/obj
+apps/api/LifeCopilot.Api/bin
+
