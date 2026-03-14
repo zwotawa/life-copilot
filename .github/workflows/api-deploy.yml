@@ -24,7 +24,7 @@ jobs:
       - name: Build
         run: dotnet build apps/api/LifeCopilot.Api/LifeCopilot.Api.csproj -c Release --no-restore
 
-            - name: Publish
+      - name: Publish
         run: dotnet publish apps/api/LifeCopilot.Api/LifeCopilot.Api.csproj -c Release -o ${{ github.workspace }}/publish
 
       - name: List publish output (debug)
