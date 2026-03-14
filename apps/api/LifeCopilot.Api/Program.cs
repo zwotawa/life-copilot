@@ -114,12 +114,14 @@ app.MapGet("/health/db", async (LifeCopilotDbContext db) =>
 {
     try
     {
-        var ok = await db.Database.CanConnectAsync();
-        return ok ? Results.Ok(new { status = "ok" }) : Results.Problem("DB connection failed");
+        await db.Database.OpenConnectionAsync();
+        await db.Database.CloseConnectionAsync();
+        return Results.Ok(new { status = "ok" });
     }
     catch (Exception ex)
     {
-        return Results.Problem(ex.ToString()); // TEMP for debugging
+        // TEMP: reveal the actual reason (auth/firewall/ssl/dbname)
+        return Results.Problem(ex.ToString());
     }
 });
 
