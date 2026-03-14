@@ -119,7 +119,7 @@ app.MapGet("/health/db", async (LifeCopilotDbContext db) =>
     }
     catch (Exception ex)
     {
-        return Results.Problem(ex.Message);
+        return Results.Problem(ex.ToString()); // TEMP for debugging
     }
 });
 
