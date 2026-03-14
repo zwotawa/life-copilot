@@ -13,6 +13,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<LifeCopilotDbContext>(opt => 
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
+var cs = builder.Configuration.GetConnectionString("Default");
+if (string.IsNullOrWhiteSpace(cs))
+{
+    throw new InvalidOperationException("Missing ConnectionStrings:Default (set ConnectionStrings__Default in App Service).");
+}
+
 // CORS
 const string CorsPolicyName = "Vercel";
 builder.Services.AddCors(options =>
