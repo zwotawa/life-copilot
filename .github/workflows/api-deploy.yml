@@ -1,0 +1,35 @@
+name: Deploy API to Azure App Service
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/api-deploy.yml"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/chekcout@v4
+
+      - name: Setup .NET
+        uses: actions/setups-dotnet@v4
+        with:
+          dotnet-version: "8.0.418"
+
+      - name: Restore
+        run: dotnet restore apps/api/LifeCopilot.Api/LifeCopilot.Api.csproj
+
+      - name: build
+        run: dotnet build apps/api/LifeCopilot.Api/LifeCopilot.Api.csproj -c Release --no-restore
+
+      - name: Publish
+        run: dotnet publish apps/api/LifeCopilot.Api/LifeCopilot.Api.csproj -c Release -o ${{ github.workspace }}/publish
+
+      - name: Deploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{ github.workspace }}/publish
