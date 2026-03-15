@@ -1,0 +1,8 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net/api/$1"
+        }
+    ]
+}
