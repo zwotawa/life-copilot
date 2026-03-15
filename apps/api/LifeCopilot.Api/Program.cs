@@ -118,17 +118,9 @@ app.MapDelete("/api/jobs/{id:guid}", async (Guid id, LifeCopilotDbContext db) =>
 
 app.MapGet("/health/db", async (LifeCopilotDbContext db) =>
 {
-    try
-    {
-        await db.Database.OpenConnectionAsync();
-        await db.Database.CloseConnectionAsync();
-        return Results.Ok(new { status = "ok" });
-    }
-    catch (Exception ex)
-    {
-        // TEMP: reveal the actual reason (auth/firewall/ssl/dbname)
-        return Results.Problem(ex.ToString());
-    }
+    await db.Database.OpenConnectionAsync();
+    await db.Database.CloseConnectionAsync();
+    return Results.Ok(new { status = "ok" });
 });
 
 app.Run();
