@@ -79,7 +79,7 @@ app.MapPost("/api/jobs", async (CreateJobCardRequest req, LifeCopilotDbContext d
         CreatedAt = now,
         LastTouchedAt = now,
         NextAction = string.IsNullOrWhiteSpace(req.NextAction) ? null : req.NextAction.Trim(),
-        NextTouchedAt = req.NextTouchedAt
+        NextTouchAt = req.NextTouchAt
    };
 
    db.JobCards.Add(entity);
@@ -102,7 +102,7 @@ app.MapPut("/api/jobs/{id:guid}", async (Guid id, UpdateJobCardRequest req, Life
     entity.Stage = req.Stage.Trim();
     entity.NextAction = string.IsNullOrWhiteSpace(req.NextAction) ? null : req.NextAction.Trim();
     entity.LastTouchedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-    entity.NextTouchedAt = req.NextTouchedAt;
+    entity.NextTouchAt = req.NextTouchAt;
 
     await db.SaveChangesAsync();
     return Results.Ok(entity);

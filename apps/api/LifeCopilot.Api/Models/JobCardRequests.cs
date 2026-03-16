@@ -6,7 +6,7 @@ public record CreateJobCardRequest(
     string Stage,
     string? Link,
     string? NextAction,
-    long? NextTouchedAt
+    long? NextTouchAt
 );
 
 public record UpdateJobCardRequest(
@@ -15,5 +15,5 @@ public record UpdateJobCardRequest(
     string Stage,
     string? Link,
     string? NextAction,
-    long? NextTouchedAt
+    long? NextTouchAt
 );
