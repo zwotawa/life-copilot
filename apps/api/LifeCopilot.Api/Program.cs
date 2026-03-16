@@ -37,7 +37,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<LifeCopilotDbContext>();
-    var shouldMigrate = app.Configuration.GetValue("RUN_MIGRATIONS", true);
+    var shouldMigrate = app.Configuration.GetValue("RUN_MIGRATIONS", false);
 
     if (shouldMigrate)
     {
