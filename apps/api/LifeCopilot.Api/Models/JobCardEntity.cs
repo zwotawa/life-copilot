@@ -17,4 +17,6 @@ public class JobCardEntity
     public long LastTouchedAt { get; set; }
 
     public string? NextAction { get; set; }
+
+    public long? NextTouchedAt { get; set; }
 }

@@ -37,7 +37,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<LifeCopilotDbContext>();
-    var shouldMigrate = app.Configuration.GetValue("RUN_MIGRATIONS", false);
+    var shouldMigrate = app.Configuration.GetValue("RUN_MIGRATIONS", true);
 
     if (shouldMigrate)
     {
@@ -78,7 +78,8 @@ app.MapPost("/api/jobs", async (CreateJobCardRequest req, LifeCopilotDbContext d
         Link = string.IsNullOrWhiteSpace(req.Link) ? null : req.Link.Trim(),
         CreatedAt = now,
         LastTouchedAt = now,
-        NextAction = string.IsNullOrWhiteSpace(req.NextAction) ? null : req.NextAction.Trim()
+        NextAction = string.IsNullOrWhiteSpace(req.NextAction) ? null : req.NextAction.Trim(),
+        NextTouchedAt = req.NextTouchedAt
    };
 
    db.JobCards.Add(entity);
@@ -101,6 +102,7 @@ app.MapPut("/api/jobs/{id:guid}", async (Guid id, UpdateJobCardRequest req, Life
     entity.Stage = req.Stage.Trim();
     entity.NextAction = string.IsNullOrWhiteSpace(req.NextAction) ? null : req.NextAction.Trim();
     entity.LastTouchedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    entity.NextTouchedAt = req.NextTouchedAt;
 
     await db.SaveChangesAsync();
     return Results.Ok(entity);
