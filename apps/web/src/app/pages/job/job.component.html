@@ -6,7 +6,12 @@
             <p>{{ stage.stageName | capitalizeFirstLetter }}</p>
             <p>Count: {{ stage.stageCards ? stage.stageCards.length : 0}}</p>
             <div *ngFor="let card of stage.stageCards">
-                <app-job-card [jobCardData]="card" (moveEvent)="moveCard($event)"></app-job-card>
+                <app-job-card 
+                    [jobCardData]="card" 
+                    (moveEvent)="moveCard($event)"
+                    (touchUpdateEvent)="setNextTouch($event)"
+                    >
+                </app-job-card>
             </div>
         </div>
     </div>

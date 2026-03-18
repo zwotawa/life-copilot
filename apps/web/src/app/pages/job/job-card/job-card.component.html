@@ -4,6 +4,12 @@
         <p>Role: {{ jobCardData.role }}</p>
         <p>Link: {{ jobCardData.link }}</p>
         <p>Next Action: {{ jobCardData.nextAction }}</p>
+        <div>
+            Next Touch: {{ due ? 'DUE' : jobCardData.nextTouchAt | date }}
+            <button (click)="nextTouch(jobCardData, 1)">Tomorrow</button>
+            <button (click)="nextTouch(jobCardData, 2)">+2d</button>
+            <button (click)="nextTouch(jobCardData, 7)">+7d</button>
+        </div>
     </mat-card-content>
     <mat-card-actions>
         <div>

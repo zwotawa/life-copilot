@@ -9,4 +9,5 @@ export interface JobCard {
     createdAt: number;
     lastTouchedAt: number;
     nextAction?: string;
+    nextTouchAt?: number;
 }

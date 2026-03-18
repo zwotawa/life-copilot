@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { JobCard, JobStage } from 'src/app/core/job-pipeline.model';
 import { loadJobCards, saveJobCards, updateJobCard } from 'src/app/core/job-pipeline.storage';
-import { CardMovement } from './job-card/job-card.component';
+import { CardMovement, NextTouchUpdate } from './job-card/job-card.component';
 import { JobService } from './job.service';
 import { Observable, Subscription } from 'rxjs';
 
@@ -18,12 +18,12 @@ interface Stage {
 export class JobComponent implements OnInit {
 
   public stages: Stage[] = [{
-    stageName:'toApply',
-    stageCards: []
-   },
-   {
-    stageName: 'applied',
-    stageCards: [] 
+      stageName:'toApply',
+      stageCards: []
+    },
+    {
+      stageName: 'applied',
+      stageCards: [] 
     },
     {
       stageName: 'followUp',
@@ -66,6 +66,19 @@ export class JobComponent implements OnInit {
     updateJobCard(updatedCard);
   }
 
+  public setNextTouch(nextTouchUpdate: NextTouchUpdate): void {
+    const nextTouchAt = Date.now() + nextTouchUpdate.daysFromNow * 24 * 60 * 60 * 1000;
+
+    const updatedCard: JobCard = JSON.parse(JSON.stringify(nextTouchUpdate.card));
+    updatedCard.nextTouchAt = nextTouchAt;
+    updatedCard.lastTouchedAt = Date.now();
+
+    this.subscriptions.push(this.jobService.updateJob(updatedCard).subscribe({
+      next: () => { this.refresh() },
+      error: (err) => { console.error(err) }
+    }));
+  }
+
   private refresh(): void {
     this.isLoading = true;
     this.error = null;
@@ -86,8 +99,15 @@ export class JobComponent implements OnInit {
 
   private stageCards(stage: JobStage): JobCard[] {
     return this.jobCards.filter(card => card.stage == stage).sort((a, b) => {
-      const dateA = new Date(a.lastTouchedAt).getTime();
-      const dateB = new Date(b.lastTouchedAt).getTime();
+      let dateA: number;
+      let dateB: number;
+      if(stage == 'followUp' && a.nextTouchAt && b.nextTouchAt) {
+        dateA = new Date(a.nextTouchAt).getTime();
+        dateB = new Date(b.nextTouchAt).getTime();
+      } else {
+        dateA = new Date(a.lastTouchedAt).getTime();
+        dateB = new Date(b.lastTouchedAt).getTime();
+      }
 
       return dateB - dateA;
     });

@@ -8,6 +8,11 @@ export interface CardMovement {
   moveDirection: MoveDirection
 }
 
+export interface NextTouchUpdate {
+  card: JobCard,
+  daysFromNow: number
+}
+
 export type MoveDirection = 'back' | 'forward';
 
 @Component({
@@ -20,6 +25,7 @@ export class JobCardComponent implements OnInit {
   @Input() jobCardData: JobCard = <JobCard>{}
 
   @Output() moveEvent: EventEmitter<CardMovement> = new EventEmitter<CardMovement>();
+  @Output() touchUpdateEvent: EventEmitter<NextTouchUpdate> = new EventEmitter<NextTouchUpdate>();
 
   public back: MoveDirection = 'back';
   public forward: MoveDirection = 'forward';
@@ -31,6 +37,10 @@ export class JobCardComponent implements OnInit {
 
   public moveCard(card: JobCard, moveDirection: MoveDirection): void {
     this.moveEvent.emit({ card, moveDirection }); 
+  }
+
+  public nextTouch(card: JobCard, daysFromNow: number): void {
+    this.touchUpdateEvent.emit({ card, daysFromNow });
   }
 
   public addJobAction(): void {
@@ -52,6 +62,14 @@ export class JobCardComponent implements OnInit {
 
     // Check if the target date's time is less than the timestamp from 7 days ago
     return this.jobCardData.lastTouchedAt < sevenDaysAgoTime;
+  }
+
+  get due(): boolean {
+    if(this.jobCardData.nextTouchAt && this.jobCardData.nextTouchAt <= Date.now()) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
 }
