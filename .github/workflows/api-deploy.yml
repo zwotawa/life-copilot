@@ -37,20 +37,6 @@ jobs:
           cd ${{ github.workspace }}/publish
           zip -r ../publish.zip .
 
-      - name: Set GIT_SHA in Azure App Service
-        uses: azure/appservice-settings@v1
-        with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          app-settings-json: |
-            [
-              {
-                "name": "GIT_SHA",
-                "value": "${{ github.sha }}",
-                "slotSetting": false
-              }
-            ]
-
       - name: Deploy
         uses: azure/webapps-deploy@v3
         with:
