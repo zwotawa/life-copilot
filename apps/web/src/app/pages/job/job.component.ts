@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { JobCard, JobStage } from 'src/app/core/job-pipeline.model';
+import { JobCard, JobStage, UpdateJobCardRequest } from 'src/app/core/job-pipeline.model';
 import { loadJobCards, saveJobCards, updateJobCard } from 'src/app/core/job-pipeline.storage';
 import { CardMovement, NextTouchUpdate } from './job-card/job-card.component';
 import { JobService } from './job.service';
@@ -45,6 +45,7 @@ export class JobComponent implements OnInit {
   }
 
   public moveCard(cardMovement: CardMovement): void {
+    const card: JobCard = cardMovement.card;
     const currentStage: number = this.stages.findIndex((stage) => cardMovement.card.stage == stage.stageName);
     let newStage: number = -1;
     if(cardMovement.moveDirection == 'back') {
@@ -54,26 +55,35 @@ export class JobComponent implements OnInit {
       newStage = currentStage + 1;
     }
 
-    const updatedCard: JobCard = JSON.parse(JSON.stringify(cardMovement.card));
-    updatedCard.stage = this.stages[newStage].stageName;
-    updatedCard.lastTouchedAt = Date.now();
+    const req: UpdateJobCardRequest = {
+      company: card.company,
+      role: card.role,
+      stage: this.stages[newStage].stageName,
+      link: card?.link ?? null,
+      nextAction: card?.nextAction ?? null,
+      nextTouchAt: card?.nextTouchAt ?? null
+    }
 
-    this.subscriptions.push(this.jobService.updateJob(updatedCard).subscribe({
+    this.subscriptions.push(this.jobService.updateJob(card.id, req).subscribe({
       next: () => { this.refresh() },
       error: (err) => { console.error(err) }
     }));
-
-    updateJobCard(updatedCard);
   }
 
   public setNextTouch(nextTouchUpdate: NextTouchUpdate): void {
+    const card: JobCard = nextTouchUpdate.card;
     const nextTouchAt = Date.now() + nextTouchUpdate.daysFromNow * 24 * 60 * 60 * 1000;
 
-    const updatedCard: JobCard = JSON.parse(JSON.stringify(nextTouchUpdate.card));
-    updatedCard.nextTouchAt = nextTouchAt;
-    updatedCard.lastTouchedAt = Date.now();
+    const req: UpdateJobCardRequest = {
+      company: card.company,
+      role: card.role,
+      stage: card.stage,
+      link: card?.link ?? null,
+      nextAction: card?.nextAction ?? null,
+      nextTouchAt
+    }
 
-    this.subscriptions.push(this.jobService.updateJob(updatedCard).subscribe({
+    this.subscriptions.push(this.jobService.updateJob(card.id, req).subscribe({
       next: () => { this.refresh() },
       error: (err) => { console.error(err) }
     }));

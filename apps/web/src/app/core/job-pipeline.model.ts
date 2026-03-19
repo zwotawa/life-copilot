@@ -11,3 +11,12 @@ export interface JobCard {
     nextAction?: string;
     nextTouchAt?: number;
 }
+
+export type UpdateJobCardRequest = {
+    company: string;
+    role: string;
+    stage: string;
+    link: string | null;
+    nextAction: string | null;
+    nextTouchAt: number | null;
+}

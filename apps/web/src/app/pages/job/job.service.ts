@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { JobCard } from 'src/app/core/job-pipeline.model';
+import { JobCard, UpdateJobCardRequest } from 'src/app/core/job-pipeline.model';
 
 @Injectable({
   providedIn: 'root'
@@ -18,8 +18,8 @@ export class JobService {
     return this.http.post<JobCard>('api/jobs', job);
   }
 
-  public updateJob(job: JobCard): Observable<JobCard> {
-    return this.http.put<JobCard>(`/api/jobs/${job.id}`, job)
+  public updateJob(id: string, req: UpdateJobCardRequest): Observable<JobCard> {
+    return this.http.put<JobCard>(`/api/jobs/${id}`, req);
   }
 
   public deleteJob(job: JobCard): Observable<void> {
