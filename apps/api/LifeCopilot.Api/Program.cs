@@ -87,16 +87,15 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.MapGet("/health", (IConfiguration config) =>
+app.MapGet("/health", (IHostEnvironment env,IConfiguration config) =>
 {
     var sha = config["GIT_SHA"] ?? "unknown";
-    var env = config["ASPNETCORE_ENVIRONMENT"] ?? "unknown";
 
     return Results.Ok(new
     {
         status = "ok",
         gitSha = sha,
-        environment = env,
+        environment = env.EnvironmentName,
         utc = DateTimeOffset.UtcNow
     });
 });
