@@ -2,6 +2,8 @@
 // Run: node tools/seed-prod-jobs.mjs
 // Optional: API_URL env var overrides the default
 
+const API_KEY = process.env.API_KEY;
+
 const API_URL =
   process.env.API_URL ||
   "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net";
@@ -44,7 +46,10 @@ const jobs = [
 async function createJob(job) {
   const res = await fetch(`${API_URL}/api/jobs`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      ...(API_KEY ? { "X-API-Key": API_KEY } : {})
+    },
     body: JSON.stringify(job),
   });
 

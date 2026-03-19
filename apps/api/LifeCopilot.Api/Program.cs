@@ -51,6 +51,42 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors(CorsPolicyName);
 
+var apiKey = app.Configuration["API_KEY"];
+
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? "";
+    var method = context.Request.Method;
+
+    var isSwagger = path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase);
+    var isHealth = path.StartsWith("/health", StringComparison.OrdinalIgnoreCase);
+
+    var isMutation = HttpMethods.IsPost(method) || HttpMethods.IsPut(method) || HttpMethods.IsDelete(method) || HttpMethods.IsPatch(method);
+
+    if (!isMutation || isSwagger || isHealth)
+    {
+        await next();
+        return;
+    }
+
+    if (string.IsNullOrWhiteSpace(apiKey))
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsync("API_KEY is not configured");
+        return;
+    }
+
+    if (!context.Request.Headers.TryGetValue("X-API-Key", out var provided) ||
+        !string.Equals(provided.ToString(), apiKey, StringComparison.Ordinal))
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await context.Response.WriteAsync("Missing or invalid API key");
+        return;
+    }
+
+    await next();
+});
+
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 // Jobs CRUD
