@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\zwota\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\LifeCopilot.Api.csproj": {}
+    "C:\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\LifeCopilot.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\zwota\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\LifeCopilot.Api.csproj": {
+    "C:\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\LifeCopilot.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\zwota\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\LifeCopilot.Api.csproj",
+        "projectUniqueName": "C:\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\LifeCopilot.Api.csproj",
         "projectName": "LifeCopilot.Api",
-        "projectPath": "C:\\Users\\zwota\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\LifeCopilot.Api.csproj",
+        "projectPath": "C:\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\LifeCopilot.Api.csproj",
         "packagesPath": "C:\\Users\\zwota\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\zwota\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\obj\\",
+        "outputPath": "C:\\Projects\\life-copilot\\apps\\api\\LifeCopilot.Api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\zwota\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\zwota\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -79,7 +77,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.418/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.419/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

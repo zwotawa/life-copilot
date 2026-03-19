@@ -87,7 +87,19 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/health", (IConfiguration config) =>
+{
+    var sha = config["GIT_SHA"] ?? "unknown";
+    var env = config["ASPNETCORE_ENVIRONMENT"] ?? "unknown";
+
+    return Results.Ok(new
+    {
+        status = "ok",
+        gitSha = sha,
+        environment = env,
+        utc = DateTimeOffset.UtcNow
+    });
+});
 
 // Jobs CRUD
 app.MapGet("/api/jobs", async (LifeCopilotDbContext db) =>

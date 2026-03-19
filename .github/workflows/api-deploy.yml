@@ -43,3 +43,34 @@ jobs:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ${{ github.workspace }}/publish.zip
+      - name: Warmup + Health check (retry)
+        env:
+          BASE_URL: ${{ secrets.AZURE_WEBAPP_BASE_URL }}
+        run: |
+          for i in {1..12}; do
+            echo "Attempt $i..."
+            if curl -fsS "$BASE_URL/health" > /dev/null; then
+              echo "✅ /health OK"
+              break
+            fi
+            sleep 10
+          done
+
+          # Fail if still not healthy after retries
+          curl -fsS "$BASE_URL/health"
+
+      - name: DB health check (retry)
+        env:
+          BASE_URL: ${{ secrets.AZURE_WEBAPP_BASE_URL }}
+        run: |
+          for i in {1..12}; do
+            echo "Attempt $i..."
+            if curl -fsS "$BASE_URL/health/db" > /dev/null; then
+              echo "✅ /health/db OK"
+              break
+            fi
+            sleep 10
+          done
+
+          # Fail if still not healthy after retries
+          curl -fsS "$BASE_URL/health/db"
