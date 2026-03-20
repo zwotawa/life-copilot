@@ -1,6 +1,8 @@
 // tools/seed-prod-jobs.mjs
-// Run: node tools/seed-prod-jobs.mjs
-// Optional: API_URL env var overrides the default
+// PowerShell:
+//   $env:API_URL="https://...azurewebsites.net"
+//   $env:API_KEY="YOUR_KEY"
+//   node tools/seed-prod-jobs.mjs
 
 const API_KEY = process.env.API_KEY;
 
@@ -23,7 +25,7 @@ const jobs = [
     stage: "applied",
     link: "https://example.com/jobs/rivercity-fullstack",
     nextAction: "Add follow-up action for Friday",
-    nextTouchAt: Date.now() + 2 * 24 * 60 * 60 * 1000, // +2d
+    nextTouchAt: Date.now() + 2 * 24 * 60 * 60 * 1000,
   },
   {
     company: "Prairie Analytics",
@@ -31,7 +33,7 @@ const jobs = [
     stage: "followUp",
     link: "https://example.com/jobs/prairie-dashboards",
     nextAction: "Send follow-up + attach portfolio link",
-    nextTouchAt: Date.now() - 60 * 60 * 1000, // DUE (1h ago)
+    nextTouchAt: Date.now() - 60 * 60 * 1000,
   },
   {
     company: "Cedar Systems",
@@ -39,16 +41,34 @@ const jobs = [
     stage: "interview",
     link: "https://example.com/jobs/cedar-frontend",
     nextAction: "Prep: RxJS operators + change detection + testing",
-    nextTouchAt: Date.now() + 24 * 60 * 60 * 1000, // tomorrow
+    nextTouchAt: Date.now() + 24 * 60 * 60 * 1000,
   },
 ];
+
+function norm(s) {
+  return (s ?? "").trim().toLowerCase();
+}
+
+// Same natural key used for dedupe
+function keyOf(j) {
+  return `${norm(j.company)}||${norm(j.role)}||${norm(j.link)}`;
+}
+
+async function getJobs() {
+  const res = await fetch(`${API_URL}/api/jobs`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`GET /api/jobs failed (${res.status}): ${text}`);
+  }
+  return res.json();
+}
 
 async function createJob(job) {
   const res = await fetch(`${API_URL}/api/jobs`, {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
-      ...(API_KEY ? { "X-API-Key": API_KEY } : {})
+      ...(API_KEY ? { "X-API-Key": API_KEY } : {}),
     },
     body: JSON.stringify(job),
   });
@@ -62,16 +82,28 @@ async function createJob(job) {
 
 async function main() {
   console.log(`Seeding jobs to: ${API_URL}`);
-  const created = [];
+
+  const existing = await getJobs();
+  const existingKeys = new Set(existing.map(keyOf));
+
+  let createdCount = 0;
+  let skippedCount = 0;
 
   for (const job of jobs) {
+    const k = keyOf(job);
+    if (existingKeys.has(k)) {
+      skippedCount++;
+      console.log(`↩️  Skipping (already exists): ${job.company} — ${job.role} [${job.stage}]`);
+      continue;
+    }
+
     const c = await createJob(job);
-    created.push(c);
+    createdCount++;
+    existingKeys.add(k);
     console.log(`✅ Created: ${c.company} — ${c.role} [${c.stage}] id=${c.id}`);
   }
 
-  console.log(`\nDone. Created ${created.length} job cards.`);
-  console.log(`Open your Vercel UI and refresh the Job page.`);
+  console.log(`\nDone. Created ${createdCount}. Skipped ${skippedCount}.`);
 }
 
 main().catch((err) => {
