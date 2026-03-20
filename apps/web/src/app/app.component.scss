@@ -1,12 +1,19 @@
-.nav {
-  display: flex;
-  background-color: #3f51b5; /* Example color */
-  padding: 10px;
-}
 
 .nav-link {
   color: white;
   padding: 0 16px;
   text-decoration: none;
   font: 500 20px/32px Roboto, "Helvetica Neue", sans-serif; /* Example font */
+}
+
+/* app.component.scss */
+.nav { position: sticky; top: 0; z-index: 10; }
+.brand { font-weight: 600; letter-spacing: 0.2px; text-decoration: none; color: white; font-size: 22px; }
+.spacer { flex: 1; }
+.meta { opacity: 0.9; font-size: 13px; }
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
 }

@@ -1,8 +1,14 @@
-<mat-toolbar class="nav">
-  <a routerLink="/" class="nav-link">Dashboard</a>
+<mat-toolbar color="primary" class="nav">
+  <a class="brand" routerLink="/">
+    Life Copilot
+  </a>
   <a routerLink="/job" class="nav-link">Job</a>
   <a routerLink="/vehicle" class="nav-link">Vehicle</a>
   <a routerLink="/declutter" class="nav-link">Declutter</a>
+  <span class="spacer"></span>
+  <span class="meta">Wins today: {{ winsToday }}</span>
 </mat-toolbar>
 
-<router-outlet></router-outlet>
+<div class="page">
+  <router-outlet></router-outlet>
+</div>
