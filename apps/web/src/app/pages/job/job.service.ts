@@ -15,14 +15,14 @@ export class JobService {
   }
 
   public addJob(job: JobCard): Observable<JobCard> {
-    return this.http.post<JobCard>('api/jobs', job);
+    return this.http.post<JobCard>('/api-proxy/jobs', job);
   }
 
   public updateJob(id: string, req: UpdateJobCardRequest): Observable<JobCard> {
-    return this.http.put<JobCard>(`/api/jobs/${id}`, req);
+    return this.http.put<JobCard>(`/api-proxy/jobs/${id}`, req);
   }
 
   public deleteJob(job: JobCard): Observable<void> {
-    return this.http.delete<void>(`/api/jobs/${job.id}`);
+    return this.http.delete<void>(`/api-proxy/jobs/${job.id}`);
   }
 }

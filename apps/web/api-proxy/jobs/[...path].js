@@ -1,0 +1,49 @@
+export default async function handler(req, res) {
+  const baseUrl = process.env.AZURE_API_BASE_URL;
+  const apiKey = process.env.AZURE_API_KEY;
+
+  if (!baseUrl || !apiKey) {
+    res.status(500).send("Server proxy is not configured.");
+    return;
+  }
+
+  // Only allow mutation methods
+  const method = req.method?.toUpperCase();
+  const allowed = ["POST", "PUT", "DELETE", "PATCH"];
+  if (!allowed.includes(method)) {
+    res.status(405).send("Method not allowed.");
+    return;
+  }
+
+  // Build the destination URL:
+  // /api-proxy/jobs/123  ->  <baseUrl>/api/jobs/123
+  const pathParts = Array.isArray(req.query.path) ? req.query.path : [];
+  const targetUrl = `${baseUrl}/api/jobs/${pathParts.join("/")}`;
+
+  // Forward headers (minus hop-by-hop) and add API key
+  const headers = {
+    "Content-Type": req.headers["content-type"] || "application/json",
+    "X-API-Key": apiKey,
+  };
+
+  // Read body
+  let body = undefined;
+  if (method !== "DELETE") {
+    body = typeof req.body === "string" ? req.body : JSON.stringify(req.body ?? {});
+  }
+
+  try {
+    const upstream = await fetch(targetUrl, { method, headers, body });
+
+    const text = await upstream.text();
+    res.status(upstream.status);
+
+    // Preserve content-type if present
+    const ct = upstream.headers.get("content-type");
+    if (ct) res.setHeader("content-type", ct);
+
+    res.send(text);
+  } catch (e) {
+    res.status(502).send("Bad gateway");
+  }
+}
