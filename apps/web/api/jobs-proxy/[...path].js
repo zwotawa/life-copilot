@@ -38,6 +38,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    if (!apiKey) {
+        res.status(500).send("AZURE_API_KEY missing in Vercel env.");
+        return;
+    }
+    
     const upstream = await fetch(targetUrl, { method, headers, body });
     const text = await upstream.text();
 
