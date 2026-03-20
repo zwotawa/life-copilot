@@ -1,0 +1,24 @@
+name: Web checks
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/web-check.yml"
+
+jobs:
+  web-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install
+        run: npm --prefix apps/web ci
+
+      - name: Build
+        run: npm --prefix apps/web run build
