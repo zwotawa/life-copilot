@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  res.setHeader("not-allowed", req.method || "NO-METHOD");
+  res.setHeader("x-proxy-not-allowed", req.method || "NO-METHOD");
 
   const method = (req.method || "").toUpperCase();
   const allowed = ["POST", "PUT", "DELETE", "PATCH"];
