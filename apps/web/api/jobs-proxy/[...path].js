@@ -3,6 +3,15 @@ export default async function handler(req, res) {
   const baseUrl = process.env.AZURE_API_BASE_URL;
   const apiKey = process.env.AZURE_API_KEY;
 
+  if (!apiKey) {
+    res.status(500).send("AZURE_API_KEY missing in Vercel env.");
+    return;
+    }
+
+    // TEMP: verify header length without exposing it
+    // (remove after debugging)
+    res.setHeader("x-proxy-key-len", String(apiKey.length));
+
   // Allow preflight
   if (req.method === "OPTIONS") {
     res.status(204).end();
@@ -38,11 +47,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (!apiKey) {
-        res.status(500).send("AZURE_API_KEY missing in Vercel env.");
-        return;
-    }
-    
     const upstream = await fetch(targetUrl, { method, headers, body });
     const text = await upstream.text();
 
