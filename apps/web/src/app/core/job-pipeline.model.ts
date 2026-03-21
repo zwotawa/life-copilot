@@ -20,3 +20,12 @@ export type UpdateJobCardRequest = {
     nextAction: string | null;
     nextTouchAt: number | null;
 }
+
+export type CreateJobCardRequest = {
+    company: string;
+    role: string;
+    stage: string;
+    link: string | null;
+    nextAction: string | null;
+    nextTouchAt: number | null;
+}
