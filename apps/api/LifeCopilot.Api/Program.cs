@@ -51,7 +51,7 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors(CorsPolicyName);
 
-var apiKey = (app.Configuration["API_KEY"]);
+var apiKey = (app.Configuration["API_KEY"])?.Trim();
 
 app.Use(async (context, next) =>
 {
@@ -76,8 +76,10 @@ app.Use(async (context, next) =>
         return;
     }
 
+    var expected = (apiKey ?? "").Trim();
+
     if (!context.Request.Headers.TryGetValue("X-API-Key", out var provided) ||
-        !string.Equals(provided.ToString(), apiKey, StringComparison.Ordinal))
+        !string.Equals(provided.ToString().Trim(), expected, StringComparison.Ordinal))
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         await context.Response.WriteAsync("Missing or invalid API key");
