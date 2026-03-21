@@ -8,9 +8,9 @@ export default async function handler(req, res) {
     return;
     }
 
-    // TEMP: verify header length without exposing it
-    // (remove after debugging)
-    res.setHeader("x-proxy-key-len", String(apiKey.length));
+  // TEMP: verify header length without exposing it
+  // (remove after debugging)
+  res.setHeader("x-proxy-key-len", String(apiKey.length));
 
   // Allow preflight
   if (req.method === "OPTIONS") {
