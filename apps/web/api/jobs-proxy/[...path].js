@@ -33,11 +33,29 @@ export default async function handler(req, res) {
     return;
   }
 
-  const pathParts = Array.isArray(req.query.path) ? req.query.path : [];
-  const targetUrl =
-    pathParts.length > 0
-      ? `${baseUrl}/api/jobs/${pathParts.join("/")}`
-      : `${baseUrl}/api/jobs`;
+const pathPartsRaw = req.query.path;
+
+// Vercel usually provides an array for catch-all; handle string too.
+let pathParts = [];
+if (Array.isArray(pathPartsRaw)) pathParts = pathPartsRaw;
+else if (typeof pathPartsRaw === "string") pathParts = [pathPartsRaw];
+
+// Fallback: parse from URL if query param didn't populate
+if (pathParts.length === 0) {
+  const url = new URL(req.url, "https://dummy");
+  // /api/jobs-proxy/<id>  -> take everything after /api/jobs-proxy/
+  const prefix = "/api/jobs-proxy/";
+  const pathname = url.pathname || "";
+  if (pathname.startsWith(prefix)) {
+    const rest = pathname.slice(prefix.length);
+    if (rest) pathParts = rest.split("/").filter(Boolean);
+  }
+}
+
+const targetUrl =
+  pathParts.length > 0
+    ? `${baseUrl}/api/jobs/${pathParts.join("/")}`
+    : `${baseUrl}/api/jobs`;
 
   const headers = {
     "Content-Type": req.headers["content-type"] || "application/json",
