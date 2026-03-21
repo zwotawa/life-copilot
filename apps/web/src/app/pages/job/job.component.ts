@@ -114,6 +114,8 @@ export class JobComponent implements OnInit {
       if(stage == 'followUp' && a.nextTouchAt && b.nextTouchAt) {
         dateA = new Date(a.nextTouchAt).getTime();
         dateB = new Date(b.nextTouchAt).getTime();
+
+        return dateA - dateB; // Ascending order for follow-ups based on next touch date
       } else {
         dateA = new Date(a.lastTouchedAt).getTime();
         dateB = new Date(b.lastTouchedAt).getTime();
