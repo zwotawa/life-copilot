@@ -51,7 +51,7 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors(CorsPolicyName);
 
-var apiKey = (app.Configuration["API_KEY"])?.Trim();
+var apiKey = (app.Configuration["API_KEY"]);
 
 app.Use(async (context, next) =>
 {
