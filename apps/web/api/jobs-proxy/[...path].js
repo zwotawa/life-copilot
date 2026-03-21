@@ -53,6 +53,9 @@ export default async function handler(req, res) {
     const upstream = await fetch(targetUrl, { method, headers, body });
     const text = await upstream.text();
 
+    res.setHeader("x-upstream-status", String(upstream.status));
+    res.setHeader("x-upstream-url", targetUrl);
+
     res.status(upstream.status);
     const ct = upstream.headers.get("content-type");
     if (ct) res.setHeader("content-type", ct);
