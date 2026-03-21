@@ -1,8 +1,12 @@
 {
-    "rewrites": [
-        {
-            "source": "/api/(.*)",
-            "destination": "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net/api/$1"
-        }
-    ]
+  "rewrites": [
+    {
+      "source": "/api/jobs",
+      "destination": "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net/api/jobs"
+    },
+    {
+      "source": "/api/jobs/(.*)",
+      "destination": "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net/api/jobs/$1"
+    }
+  ]
 }
