@@ -1,7 +1,7 @@
 // apps/web/api/jobs-proxy/[...path].js
 export default async function handler(req, res) {
   const baseUrl = process.env.AZURE_API_BASE_URL;
-  const apiKey = process.env.AZURE_API_KEY;
+  const apiKey = (process.env.AZURE_API_KEY || "").trim();
 
   if (!apiKey) {
     res.status(500).send("AZURE_API_KEY missing in Vercel env.");
