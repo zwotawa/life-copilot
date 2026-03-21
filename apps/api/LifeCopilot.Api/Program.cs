@@ -102,6 +102,12 @@ app.MapGet("/health", (IHostEnvironment env,IConfiguration config) =>
     });
 });
 
+app.MapGet("/health/keylen", (IConfiguration cfg) =>
+{
+    var key = (cfg["API_KEY"] ?? "").Trim();
+    return Results.Ok(new { keyLen = key.Length });
+});
+
 // Jobs CRUD
 app.MapGet("/api/jobs", async (LifeCopilotDbContext db) =>
 {
