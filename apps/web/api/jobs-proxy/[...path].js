@@ -26,6 +26,7 @@ export default async function handler(req, res) {
   const method = (req.method || "").toUpperCase();
   const allowed = ["POST", "PUT", "DELETE", "PATCH"];
   if (!allowed.includes(method)) {
+    res.setHeader("Not-Allowed", method);
     res.status(405).send(`Method not allowed. ${req.method} is not supported.`);
     return;
   }
