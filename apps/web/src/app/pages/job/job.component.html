@@ -1,7 +1,7 @@
 <div>
     <div *ngIf="isLoading">Loading...</div>
     <div *ngIf="error">{{ error }}</div>
-    <div class="add-job">
+    <div *ngIf="!isLoading" class="add-job">
   <button mat-stroked-button (click)="showAdd = !showAdd">
     {{ showAdd ? 'Close' : '+ Add job' }}
   </button>
