@@ -1,31 +1,75 @@
-<mat-card>
-    <mat-card-content>
-        <p>Company: {{ jobCardData.company }}</p>
-        <p>Role: {{ jobCardData.role }}</p>
-        <p>Link: {{ jobCardData.link }}</p>
-        <p>Next Action: {{ jobCardData.nextAction }}</p>
-        <div>
-            Next Touch: {{ due ? 'DUE' : jobCardData.nextTouchAt | date }}
-            <button (click)="nextTouch(jobCardData, 1)">Tomorrow</button>
-            <button (click)="nextTouch(jobCardData, 2)">+2d</button>
-            <button (click)="nextTouch(jobCardData, 7)">+7d</button>
-        </div>
-    </mat-card-content>
-    <mat-card-actions>
-        <div>
-            <button *ngIf="!(jobCardData.stage == 'toApply')" (click)="moveCard(jobCardData, back)">
-                <mat-icon>arrow_back</mat-icon>
-            </button>
-            <button *ngIf="!(jobCardData.stage == 'interview')" (click)="moveCard(jobCardData, forward)">
-                <mat-icon>arrow_forward</mat-icon>
-            </button>
-        </div>
-        <div *ngIf="jobCardData.stage == 'followUp' || jobCardData.stage == 'applied'">
-            <button (click)="addJobAction()">Add follow-up action</button>
-        </div>
-    </mat-card-actions>
-    <mat-card-footer>
-        <p>Touched: {{ jobCardData.lastTouchedAt | date }}</p>
-        <p *ngIf="stale">Stale</p>
-    </mat-card-footer>   
+<mat-card class="job-card" appearance="outlined">
+  <mat-card-content class="job-card-inner">
+
+    <div class="top-row">
+      <div class="title-block">
+        <div class="company">{{ jobCardData.company }}</div>
+        <div class="role muted">{{ jobCardData.role }}</div>
+      </div>
+      <button mat-icon-button class="icon-btn" (click)="requestDelete()">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+
+    <div class="meta-row" *ngIf="jobCardData.link">
+      <mat-icon class="meta-icon">link</mat-icon>
+      <a class="link" [href]="jobCardData.link" target="_blank" rel="noopener noreferrer">
+        {{ jobCardData.link }}
+      </a>
+    </div>
+
+    <div class="meta-row" *ngIf="jobCardData.nextAction">
+      <mat-icon class="meta-icon">checklist</mat-icon>
+      <span class="meta-text">{{ jobCardData.nextAction }}</span>
+    </div>
+
+    <div class="touch-row">
+      <span class="due-badge" *ngIf="due">DUE</span>
+      <span class="touch-label muted">
+        Next touch:
+        <ng-container *ngIf="jobCardData.nextTouchAt; else noneTouch">
+          {{ jobCardData.nextTouchAt | date:'MMM d' }}
+        </ng-container>
+        <ng-template #noneTouch>—</ng-template>
+      </span>
+
+      <span class="spacer"></span>
+
+      <div class="touch-buttons">
+        <button mat-stroked-button (click)="nextTouch(jobCardData, 1)">Tomorrow</button>
+        <button mat-stroked-button (click)="nextTouch(jobCardData, 2)">+2d</button>
+        <button mat-stroked-button (click)="nextTouch(jobCardData, 7)">+7d</button>
+      </div>
+    </div>
+
+  </mat-card-content>
+
+  <mat-card-actions class="job-card-actions">
+    <div class="move-buttons">
+      <button mat-icon-button
+              *ngIf="jobCardData.stage !== 'toApply'"
+              (click)="moveCard(jobCardData, back)">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
+      <button mat-icon-button
+              *ngIf="jobCardData.stage !== 'interview'"
+              (click)="moveCard(jobCardData, forward)">
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+
+    <span class="spacer"></span>
+
+    <button mat-stroked-button
+            *ngIf="jobCardData.stage === 'followUp' || jobCardData.stage === 'applied'"
+            (click)="addJobAction()">
+      Add follow-up action
+    </button>
+  </mat-card-actions>
+
+  <mat-card-footer class="job-card-footer">
+    <span class="muted">Touched: {{ jobCardData.lastTouchedAt | date:'MMM d, h:mm a' }}</span>
+    <span class="stale" *ngIf="stale">Stale</span>
+  </mat-card-footer>
 </mat-card>

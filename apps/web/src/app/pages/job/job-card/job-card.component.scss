@@ -1,21 +1,103 @@
 .job-card {
-  border-radius: 14px;
-  margin-bottom: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #fff;
 }
 
-.job-card-content {
+.job-card-inner {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
-.job-title { font-weight: 600; font-size: 14px; }
-.job-sub { font-size: 12px; opacity: 0.75; }
+.top-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
 
-.job-actions {
+.title-block { flex: 1; }
+
+.company {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.role {
+  font-size: 12.5px;
+}
+
+.meta-row {
   display: flex;
   gap: 8px;
-  justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
 }
+
+.meta-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  opacity: 0.65;
+}
+
+.meta-text {
+  font-size: 13px;
+}
+
+.link {
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.touch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.due-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(244, 67, 54, 0.14);
+  font-weight: 700;
+}
+
+.touch-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.job-card-actions {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 8px 12px;
+}
+
+.move-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.job-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px 10px 12px;
+}
+
+.stale {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+}
+
+.spacer { flex: 1; }
