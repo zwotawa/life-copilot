@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { JobCard, JobStage, UpdateJobCardRequest } from 'src/app/core/job-pipeline.model';
+import { CreateJobCardRequest, JobCard, JobStage, UpdateJobCardRequest } from 'src/app/core/job-pipeline.model';
 import { loadJobCards, saveJobCards, updateJobCard } from 'src/app/core/job-pipeline.storage';
 import { CardMovement, NextTouchUpdate } from './job-card/job-card.component';
 import { JobService } from './job.service';
@@ -36,13 +36,44 @@ export class JobComponent implements OnInit {
   public jobCards: JobCard[] = <JobCard[]>[];
   public isLoading: boolean = false;
   public error: string | null = null;
+  public showAdd: boolean = false;
   private subscriptions: Subscription[] = [];
+  public newJob: CreateJobCardRequest = {
+  company: '',
+  role: '',
+  stage: 'toApply',
+  link: null,
+  nextAction: null,
+  nextTouchAt: null
+};
 
   constructor(private jobService: JobService) { }
 
   ngOnInit(): void {
     this.refresh();
   }
+
+  public addJob(): void {
+  const req = {
+    ...this.newJob,
+    company: this.newJob.company.trim(),
+    role: this.newJob.role.trim(),
+    link: this.newJob.link?.trim() || null
+  };
+
+  this.jobService.addJob(req).subscribe({
+    next: () => {
+      this.showAdd = false;
+      this.resetAdd();
+      this.refresh(); // or re-fetch jobs
+    },
+    error: (e) => console.error(e)
+  });
+}
+
+  public resetAdd(): void {
+  this.newJob = { company:'', role:'', stage:'toApply', link:null, nextAction:null, nextTouchAt:null };
+}
 
   public moveCard(cardMovement: CardMovement): void {
     const card: JobCard = cardMovement.card;

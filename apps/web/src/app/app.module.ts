@@ -24,6 +24,7 @@ import { JobCardComponent } from './pages/job/job-card/job-card.component';
 import { MatIconModule } from '@angular/material/icon'
 import { JobService } from './pages/job/job.service';
 import { HttpClientModule } from '@angular/common/http';
+import { MatSelectModule } from '@angular/material/select';
 
 @NgModule({
   declarations: [
@@ -51,9 +52,10 @@ import { HttpClientModule } from '@angular/common/http';
     MatRadioModule,
     FormsModule,
     MatIconModule,
-    HttpClientModule
+    HttpClientModule,
+    MatSelectModule
   ],
-  providers: [],
+  providers: [JobService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
