@@ -26,6 +26,7 @@ export class JobCardComponent implements OnInit {
 
   @Output() moveEvent: EventEmitter<CardMovement> = new EventEmitter<CardMovement>();
   @Output() touchUpdateEvent: EventEmitter<NextTouchUpdate> = new EventEmitter<NextTouchUpdate>();
+  @Output() deleteEvent: EventEmitter<JobCard> = new EventEmitter<JobCard>();
 
   public back: MoveDirection = 'back';
   public forward: MoveDirection = 'forward';
@@ -41,6 +42,10 @@ export class JobCardComponent implements OnInit {
 
   public nextTouch(card: JobCard, daysFromNow: number): void {
     this.touchUpdateEvent.emit({ card, daysFromNow });
+  }
+
+  public requestDelete(): void {
+    this.deleteEvent.emit(this.jobCardData);
   }
 
   public addJobAction(): void {
