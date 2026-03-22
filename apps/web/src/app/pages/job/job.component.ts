@@ -1,9 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CreateJobCardRequest, JobCard, JobStage, UpdateJobCardRequest } from 'src/app/core/job-pipeline.model';
-import { loadJobCards, saveJobCards, updateJobCard } from 'src/app/core/job-pipeline.storage';
 import { CardMovement, NextTouchUpdate } from './job-card/job-card.component';
 import { JobService } from './job.service';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 interface Stage {
   stageName: JobStage,
@@ -15,7 +14,7 @@ interface Stage {
   templateUrl: './job.component.html',
   styleUrls: ['./job.component.scss']
 })
-export class JobComponent implements OnInit {
+export class JobComponent implements OnInit, OnDestroy {
 
   public stages: Stage[] = [{
       stageName:'toApply',
@@ -46,6 +45,7 @@ export class JobComponent implements OnInit {
   nextAction: null,
   nextTouchAt: null
 };
+private refreshSub?: Subscription;
 
   constructor(private jobService: JobService) { }
 
@@ -67,7 +67,10 @@ export class JobComponent implements OnInit {
       this.resetAdd();
       this.refresh(); // or re-fetch jobs
     },
-    error: (e) => console.error(e)
+    error: (e) => {
+      this.error = 'Failed to add job';
+      console.error(e)
+    }
   });
 }
 
@@ -97,7 +100,9 @@ export class JobComponent implements OnInit {
 
     this.subscriptions.push(this.jobService.updateJob(card.id, req).subscribe({
       next: () => { this.refresh() },
-      error: (err) => { console.error(err) }
+      error: (err) => { 
+        this.error = 'Failed to update job';
+        console.error(err) }
     }));
   }
 
@@ -116,7 +121,9 @@ export class JobComponent implements OnInit {
 
     this.subscriptions.push(this.jobService.updateJob(card.id, req).subscribe({
       next: () => { this.refresh() },
-      error: (err) => { console.error(err) }
+      error: (err) => { 
+        this.error = 'Failed to update job';
+        console.error(err) }
     }));
   }
 
@@ -124,37 +131,45 @@ export class JobComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.subscriptions?.push(this.jobService.getJobs().subscribe({
+    this.refreshSub?.unsubscribe();
+    this.refreshSub = this.jobService.getJobs().subscribe({
       next: (cards) => {
         this.jobCards = cards;
         this.isLoading = false;
         this.populateStageCards();
       },
-      error: (err) => {
-        this.error = 'Failed to load jobs';
-        this.isLoading = false;
-        console.error(err);
-      }
-    }));
+        error: (err) => {
+          this.error = 'Failed to load jobs';
+          this.isLoading = false;
+          console.error(err);
+        }
+    });
   }
 
   private stageCards(stage: JobStage): JobCard[] {
-    return this.jobCards.filter(card => card.stage == stage).sort((a, b) => {
-      let dateA: number;
-      let dateB: number;
-      if(stage == 'followUp' && a.nextTouchAt && b.nextTouchAt) {
-        dateA = new Date(a.nextTouchAt).getTime();
-        dateB = new Date(b.nextTouchAt).getTime();
+    const cards = this.jobCards.filter(c => c.stage === stage);
 
-        return dateA - dateB; // Ascending order for follow-ups based on next touch date
-      } else {
-        dateA = new Date(a.lastTouchedAt).getTime();
-        dateB = new Date(b.lastTouchedAt).getTime();
-      }
+    if (stage === 'followUp') {
+      return cards.sort((a, b) => {
+        const aHas = a.nextTouchAt != null;
+        const bHas = b.nextTouchAt != null;
 
-      return dateB - dateA;
-    });
+        // Cards with a nextTouchAt come first
+        if (aHas && !bHas) return -1;
+        if (!aHas && bHas) return 1;
+
+        // If both have nextTouchAt, earlier date first (due soonest)
+        if (aHas && bHas) return (a.nextTouchAt! - b.nextTouchAt!);
+
+        // Otherwise, fall back to lastTouchedAt desc
+        return b.lastTouchedAt - a.lastTouchedAt;
+      });
+    }
+
+    // other stages: last touched desc
+    return cards.sort((a, b) => b.lastTouchedAt - a.lastTouchedAt);
   }
+    
 
   private populateStageCards(): void {
     this.stages.forEach(stage => {
@@ -164,6 +179,7 @@ export class JobComponent implements OnInit {
 
   ngOnDestroy() {
     this.subscriptions?.forEach(sub => sub.unsubscribe());
+    this.refreshSub?.unsubscribe();
   }
 
 }

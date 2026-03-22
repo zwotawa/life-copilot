@@ -2,44 +2,44 @@
     <div *ngIf="isLoading">Loading...</div>
     <div *ngIf="error">{{ error }}</div>
     <div *ngIf="!isLoading" class="add-job">
-  <button mat-stroked-button (click)="showAdd = !showAdd">
-    {{ showAdd ? 'Close' : '+ Add job' }}
-  </button>
+        <button mat-stroked-button (click)="showAdd = !showAdd">
+            {{ showAdd ? 'Close' : '+ Add job' }}
+        </button>
 
-  <div *ngIf="showAdd" class="add-job-form">
-    <mat-form-field appearance="outline">
-      <mat-label>Company</mat-label>
-      <input matInput [(ngModel)]="newJob.company" />
-    </mat-form-field>
+    <div *ngIf="showAdd" class="add-job-form">
+        <mat-form-field appearance="outline">
+        <mat-label>Company</mat-label>
+        <input matInput [(ngModel)]="newJob.company" />
+        </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Role</mat-label>
-      <input matInput [(ngModel)]="newJob.role" />
-    </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Role</mat-label>
+        <input matInput [(ngModel)]="newJob.role" />
+        </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Link</mat-label>
-      <input matInput [(ngModel)]="newJob.link" />
-    </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Link</mat-label>
+        <input matInput [(ngModel)]="newJob.link" />
+        </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Stage</mat-label>
-      <mat-select [(ngModel)]="newJob.stage">
-        <mat-option value="toApply">To Apply</mat-option>
-        <mat-option value="applied">Applied</mat-option>
-        <mat-option value="followUp">Follow-up</mat-option>
-        <mat-option value="interview">Interview</mat-option>
-      </mat-select>
-    </mat-form-field>
+        <mat-form-field appearance="outline">
+        <mat-label>Stage</mat-label>
+        <mat-select [(ngModel)]="newJob.stage">
+            <mat-option value="toApply">To Apply</mat-option>
+            <mat-option value="applied">Applied</mat-option>
+            <mat-option value="followUp">Follow-up</mat-option>
+            <mat-option value="interview">Interview</mat-option>
+        </mat-select>
+        </mat-form-field>
 
-    <div class="add-actions">
-      <button mat-flat-button color="primary" (click)="addJob()" [disabled]="!newJob.company || !newJob.role">
-        Add
-      </button>
-      <button mat-button (click)="resetAdd()">Reset</button>
+        <div class="add-actions">
+        <button mat-flat-button color="primary" (click)="addJob()" [disabled]="!newJob.company || !newJob.role">
+            Add
+        </button>
+        <button mat-button (click)="resetAdd()">Reset</button>
+        </div>
     </div>
-  </div>
-</div>
+    </div>
     <div *ngIf="!isLoading" class="pipeline">
         <div *ngFor="let stage of stages" class="pipeline-col">
             <div class="pipeline-col-header">
