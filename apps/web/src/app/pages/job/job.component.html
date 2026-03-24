@@ -1,6 +1,6 @@
-<div>
+<div class="page">
     <div *ngIf="isLoading">Loading...</div>
-    <div *ngIf="error">{{ error }}</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
     <div *ngIf="!isLoading" class="add-job">
         <button mat-stroked-button (click)="showAdd = !showAdd">
             {{ showAdd ? 'Close' : '+ Add job' }}
@@ -44,9 +44,9 @@
         <div *ngFor="let stage of stages" class="pipeline-col">
             <div class="pipeline-col-header">
                 <p class="pipeline-col-title">{{ stage.stageName | capitalizeFirstLetter }}</p>
-                <p class="pipeline-col-count">Count: {{ stage.stageCards ? stage.stageCards.length : 0}}</p>
+                <p class="pipeline-col-count">{{ stage.stageCards?.length ?? 0 }}</p>
             </div>
-            <div *ngFor="let card of stage.stageCards">
+            <div *ngFor="let card of stage.stageCards" class="job-card">
                 <app-job-card 
                     [jobCardData]="card" 
                     (moveEvent)="moveCard($event)"
