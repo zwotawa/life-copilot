@@ -25,6 +25,7 @@ import { MatIconModule } from '@angular/material/icon'
 import { JobService } from './pages/job/job.service';
 import { HttpClientModule } from '@angular/common/http';
 import { MatSelectModule } from '@angular/material/select';
+import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import { MatSelectModule } from '@angular/material/select';
     TimerDialogComponent,
     SecondsToMinutesPipe,
     CapitalilzeFirstLetter,
-    JobCardComponent
+    JobCardComponent,
+    ConfirmDialogComponent
   ],
   imports: [
     BrowserModule,

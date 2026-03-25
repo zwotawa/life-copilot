@@ -3,6 +3,8 @@ import { CreateJobCardRequest, JobCard, JobStage, UpdateJobCardRequest } from 's
 import { CardMovement, NextTouchUpdate } from './job-card/job-card.component';
 import { JobService } from './job.service';
 import { Subscription } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-dialog.component';
 
 interface Stage {
   stageName: JobStage,
@@ -47,7 +49,7 @@ export class JobComponent implements OnInit, OnDestroy {
 };
 private refreshSub?: Subscription;
 
-  constructor(private jobService: JobService) { }
+  constructor(private jobService: JobService, private dialog: MatDialog) { }
 
   ngOnInit(): void {
     this.refresh();
@@ -128,13 +130,27 @@ private refreshSub?: Subscription;
   }
 
   public deleteCard(card: JobCard): void {
-    this.subscriptions.push(this.jobService.deleteJob(card.id).subscribe({
-      next: () => { this.refresh() },
-      error: (err) => {
-        this.error = 'Failed to delete job';
-        console.error(err);
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Delete job',
+        message: `${card.company} - ${card.role}`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
       }
-    }));
+    });
+
+    ref.afterClosed().subscribe((confirmed: boolean) => {
+      if(!confirmed) return;
+
+      this.subscriptions.push(this.jobService.deleteJob(card.id).subscribe({
+        next: () => { this.refresh() },
+        error: (err) => {
+          this.error = 'Failed to delete job';
+          console.error(err);
+        }
+      }));
+    });
   }
 
 
