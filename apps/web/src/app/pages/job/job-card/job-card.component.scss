@@ -1,13 +1,15 @@
 .job-card {
   border-radius: var(--radius-md);
-  border: 1px solid rgba(0,0,0,0.08);
-  background: #fff;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .job-card-inner {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 12px;
 }
 
 .top-row {
@@ -67,12 +69,20 @@
   border-radius: 999px;
   background: rgba(244, 67, 54, 0.14);
   font-weight: 700;
+  color: rgba(198, 40, 40, 1);
 }
 
 .touch-buttons {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.touch-buttons button {
+  line-height: 28px;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
 }
 
 .job-card-actions {
