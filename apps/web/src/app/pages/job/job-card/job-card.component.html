@@ -61,10 +61,12 @@
 
     <span class="spacer"></span>
 
-    <button mat-stroked-button
-            *ngIf="jobCardData.stage === 'followUp' || jobCardData.stage === 'applied'"
-            (click)="addJobAction()">
-      Add follow-up action
+    <button
+        mat-stroked-button
+        class="followup-btn"
+        *ngIf="jobCardData.stage === 'followUp' || jobCardData.stage === 'applied'"
+        (click)="addJobAction()">
+        Add follow-up action
     </button>
   </mat-card-actions>
 

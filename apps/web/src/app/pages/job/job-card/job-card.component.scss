@@ -85,10 +85,31 @@
   font-size: 12px;
 }
 
+.followup-btn {
+  flex: 1 1 auto;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+@media (min-width: 901px) {
+  .followup-btn {
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
+
+@media (max-width: 900px) {
+  .followup-btn {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 .job-card-actions {
   display: flex;
   align-items: center;
   padding: 0 12px 8px 12px;
+  min-width: 0;
 }
 
 .move-buttons {
@@ -111,3 +132,4 @@
 }
 
 .spacer { flex: 1; }
+
