@@ -127,6 +127,17 @@ private refreshSub?: Subscription;
     }));
   }
 
+  public deleteCard(card: JobCard): void {
+    this.subscriptions.push(this.jobService.deleteJob(card.id).subscribe({
+      next: () => { this.refresh() },
+      error: (err) => {
+        this.error = 'Failed to delete job';
+        console.error(err);
+      }
+    }));
+  }
+
+
   private refresh(): void {
     this.isLoading = true;
     this.error = null;

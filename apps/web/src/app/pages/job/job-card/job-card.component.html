@@ -6,7 +6,7 @@
         <div class="company">{{ jobCardData.company }}</div>
         <div class="role muted">{{ jobCardData.role }}</div>
       </div>
-      <button mat-icon-button class="icon-btn" (click)="requestDelete()">
+      <button mat-icon-button class="icon-btn" (click)="requestDelete(jobCardData)">
         <mat-icon>delete</mat-icon>
       </button>
     </div>

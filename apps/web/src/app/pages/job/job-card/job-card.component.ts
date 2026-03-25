@@ -44,8 +44,8 @@ export class JobCardComponent implements OnInit {
     this.touchUpdateEvent.emit({ card, daysFromNow });
   }
 
-  public requestDelete(): void {
-    this.deleteEvent.emit(this.jobCardData);
+  public requestDelete(card: JobCard): void {
+    this.deleteEvent.emit(card);
   }
 
   public addJobAction(): void {
