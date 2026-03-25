@@ -45,7 +45,7 @@
   </mat-card-content>
 
   <mat-card-actions class="job-card-actions">
-    <div class="move-buttons">
+    <div class="left-actions">
       <button mat-icon-button
               *ngIf="jobCardData.stage !== 'toApply'"
               (click)="moveCard(jobCardData, back)">
@@ -61,13 +61,11 @@
 
     <span class="spacer"></span>
 
-    <button
-        mat-stroked-button
-        class="followup-btn"
-        *ngIf="jobCardData.stage === 'followUp' || jobCardData.stage === 'applied'"
-        (click)="addJobAction()">
-        Add follow-up action
-    </button>
+    <div class="right-actions" *ngIf="jobCardData.stage === 'followUp' || jobCardData.stage === 'applied'">
+        <button mat-stroked-button class="followup-btn" (click)="addJobAction()">
+            Add follow-up action
+        </button>
+    </div>
   </mat-card-actions>
 
   <mat-card-footer class="job-card-footer">
