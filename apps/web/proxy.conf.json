@@ -1,14 +1,26 @@
 {
-    "/api": {
-        "target": "http://localhost:5125",
-        "secure": false,
-        "changeOrigin": true,
-        "LogLevel": "debug"
+  "/api/jobs-proxy": {
+    "target": "http://localhost:5125",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/api/jobs-proxy": "/api/jobs"
     },
-    "/health": {
-        "target": "http://localhost:5125",
-        "secure": false,
-        "changeOrigin": true,
-        "LogLevel": "debug"
+    "headers": {
+      "X-API-Key": "LOCAL_DEV_KEY_CHANGE_ME"
     }
+  },
+  "/api": {
+    "target": "http://localhost:5125",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/health": {
+    "target": "http://localhost:5125",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
 }
