@@ -40,5 +40,6 @@
 .goal-actions {
   display: flex;
   justify-content: flex-end;
+  flex-direction: column;
   padding: 8px 16px 16px 16px;
 }
