@@ -21,11 +21,11 @@ export interface SelectedAction {
 
 
 @Component({
-  selector: 'app-goal-card',
-  templateUrl: './goal-card.component.html',
-  styleUrls: ['./goal-card.component.scss']
+  selector: 'legacy-app-goal-card',
+  templateUrl: './legacy-goal-card.component.html',
+  styleUrls: ['./legacy-goal-card.component.scss']
 })
-export class GoalCardComponent implements OnInit {
+export class LegacyGoalCardComponent implements OnInit {
 
   @Input() cardData?: GoalCard;
 

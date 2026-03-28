@@ -10,7 +10,7 @@ import { DeclutterComponent } from './pages/declutter/declutter.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import { GoalCardComponent } from './shared/goal-card/goal-card.component';
+import { LegacyGoalCardComponent } from './shared/goal-card/legacy-goal-card.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { ListItemComponent } from './shared/list-item/list-item.component';
@@ -26,6 +26,7 @@ import { JobService } from './pages/job/job.service';
 import { HttpClientModule } from '@angular/common/http';
 import { MatSelectModule } from '@angular/material/select';
 import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';
+import { GoalsPageComponent } from './features/goals/goals-page/goals-page.component';
 
 @NgModule({
   declarations: [
@@ -34,13 +35,14 @@ import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.c
     JobComponent,
     VehicleComponent,
     DeclutterComponent,
-    GoalCardComponent,
+    LegacyGoalCardComponent,
     ListItemComponent,
     TimerDialogComponent,
     SecondsToMinutesPipe,
     CapitalilzeFirstLetter,
     JobCardComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    GoalsPageComponent
   ],
   imports: [
     BrowserModule,

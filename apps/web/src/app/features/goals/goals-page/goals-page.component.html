@@ -1,0 +1,12 @@
+<p>goals-page works!</p>
+
+<p *ngFor="let goal of goals">
+  {{ goal.title }}
+  {{ goal.lane }}
+  {{ goal.type}}
+  {{ goal.currentMilestone }}
+  {{ goal.nextTinyAction}}
+  {{ goal.minimumTouchFrequency }}
+  {{ goal.realDeadline ?? goal.dueStyle }}
+  {{ goal.status }}
+</p>

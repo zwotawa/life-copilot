@@ -1,4 +1,4 @@
-import { SelectedAction } from "../shared/goal-card/goal-card.component";
+import { SelectedAction } from "../shared/goal-card/legacy-goal-card.component";
 
 
 

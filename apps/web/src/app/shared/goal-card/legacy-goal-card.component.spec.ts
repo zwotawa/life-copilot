@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GoalCardComponent } from './goal-card.component';
+import { LegacyGoalCardComponent } from './legacy-goal-card.component';
 
 describe('GoalCardComponent', () => {
-  let component: GoalCardComponent;
-  let fixture: ComponentFixture<GoalCardComponent>;
+  let component: LegacyGoalCardComponent;
+  let fixture: ComponentFixture<LegacyGoalCardComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ GoalCardComponent ]
+      declarations: [ LegacyGoalCardComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GoalCardComponent);
+    fixture = TestBed.createComponent(LegacyGoalCardComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

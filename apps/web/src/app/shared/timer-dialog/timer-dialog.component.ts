@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { TimerDialogData } from '../goal-card/goal-card.component';
+import { TimerDialogData } from '../goal-card/legacy-goal-card.component';
 import { SecondsToMinutesPipe } from '../pipes/seconds-to-minutes.pipe';
 import { map, Observable, timer, BehaviorSubject, Subject, switchMap, NEVER } from 'rxjs';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
