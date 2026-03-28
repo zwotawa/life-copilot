@@ -10,7 +10,7 @@ import { DeclutterComponent } from './pages/declutter/declutter.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import { LegacyGoalCardComponent } from './shared/goal-card/legacy-goal-card.component';
+import { LegacyGoalCardComponent } from './shared/legacy-goal-card/legacy-goal-card.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { ListItemComponent } from './shared/list-item/list-item.component';
@@ -27,6 +27,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { MatSelectModule } from '@angular/material/select';
 import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';
 import { GoalsPageComponent } from './features/goals/goals-page/goals-page.component';
+import { GoalCardComponent } from './shared/components/goal-card/goal-card.component';
 
 @NgModule({
   declarations: [
@@ -42,7 +43,8 @@ import { GoalsPageComponent } from './features/goals/goals-page/goals-page.compo
     CapitalilzeFirstLetter,
     JobCardComponent,
     ConfirmDialogComponent,
-    GoalsPageComponent
+    GoalsPageComponent,
+    GoalCardComponent
   ],
   imports: [
     BrowserModule,

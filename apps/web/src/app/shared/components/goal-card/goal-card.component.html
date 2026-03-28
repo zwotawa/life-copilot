@@ -1,0 +1,16 @@
+<mat-card>
+    <mat-card-header>
+        <mat-card-title>
+            {{ goal.title }}
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <p>Lane: {{ goal.lane }}</p>
+        <p>Type: {{ goal.type}}</p>
+        <p>Current Milestone: {{ goal.currentMilestone }}</p>
+        <p>Next Tiny Action: {{ goal.nextTinyAction}}</p>
+        <p>Minimum Touch Frequency: {{ goal.minimumTouchFrequency }}</p>
+        <p>Real Deadline: {{ goal.realDeadline ?? goal.dueStyle }}</p>
+        <p>Status: {{ goal.status }}</p>
+    </mat-card-content>
+</mat-card>
