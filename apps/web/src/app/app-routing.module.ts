@@ -5,13 +5,15 @@ import { JobComponent } from './pages/job/job.component';
 import { VehicleComponent } from './pages/vehicle/vehicle.component';
 import { DeclutterComponent } from './pages/declutter/declutter.component';
 import { GoalsPageComponent } from './features/goals/goals-page/goals-page.component';
+import { GoalDetailPageComponent } from './features/goals/goal-detail-page/goal-detail-page.component';
 
 const routes: Routes = [
   { path: '', component: DashboardComponent },
   { path: 'job', component: JobComponent },
   { path: 'vehicle', component: VehicleComponent },
   { path: 'declutter', component: DeclutterComponent },
-  { path: 'goals', component: GoalsPageComponent}
+  { path: 'goals', component: GoalsPageComponent},
+  { path: 'goals/:id', component: GoalDetailPageComponent}
 ];
 
 @NgModule({

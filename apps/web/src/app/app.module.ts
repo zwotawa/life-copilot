@@ -28,6 +28,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';
 import { GoalsPageComponent } from './features/goals/goals-page/goals-page.component';
 import { GoalCardComponent } from './shared/components/goal-card/goal-card.component';
+import { GoalDetailPageComponent } from './features/goals/goal-detail-page/goal-detail-page.component';
+import { GoalFormComponent } from './features/goals/goal-form/goal-form.component';
 
 @NgModule({
   declarations: [
@@ -44,7 +46,9 @@ import { GoalCardComponent } from './shared/components/goal-card/goal-card.compo
     JobCardComponent,
     ConfirmDialogComponent,
     GoalsPageComponent,
-    GoalCardComponent
+    GoalCardComponent,
+    GoalDetailPageComponent,
+    GoalFormComponent
   ],
   imports: [
     BrowserModule,

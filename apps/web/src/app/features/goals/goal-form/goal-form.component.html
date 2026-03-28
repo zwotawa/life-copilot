@@ -1,0 +1,73 @@
+<form #goalForm="ngForm" class="goal-form" (ngSubmit)="onSubmit(goalForm)">
+    <mat-form-field appearance="fill">
+        <mat-label>Title</mat-label>
+        <input matInput name="title" [(ngModel)]="goal.title" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Why It Matters</mat-label>
+        <textarea matInput name="whyItMatters" [(ngModel)]="goal.whyItMatters" rows="3"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Lane</mat-label>
+        <mat-select name="lane" [(ngModel)]="goal.lane">
+            <mat-option value="backlog">Backlog</mat-option>
+            <mat-option value="in-progress">In Progress</mat-option>
+            <mat-option value="completed">Completed</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Type</mat-label>
+        <mat-select name="type" [(ngModel)]="goal.type">
+            <mat-option value="maintain">Maintain</mat-option>
+            <mat-option value="project">Project</mat-option>
+            <mat-option value="seasonal">Seasonal</mat-option>
+            <mat-option value="exploration">Exploration</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Status</mat-label>
+        <mat-select name="status" [(ngModel)]="goal.status">
+            <mat-option value="active">Active</mat-option>
+            <mat-option value="paused">Paused</mat-option>
+            <mat-option value="someday">Someday</mat-option>
+            <mat-option value="completed">Completed</mat-option>
+            <mat-option value="archived">Archived</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Due Style</mat-label>
+        <mat-select name="dueStyle" [(ngModel)]="goal.dueStyle">
+            <mat-option value="hard_date">Hard Date</mat-option>
+            <mat-option value="target_window">Target Window</mat-option>
+            <mat-option value="cadence_only">Cadence Only</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Real Deadline</mat-label>
+        <input matInput name="realDeadline" [(ngModel)]="goal.realDeadline" type="text">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Target Date</mat-label>
+        <input matInput name="targetDate" [(ngModel)]="goal.targetDate" type="text">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Minimum Touch Frequency</mat-label>
+        <mat-select name="minimumTouchFrequency" [(ngModel)]="goal.minimumTouchFrequency">
+            <mat-option value="daily">Daily</mat-option>
+            <mat-option value="3x_week">Weekly</mat-option>
+            <mat-option value="weekly">Biweekly</mat-option>
+            <mat-option value="biweekly">Monthly</mat-option>
+            <mat-option value="monthly">Quarterly</mat-option>
+            <mat-option value="seasonal">Annually</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+</form>
