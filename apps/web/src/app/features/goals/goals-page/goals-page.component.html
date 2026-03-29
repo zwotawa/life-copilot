@@ -1,5 +1,48 @@
 <button mat-raised-button color="primary" routerLink="/goals/new">Create New Goal</button>
 
-<div *ngFor="let goal of goals">
+<mat-form-field appearance="outline">
+    <mat-label>Filter by Status</mat-label>
+    <mat-select [(value)]="statusFilter">
+        <mat-option value="">All Statuses</mat-option>
+        <mat-option value="active">Active</mat-option>
+        <mat-option value="paused">Paused</mat-option>
+        <mat-option value="someday">Someday</mat-option>
+        <mat-option value="completed">Completed</mat-option>
+        <mat-option value="archived">Archived</mat-option>
+    </mat-select>
+</mat-form-field>
+
+<mat-form-field appearance="outline">
+  <mat-label>Filter by Lane</mat-label>
+  <mat-select [(value)]="laneFilter">
+    <mat-option value="">All Lanes</mat-option>
+    <mat-option value="career_education">Career & Education</mat-option>
+    <mat-option value="life_systems">Life Systems</mat-option>
+    <mat-option value="relationships">Relationships</mat-option>
+    <mat-option value="health_body">Health & Body</mat-option>
+    <mat-option value="money_admin">Money & Administration</mat-option>
+    <mat-option value="home_environment">Home & Environment</mat-option>
+    <mat-option value="mobility_transportation">Mobility & Transportation</mat-option>
+    <mat-option value="creative_experiments">Creative Experiments</mat-option>
+    <mat-option value="skill_building">Skill Building</mat-option>
+    <mat-option value="community_tools">Community & Tools</mat-option>
+    <mat-option value="custom">Custom</mat-option>
+  </mat-select>
+</mat-form-field>
+
+<mat-form-field appearance="outline">
+  <mat-label>Filter by Type</mat-label>
+  <mat-select [(value)]="typeFilter">
+    <mat-option value="">All Types</mat-option>
+    <mat-option value="maintain">Maintain</mat-option>
+    <mat-option value="project">Project</mat-option>
+    <mat-option value="seasonal">Seasonal</mat-option>
+    <mat-option value="exploration">Exploration</mat-option>
+  </mat-select>
+</mat-form-field>
+
+<button mat-raised-button color="secondary" (click)="statusFilter = ''; laneFilter = ''; typeFilter = ''">Clear Filters</button>
+
+<div *ngFor="let goal of filteredGoals">
     <app-goal-card [goal]="goal"></app-goal-card>
 </div>

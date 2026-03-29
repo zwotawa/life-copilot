@@ -11,12 +11,25 @@ import { getGoals, saveGoals } from 'src/app/core/services/goal-store.service';
 export class GoalsPageComponent implements OnInit {
 
   public goals: Goal[] = [];
+  public statusFilter: string = '';
+  public laneFilter: string = '';
+  public typeFilter: string = '';
 
   constructor() { }
 
   ngOnInit(): void {
     //saveGoals(SEED_GOALS);
     this.goals = getGoals();
+  }
+
+  get filteredGoals(): Goal[] {
+    return this.goals.filter(goal => {
+      return (
+        (this.statusFilter ? goal.status === this.statusFilter : true) &&
+        (this.laneFilter ? goal.lane === this.laneFilter : true) &&
+        (this.typeFilter ? goal.type === this.typeFilter : true)
+      );
+    });
   }
 
 }
