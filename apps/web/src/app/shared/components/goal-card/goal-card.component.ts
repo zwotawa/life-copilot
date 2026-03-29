@@ -15,4 +15,16 @@ export class GoalCardComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  get dueLabel(): string | null {
+    if (this.goal.realDeadline) {
+      return `Deadline: ${this.goal.realDeadline}`;
+    }
+
+    if (this.goal.targetDate) {
+      return `Target: ${this.goal.targetDate}`;
+    }
+
+    return null;
+  }
+
 }
