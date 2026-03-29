@@ -11,7 +11,7 @@
 
     <mat-form-field appearance="fill">
         <mat-label>Lane</mat-label>
-        <mat-select name="lane" [(ngModel)]="goal.lane">
+        <mat-select name="lane" [(ngModel)]="goal.lane" required>
             <mat-option value="backlog">Backlog</mat-option>
             <mat-option value="in-progress">In Progress</mat-option>
             <mat-option value="completed">Completed</mat-option>
@@ -20,7 +20,7 @@
 
     <mat-form-field appearance="fill">
         <mat-label>Type</mat-label>
-        <mat-select name="type" [(ngModel)]="goal.type">
+        <mat-select name="type" [(ngModel)]="goal.type" required>
             <mat-option value="maintain">Maintain</mat-option>
             <mat-option value="project">Project</mat-option>
             <mat-option value="seasonal">Seasonal</mat-option>
@@ -30,7 +30,7 @@
 
     <mat-form-field appearance="fill">
         <mat-label>Status</mat-label>
-        <mat-select name="status" [(ngModel)]="goal.status">
+        <mat-select name="status" [(ngModel)]="goal.status" required>
             <mat-option value="active">Active</mat-option>
             <mat-option value="paused">Paused</mat-option>
             <mat-option value="someday">Someday</mat-option>
@@ -41,7 +41,7 @@
 
     <mat-form-field appearance="fill">
         <mat-label>Due Style</mat-label>
-        <mat-select name="dueStyle" [(ngModel)]="goal.dueStyle">
+        <mat-select name="dueStyle" [(ngModel)]="goal.dueStyle" required>
             <mat-option value="hard_date">Hard Date</mat-option>
             <mat-option value="target_window">Target Window</mat-option>
             <mat-option value="cadence_only">Cadence Only</mat-option>
@@ -60,7 +60,7 @@
 
     <mat-form-field appearance="fill">
         <mat-label>Minimum Touch Frequency</mat-label>
-        <mat-select name="minimumTouchFrequency" [(ngModel)]="goal.minimumTouchFrequency">
+        <mat-select name="minimumTouchFrequency" [(ngModel)]="goal.minimumTouchFrequency" required>
             <mat-option value="daily">Daily</mat-option>
             <mat-option value="3x_week">3x/Week</mat-option>
             <mat-option value="weekly">Weekly</mat-option>
