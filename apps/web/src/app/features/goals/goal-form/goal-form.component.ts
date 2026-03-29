@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Goal } from 'src/app/core/models/goal.model';
+import { updateGoal } from 'src/app/core/services/goal-store.service';
 
 @Component({
   selector: 'app-goal-form',
@@ -8,7 +9,7 @@ import { Goal } from 'src/app/core/models/goal.model';
 })
 export class GoalFormComponent implements OnInit {
 
-  public goal: Goal = <Goal>{}
+  @Input() goal: Goal = <Goal>{};
 
   constructor() { }
 
@@ -16,7 +17,7 @@ export class GoalFormComponent implements OnInit {
   }
 
   public onSubmit(goalForm: any): void {
-
+    updateGoal(this.goal);
   }
 
 }

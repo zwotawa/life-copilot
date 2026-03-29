@@ -1,4 +1,4 @@
-<article class="goal-card" *ngIf="goal">
+<article class="goal-card" *ngIf="goal" [routerLink]="['/goals', goal.id]">
   <div class="goal-card__header">
     <div class="goal-card__title-wrap">
       <h3 class="goal-card__title">{{ goal.title }}</h3>

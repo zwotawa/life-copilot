@@ -15,7 +15,7 @@ export class GoalsPageComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    saveGoals(SEED_GOALS);
+    //saveGoals(SEED_GOALS);
     this.goals = getGoals();
   }
 
