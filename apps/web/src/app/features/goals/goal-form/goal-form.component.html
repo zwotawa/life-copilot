@@ -62,12 +62,64 @@
         <mat-label>Minimum Touch Frequency</mat-label>
         <mat-select name="minimumTouchFrequency" [(ngModel)]="goal.minimumTouchFrequency">
             <mat-option value="daily">Daily</mat-option>
-            <mat-option value="3x_week">Weekly</mat-option>
-            <mat-option value="weekly">Biweekly</mat-option>
-            <mat-option value="biweekly">Monthly</mat-option>
-            <mat-option value="monthly">Quarterly</mat-option>
-            <mat-option value="seasonal">Annually</mat-option>
+            <mat-option value="3x_week">3x/Week</mat-option>
+            <mat-option value="weekly">Weekly</mat-option>
+            <mat-option value="biweekly">Biweekly</mat-option>
+            <mat-option value="monthly">Monthly</mat-option>
+            <mat-option value="seasonal">Seasonal</mat-option>
         </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Current Milestone</mat-label>
+        <input matInput name="currentMilestone" [(ngModel)]="goal.currentMilestone" type="text">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Next Tiny Action</mat-label>
+        <input matInput name="nextTinyAction" [(ngModel)]="goal.nextTinyAction" type="text">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Typical Session Size</mat-label>
+        <mat-select name="typicalSessionSize" [(ngModel)]="goal.typicalSessionSize">
+            <mat-option value="5m">5 Minutes</mat-option>
+            <mat-option value="10m">10 Minutes</mat-option>
+            <mat-option value="25mr">25 Minutes</mat-option>
+            <mat-option value="60m+">Hour+</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Energy</mat-label>
+        <mat-select name="energy" [(ngModel)]="goal.energy">
+            <mat-option value="low">Low</mat-option>
+            <mat-option value="medium">Medium</mat-option>
+            <mat-option value="deep">Deep</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Resistance</mat-label>
+        <mat-select name="resistance" [(ngModel)]="goal.resistance">
+            <mat-option value="low">Low</mat-option>
+            <mat-option value="medium">Medium</mat-option>
+            <mat-option value="high">High</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Excitement</mat-label>
+        <mat-select name="excitement" [(ngModel)]="goal.excitement">
+            <mat-option value="low">Low</mat-option>
+            <mat-option value="medium">Medium</mat-option>
+            <mat-option value="high">High</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Notes</mat-label>
+        <textarea matInput name="notes" [(ngModel)]="goal.notes" rows="5"></textarea>
     </mat-form-field>
 
 </form>
