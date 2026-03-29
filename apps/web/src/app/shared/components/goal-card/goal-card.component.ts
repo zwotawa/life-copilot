@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Goal } from 'src/app/core/models/goal.model';
 
 @Component({
@@ -6,14 +6,14 @@ import { Goal } from 'src/app/core/models/goal.model';
   templateUrl: './goal-card.component.html',
   styleUrls: ['./goal-card.component.scss']
 })
-export class GoalCardComponent implements OnInit {
-
+export class GoalCardComponent {
   @Input() goal!: Goal;
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
+  public getDisplayLabel(value: string): string {
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
 
   get dueLabel(): string | null {
     if (this.goal.realDeadline) {
@@ -27,4 +27,13 @@ export class GoalCardComponent implements OnInit {
     return null;
   }
 
+  get hasMeta(): boolean {
+    return !!(
+      this.goal.minimumTouchFrequency ||
+      this.goal.typicalSessionSize ||
+      this.goal.energy ||
+      this.goal.resistance ||
+      this.goal.excitement
+    );
+  }
 }

@@ -1,28 +1,70 @@
 <article class="goal-card" *ngIf="goal">
   <div class="goal-card__header">
-    <h3>{{ goal.title }}</h3>
+    <div class="goal-card__title-wrap">
+      <h3 class="goal-card__title">{{ goal.title }}</h3>
+      <p class="goal-card__why" *ngIf="goal.whyItMatters">
+        {{ goal.whyItMatters }}
+      </p>
+    </div>
+
     <div class="goal-card__badges">
-      <span>{{ goal.lane }}</span>
-      <span>{{ goal.type }}</span>
-      <span>{{ goal.status }}</span>
+      <span class="goal-card__badge">{{ getDisplayLabel(goal.lane) }}</span>
+      <span class="goal-card__badge">{{ getDisplayLabel(goal.type) }}</span>
+      <span class="goal-card__badge goal-card__badge--status">
+        {{ getDisplayLabel(goal.status) }}
+      </span>
     </div>
   </div>
 
-  <p *ngIf="goal.whyItMatters">{{ goal.whyItMatters }}</p>
-
-  <div *ngIf="goal.currentMilestone">
-    <strong>Milestone:</strong> {{ goal.currentMilestone }}
+  <div class="goal-card__section" *ngIf="goal.currentMilestone">
+    <div class="goal-card__label">Current milestone</div>
+    <div class="goal-card__value">{{ goal.currentMilestone }}</div>
   </div>
 
-  <div *ngIf="goal.nextTinyAction">
-    <strong>Next tiny action:</strong> {{ goal.nextTinyAction }}
+  <div class="goal-card__section" *ngIf="goal.nextTinyAction">
+    <div class="goal-card__label">Next tiny action</div>
+    <div class="goal-card__value">{{ goal.nextTinyAction }}</div>
   </div>
 
-  <div *ngIf="goal.minimumTouchFrequency">
-    <strong>Touch frequency:</strong> {{ goal.minimumTouchFrequency }}
+  <div class="goal-card__section" *ngIf="dueLabel">
+    <div class="goal-card__label">Timing</div>
+    <div class="goal-card__value">{{ dueLabel }}</div>
   </div>
 
-  <div *ngIf="dueLabel">
-    <strong>{{ dueLabel }}</strong>
+  <div class="goal-card__meta" *ngIf="hasMeta">
+    <div class="goal-card__meta-item" *ngIf="goal.minimumTouchFrequency">
+      <span class="goal-card__meta-label">Touch</span>
+      <span class="goal-card__meta-value">{{ goal.minimumTouchFrequency }}</span>
+    </div>
+
+    <div class="goal-card__meta-item" *ngIf="goal.typicalSessionSize">
+      <span class="goal-card__meta-label">Session</span>
+      <span class="goal-card__meta-value">{{ goal.typicalSessionSize }}</span>
+    </div>
+
+    <div class="goal-card__meta-item" *ngIf="goal.energy">
+      <span class="goal-card__meta-label">Energy</span>
+      <span class="goal-card__meta-value">{{ goal.energy }}</span>
+    </div>
+
+    <div class="goal-card__meta-item" *ngIf="goal.resistance">
+      <span class="goal-card__meta-label">Resistance</span>
+      <span class="goal-card__meta-value">{{ goal.resistance }}</span>
+    </div>
+
+    <div class="goal-card__meta-item" *ngIf="goal.excitement">
+      <span class="goal-card__meta-label">Excitement</span>
+      <span class="goal-card__meta-value">{{ goal.excitement }}</span>
+    </div>
+  </div>
+
+  <div class="goal-card__footer" *ngIf="goal.lastTouchedAt || goal.notes">
+    <div class="goal-card__last-touched" *ngIf="goal.lastTouchedAt">
+      Last touched: {{ goal.lastTouchedAt }}
+    </div>
+
+    <div class="goal-card__notes" *ngIf="goal.notes">
+      {{ goal.notes }}
+    </div>
   </div>
 </article>
