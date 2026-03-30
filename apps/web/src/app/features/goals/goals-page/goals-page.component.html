@@ -1,48 +1,101 @@
-<button mat-raised-button color="primary" routerLink="/goals/new">Create New Goal</button>
+<div class="goals-page">
+  <div class="goals-page__container">
+    <header class="goals-page__header">
+      <div>
+        <p class="goals-page__eyebrow">Goals</p>
+        <h1 class="goals-page__title">Goal Library</h1>
+        <p class="goals-page__subtitle">
+          View, filter, and manage all goals in your system.
+        </p>
+      </div>
 
-<mat-form-field appearance="outline">
-    <mat-label>Filter by Status</mat-label>
-    <mat-select [(value)]="statusFilter">
-        <mat-option value="">All Statuses</mat-option>
-        <mat-option value="active">Active</mat-option>
-        <mat-option value="paused">Paused</mat-option>
-        <mat-option value="someday">Someday</mat-option>
-        <mat-option value="completed">Completed</mat-option>
-        <mat-option value="archived">Archived</mat-option>
-    </mat-select>
-</mat-form-field>
+      <div class="goals-page__header-actions">
+        <button mat-raised-button color="primary" routerLink="/goals/new">
+          Create New Goal
+        </button>
+      </div>
+    </header>
 
-<mat-form-field appearance="outline">
-  <mat-label>Filter by Lane</mat-label>
-  <mat-select [(value)]="laneFilter">
-    <mat-option value="">All Lanes</mat-option>
-    <mat-option value="career_education">Career & Education</mat-option>
-    <mat-option value="life_systems">Life Systems</mat-option>
-    <mat-option value="relationships">Relationships</mat-option>
-    <mat-option value="health_body">Health & Body</mat-option>
-    <mat-option value="money_admin">Money & Administration</mat-option>
-    <mat-option value="home_environment">Home & Environment</mat-option>
-    <mat-option value="mobility_transportation">Mobility & Transportation</mat-option>
-    <mat-option value="creative_experiments">Creative Experiments</mat-option>
-    <mat-option value="skill_building">Skill Building</mat-option>
-    <mat-option value="community_tools">Community & Tools</mat-option>
-    <mat-option value="custom">Custom</mat-option>
-  </mat-select>
-</mat-form-field>
+    <section class="goals-toolbar">
+      <div class="goals-toolbar__filters">
+        <mat-form-field appearance="outline">
+          <mat-label>Filter by Status</mat-label>
+          <mat-select [(value)]="statusFilter">
+            <mat-option value="">All Statuses</mat-option>
+            <mat-option value="active">Active</mat-option>
+            <mat-option value="paused">Paused</mat-option>
+            <mat-option value="someday">Someday</mat-option>
+            <mat-option value="completed">Completed</mat-option>
+            <mat-option value="archived">Archived</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-<mat-form-field appearance="outline">
-  <mat-label>Filter by Type</mat-label>
-  <mat-select [(value)]="typeFilter">
-    <mat-option value="">All Types</mat-option>
-    <mat-option value="maintain">Maintain</mat-option>
-    <mat-option value="project">Project</mat-option>
-    <mat-option value="seasonal">Seasonal</mat-option>
-    <mat-option value="exploration">Exploration</mat-option>
-  </mat-select>
-</mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Filter by Lane</mat-label>
+          <mat-select [(value)]="laneFilter">
+            <mat-option value="">All Lanes</mat-option>
+            <mat-option value="career_education">Career & Education</mat-option>
+            <mat-option value="life_systems">Life Systems</mat-option>
+            <mat-option value="relationships">Relationships</mat-option>
+            <mat-option value="health_body">Health & Body</mat-option>
+            <mat-option value="money_admin">Money & Administration</mat-option>
+            <mat-option value="home_environment">Home & Environment</mat-option>
+            <mat-option value="mobility_transportation">Mobility & Transportation</mat-option>
+            <mat-option value="creative_experiments">Creative Experiments</mat-option>
+            <mat-option value="skill_building">Skill Building</mat-option>
+            <mat-option value="community_tools">Community & Tools</mat-option>
+            <mat-option value="custom">Custom</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-<button mat-raised-button color="secondary" (click)="statusFilter = ''; laneFilter = ''; typeFilter = ''">Clear Filters</button>
+        <mat-form-field appearance="outline">
+          <mat-label>Filter by Type</mat-label>
+          <mat-select [(value)]="typeFilter">
+            <mat-option value="">All Types</mat-option>
+            <mat-option value="maintain">Maintain</mat-option>
+            <mat-option value="project">Project</mat-option>
+            <mat-option value="seasonal">Seasonal</mat-option>
+            <mat-option value="exploration">Exploration</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-<div *ngFor="let goal of filteredGoals">
-    <app-goal-card [goal]="goal"></app-goal-card>
+      <div class="goals-toolbar__actions">
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="statusFilter = ''; laneFilter = ''; typeFilter = ''"
+        >
+          Clear Filters
+        </button>
+      </div>
+    </section>
+
+    <section class="goals-summary">
+      <div class="goals-summary__count">
+        {{ filteredGoals.length }} goal{{ filteredGoals.length === 1 ? '' : 's' }}
+      </div>
+    </section>
+
+    <section *ngIf="filteredGoals.length > 0; else emptyState" class="goals-grid">
+      <app-goal-card
+        *ngFor="let goal of filteredGoals; trackBy: trackByGoalId"
+        [goal]="goal"
+      ></app-goal-card>
+    </section>
+
+    <ng-template #emptyState>
+      <section class="goals-empty">
+        <h2>No goals match these filters</h2>
+        <p>Try clearing one or more filters, or create a new goal.</p>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="statusFilter = ''; laneFilter = ''; typeFilter = ''"
+        >
+          Clear Filters
+        </button>
+      </section>
+    </ng-template>
+  </div>
 </div>

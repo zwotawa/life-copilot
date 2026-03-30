@@ -32,4 +32,7 @@ export class GoalsPageComponent implements OnInit {
     });
   }
 
+  public trackByGoalId(index: number, goal: Goal): string {
+  return goal.id;
+}
 }

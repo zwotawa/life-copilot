@@ -1,0 +1,146 @@
+.goals-page {
+  min-height: 100%;
+  padding: 2rem 1rem 4rem;
+  background: #f6f8fb;
+}
+
+.goals-page__container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.goals-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.goals-page__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.goals-page__title {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #111827;
+}
+
+.goals-page__subtitle {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: #667085;
+}
+
+.goals-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #ffffff;
+  border: 1px solid #e6ebf2;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+}
+
+.goals-toolbar__filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 1rem;
+  flex: 1;
+}
+
+.goals-toolbar__actions {
+  display: flex;
+  align-items: center;
+  padding-top: 0.2rem;
+}
+
+.goals-summary {
+  margin-bottom: 1rem;
+}
+
+.goals-summary__count {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.goals-empty {
+  padding: 2rem;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e6ebf2;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+}
+
+.goals-empty h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+.goals-empty p {
+  margin: 0 0 1rem;
+  color: #667085;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+@media (max-width: 950px) {
+  .goals-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .goals-toolbar {
+    flex-direction: column;
+  }
+
+  .goals-toolbar__filters {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .goals-toolbar__actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .goals-page {
+    padding: 1rem 0.75rem 3rem;
+  }
+
+  .goals-page__title {
+    font-size: 1.6rem;
+  }
+
+  .goals-page__header {
+    flex-direction: column;
+  }
+
+  .goals-toolbar,
+  .goals-empty {
+    border-radius: 14px;
+  }
+}
