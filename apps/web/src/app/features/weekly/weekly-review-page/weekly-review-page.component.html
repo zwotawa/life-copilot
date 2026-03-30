@@ -1,0 +1,127 @@
+<div class="weekly-page">
+  <div class="weekly-page__container">
+    <header class="weekly-page__header">
+      <p class="weekly-page__eyebrow">Weekly Review</p>
+      <h1 class="weekly-page__title">Set this week’s focus</h1>
+      <p class="weekly-page__subtitle">
+        Choose a few goals to surface this week without losing sight of the bigger system.
+      </p>
+    </header>
+
+    <section class="weekly-section">
+      <div class="weekly-section__header">
+        <h2>Anchor goals</h2>
+        <p>Choose up to 2 goals that deserve the most focus this week.</p>
+      </div>
+
+      <div class="weekly-goal-list">
+        <label
+          class="weekly-goal-option"
+          *ngFor="let goal of activeGoals; trackBy: trackByGoalId"
+        >
+          <input
+            type="checkbox"
+            [checked]="isAnchorSelected(goal.id)"
+            (change)="toggleAnchor(goal.id)"
+          />
+          <div class="weekly-goal-option__body">
+            <div class="weekly-goal-option__title">{{ goal.title }}</div>
+            <div class="weekly-goal-option__meta">
+              {{ goal.lane }} · {{ goal.type }}
+            </div>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <section class="weekly-section">
+      <div class="weekly-section__header">
+        <h2>Infrastructure / admin goal</h2>
+        <p>Choose 1 practical goal that keeps life moving.</p>
+      </div>
+
+      <mat-form-field appearance="outline" class="weekly-page__full">
+        <mat-label>Infrastructure goal</mat-label>
+        <mat-select [(ngModel)]="review.infrastructureGoalId" name="infrastructureGoalId">
+          <mat-option [value]="null">None selected</mat-option>
+          <mat-option
+            *ngFor="let goal of infrastructureCandidates; trackBy: trackByGoalId"
+            [value]="goal.id"
+          >
+            {{ goal.title }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <section class="weekly-section">
+      <div class="weekly-section__header">
+        <h2>Maintenance goals</h2>
+        <p>Choose up to 5 goals that just need light touches this week.</p>
+      </div>
+
+      <div class="weekly-goal-list">
+        <label
+          class="weekly-goal-option"
+          *ngFor="let goal of activeGoals; trackBy: trackByGoalId"
+        >
+          <input
+            type="checkbox"
+            [checked]="isMaintenanceSelected(goal.id)"
+            (change)="toggleMaintenance(goal.id)"
+          />
+          <div class="weekly-goal-option__body">
+            <div class="weekly-goal-option__title">{{ goal.title }}</div>
+            <div class="weekly-goal-option__meta">
+              {{ goal.minimumTouchFrequency }} · {{ goal.type }}
+            </div>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <section class="weekly-section">
+      <div class="weekly-section__header">
+        <h2>Creative goal</h2>
+        <p>Optional, but useful to keep energy in the system.</p>
+      </div>
+
+      <mat-form-field appearance="outline" class="weekly-page__full">
+        <mat-label>Creative goal</mat-label>
+        <mat-select [(ngModel)]="review.creativeGoalId" name="creativeGoalId">
+          <mat-option [value]="null">None selected</mat-option>
+          <mat-option
+            *ngFor="let goal of creativeCandidates; trackBy: trackByGoalId"
+            [value]="goal.id"
+          >
+            {{ goal.title }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <section class="weekly-section">
+      <div class="weekly-section__header">
+        <h2>Notes</h2>
+        <p>What would make this week feel meaningfully better?</p>
+      </div>
+
+      <mat-form-field appearance="outline" class="weekly-page__full">
+        <mat-label>Weekly notes</mat-label>
+        <textarea
+          matInput
+          rows="4"
+          [(ngModel)]="review.notes"
+          name="notes"
+        ></textarea>
+      </mat-form-field>
+    </section>
+
+    <div class="weekly-page__actions">
+      <button mat-stroked-button type="button" (click)="reset()">Reset</button>
+      <button mat-raised-button color="primary" type="button" (click)="save()">
+        Save Weekly Review
+      </button>
+    </div>
+  </div>
+</div>

@@ -30,6 +30,7 @@ import { GoalsPageComponent } from './features/goals/goals-page/goals-page.compo
 import { GoalCardComponent } from './shared/components/goal-card/goal-card.component';
 import { GoalDetailPageComponent } from './features/goals/goal-detail-page/goal-detail-page.component';
 import { GoalFormComponent } from './features/goals/goal-form/goal-form.component';
+import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/weekly-review-page.component';
 
 @NgModule({
   declarations: [
@@ -48,7 +49,8 @@ import { GoalFormComponent } from './features/goals/goal-form/goal-form.componen
     GoalsPageComponent,
     GoalCardComponent,
     GoalDetailPageComponent,
-    GoalFormComponent
+    GoalFormComponent,
+    WeeklyReviewPageComponent
   ],
   imports: [
     BrowserModule,
