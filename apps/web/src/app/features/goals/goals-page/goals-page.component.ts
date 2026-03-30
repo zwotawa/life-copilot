@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SEED_GOALS } from 'src/app/core/data/seed-goals';
 import { Goal } from 'src/app/core/models/goal.model';
-import { getGoals, saveGoals } from 'src/app/core/services/goal-store.service';
+import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 
 @Component({
   selector: 'app-goals-page',
@@ -15,11 +15,11 @@ export class GoalsPageComponent implements OnInit {
   public laneFilter: string = '';
   public typeFilter: string = '';
 
-  constructor() { }
+  constructor(private goalStoreService: GoalStoreService) { }
 
   ngOnInit(): void {
-    //saveGoals(SEED_GOALS);
-    this.goals = getGoals();
+    //this.goalStoreService.saveGoals(SEED_GOALS);
+    this.goals = this.goalStoreService.getGoals();
   }
 
   get filteredGoals(): Goal[] {

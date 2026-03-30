@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Goal } from 'src/app/core/models/goal.model';
-import { addGoal, updateGoal } from 'src/app/core/services/goal-store.service';
+import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 
 @Component({
   selector: 'app-goal-form',
@@ -11,7 +11,7 @@ export class GoalFormComponent implements OnInit {
 
   @Input() goal: Goal = <Goal>{};
 
-  constructor() { }
+  constructor(private goalStoreService: GoalStoreService) { }
 
   ngOnInit(): void {
     if (!this.goal.status) this.goal.status = 'active';
@@ -24,7 +24,7 @@ export class GoalFormComponent implements OnInit {
     const now = new Date().toISOString();
 
     if (this.goal.id) {
-      updateGoal({
+      this.goalStoreService.updateGoal({
         ...this.goal,
         updatedAt: now
       });
@@ -37,7 +37,7 @@ export class GoalFormComponent implements OnInit {
       createdAt: now,
       updatedAt: now
     };
-    addGoal(newGoal);
+    this.goalStoreService.addGoal(newGoal);
   }
 
   get isNewGoal(): boolean {

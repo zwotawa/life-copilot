@@ -1,9 +1,15 @@
 import { Goal } from "../models/goal.model";
+import { Injectable } from "@angular/core";
 
 const KEY = 'lifeCopilot.goals';
 const MAX_ITEMS = 200;
 
-export function getGoals(): Goal[] {
+@Injectable({
+    providedIn: 'root'
+})
+export class GoalStoreService {
+
+public getGoals(): Goal[] {
     try {
         const raw = localStorage.getItem(KEY);
         if(!raw) return [];
@@ -14,34 +20,35 @@ export function getGoals(): Goal[] {
     }
 }
 
-export function getGoalById(id: string): Goal | undefined {
-    const goals = getGoals();
+public getGoalById(id: string): Goal | undefined {
+    const goals = this.getGoals();
     return goals.find(goal => goal.id === id);
 }
 
-export function saveGoals(goals: Goal[]): void {
+private saveGoals(goals: Goal[]): void {
     localStorage.setItem(KEY, JSON.stringify(goals));
 }
 
-export function addGoal(goal: Goal): void {
-    const storedGoals: Goal[] = getGoals();
+public addGoal(goal: Goal): void {
+    const storedGoals: Goal[] = this.getGoals();
     const udpatedGoals: Goal[] = [goal, ...storedGoals];
-    saveGoals(udpatedGoals);
+    this.saveGoals(udpatedGoals);
 }
 
-export function updateGoal(newGoal: Goal): void {
-    const storedGoals: Goal[] = getGoals();
+public updateGoal(newGoal: Goal): void {
+    const storedGoals: Goal[] = this.getGoals();
     const updatedGoals: Goal[] = storedGoals.map(goal => goal.id == newGoal.id ? newGoal : goal);
-    saveGoals(updatedGoals);
+    this.saveGoals(updatedGoals);
 }
 
-export function archiveGoalById(idToArchive: string): void {
-    const storedGoals: Goal[] = getGoals();
+public archiveGoalById(idToArchive: string): void {
+    const storedGoals: Goal[] = this.getGoals();
     const updatedGoals: Goal[] = storedGoals.map(goal => {
         if(goal.id === idToArchive) {
             return { ...goal, status: 'archived' };
         }
         return goal;
     });
-    saveGoals(updatedGoals);
+    this.saveGoals(updatedGoals);
+}
 }

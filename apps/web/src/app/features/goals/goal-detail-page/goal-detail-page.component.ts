@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { get } from 'http';
 import { Goal } from 'src/app/core/models/goal.model';
-import { getGoalById } from 'src/app/core/services/goal-store.service';
+import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 
 @Component({
   selector: 'app-goal-detail-page',
@@ -13,7 +12,9 @@ export class GoalDetailPageComponent implements OnInit {
   private goalId: string = '';
   public goal: Goal = <Goal>{};
 
-  constructor(private route: ActivatedRoute) { }
+  constructor(private route: ActivatedRoute,
+    private goalStoreService: GoalStoreService
+  ) { }
 
   ngOnInit(): void {
     this.goalId = this.extractGoalIdFromRoute();
@@ -25,7 +26,7 @@ export class GoalDetailPageComponent implements OnInit {
   }
 
   private loadGoalDetails(goalId: string): void {
-    this.goal = getGoalById(goalId) || <Goal>{};
+    this.goal = this.goalStoreService.getGoalById(goalId) || <Goal>{};
   }
 
 }
