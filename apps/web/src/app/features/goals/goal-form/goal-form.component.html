@@ -1,127 +1,188 @@
-<form #goalForm="ngForm" class="goal-form" (ngSubmit)="onSubmit(goalForm)">
-    <mat-form-field appearance="fill">
-        <mat-label>Title</mat-label>
-        <input matInput name="title" [(ngModel)]="goal.title" required>
-    </mat-form-field>
+<div class="goal-detail-page">
+  <div class="goal-detail-page__container">
+    <header class="goal-detail-page__header">
+      <p class="goal-detail-page__eyebrow">Goal</p>
+      <h1 class="goal-detail-page__title">
+        {{ isNewGoal ? 'Create Goal' : 'Edit Goal' }}
+      </h1>
+      <p class="goal-detail-page__subtitle">
+        Define the goal clearly so it works well in the rotation system.
+      </p>
+    </header>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Why It Matters</mat-label>
-        <textarea matInput name="whyItMatters" [(ngModel)]="goal.whyItMatters" rows="3"></textarea>
-    </mat-form-field>
+    <form #goalForm="ngForm" class="goal-form" (ngSubmit)="onSubmit(goalForm)">
+      <section class="goal-form__section">
+        <h2 class="goal-form__section-title">Basics</h2>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Lane</mat-label>
-        <mat-select name="lane" [(ngModel)]="goal.lane" required>
-            <mat-option value="backlog">Backlog</mat-option>
-            <mat-option value="in-progress">In Progress</mat-option>
-            <mat-option value="completed">Completed</mat-option>
-        </mat-select>
-    </mat-form-field>
+        <div class="goal-form__grid goal-form__grid--two">
+          <mat-form-field appearance="outline">
+            <mat-label>Title</mat-label>
+            <input matInput name="title" [(ngModel)]="goal.title" required />
+          </mat-form-field>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Type</mat-label>
-        <mat-select name="type" [(ngModel)]="goal.type" required>
-            <mat-option value="maintain">Maintain</mat-option>
-            <mat-option value="project">Project</mat-option>
-            <mat-option value="seasonal">Seasonal</mat-option>
-            <mat-option value="exploration">Exploration</mat-option>
-        </mat-select>
-    </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <mat-select name="status" [(ngModel)]="goal.status" required>
+              <mat-option value="active">Active</mat-option>
+              <mat-option value="paused">Paused</mat-option>
+              <mat-option value="someday">Someday</mat-option>
+              <mat-option value="completed">Completed</mat-option>
+              <mat-option value="archived">Archived</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Status</mat-label>
-        <mat-select name="status" [(ngModel)]="goal.status" required>
-            <mat-option value="active">Active</mat-option>
-            <mat-option value="paused">Paused</mat-option>
-            <mat-option value="someday">Someday</mat-option>
-            <mat-option value="completed">Completed</mat-option>
-            <mat-option value="archived">Archived</mat-option>
-        </mat-select>
-    </mat-form-field>
+        <mat-form-field appearance="outline" class="goal-form__full">
+          <mat-label>Why It Matters</mat-label>
+          <textarea
+            matInput
+            name="whyItMatters"
+            [(ngModel)]="goal.whyItMatters"
+            rows="3"
+          ></textarea>
+        </mat-form-field>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Due Style</mat-label>
-        <mat-select name="dueStyle" [(ngModel)]="goal.dueStyle" required>
-            <mat-option value="hard_date">Hard Date</mat-option>
-            <mat-option value="target_window">Target Window</mat-option>
-            <mat-option value="cadence_only">Cadence Only</mat-option>
-        </mat-select>
-    </mat-form-field>
+        <div class="goal-form__grid goal-form__grid--three">
+          <mat-form-field appearance="outline">
+            <mat-label>Lane</mat-label>
+            <mat-select name="lane" [(ngModel)]="goal.lane" required>
+              <mat-option value="career_education">Career & Education</mat-option>
+              <mat-option value="life_systems">Life Systems</mat-option>
+              <mat-option value="relationships">Relationships</mat-option>
+              <mat-option value="health_body">Health & Body</mat-option>
+              <mat-option value="money_admin">Money & Administration</mat-option>
+              <mat-option value="home_environment">Home & Environment</mat-option>
+              <mat-option value="mobility_transportation">Mobility & Transportation</mat-option>
+              <mat-option value="creative_experiments">Creative Experiments</mat-option>
+              <mat-option value="skill_building">Skill Building</mat-option>
+              <mat-option value="community_tools">Community & Tools</mat-option>
+              <mat-option value="custom">Custom</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Real Deadline</mat-label>
-        <input matInput name="realDeadline" [(ngModel)]="goal.realDeadline" type="text">
-    </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Type</mat-label>
+            <mat-select name="type" [(ngModel)]="goal.type" required>
+              <mat-option value="maintain">Maintain</mat-option>
+              <mat-option value="project">Project</mat-option>
+              <mat-option value="seasonal">Seasonal</mat-option>
+              <mat-option value="exploration">Exploration</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Target Date</mat-label>
-        <input matInput name="targetDate" [(ngModel)]="goal.targetDate" type="text">
-    </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Minimum Touch Frequency</mat-label>
+            <mat-select name="minimumTouchFrequency" [(ngModel)]="goal.minimumTouchFrequency" required>
+              <mat-option value="daily">Daily</mat-option>
+              <mat-option value="3x_week">3x/Week</mat-option>
+              <mat-option value="weekly">Weekly</mat-option>
+              <mat-option value="biweekly">Biweekly</mat-option>
+              <mat-option value="monthly">Monthly</mat-option>
+              <mat-option value="seasonal">Seasonal</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </section>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Minimum Touch Frequency</mat-label>
-        <mat-select name="minimumTouchFrequency" [(ngModel)]="goal.minimumTouchFrequency" required>
-            <mat-option value="daily">Daily</mat-option>
-            <mat-option value="3x_week">3x/Week</mat-option>
-            <mat-option value="weekly">Weekly</mat-option>
-            <mat-option value="biweekly">Biweekly</mat-option>
-            <mat-option value="monthly">Monthly</mat-option>
-            <mat-option value="seasonal">Seasonal</mat-option>
-        </mat-select>
-    </mat-form-field>
+      <section class="goal-form__section">
+        <h2 class="goal-form__section-title">Timing</h2>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Current Milestone</mat-label>
-        <input matInput name="currentMilestone" [(ngModel)]="goal.currentMilestone" type="text">
-    </mat-form-field>
+        <div class="goal-form__grid goal-form__grid--three">
+          <mat-form-field appearance="outline">
+            <mat-label>Due Style</mat-label>
+            <mat-select name="dueStyle" [(ngModel)]="goal.dueStyle" required>
+              <mat-option value="hard_date">Hard Date</mat-option>
+              <mat-option value="target_window">Target Window</mat-option>
+              <mat-option value="cadence_only">Cadence Only</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Next Tiny Action</mat-label>
-        <input matInput name="nextTinyAction" [(ngModel)]="goal.nextTinyAction" type="text">
-    </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Real Deadline</mat-label>
+            <input matInput name="realDeadline" [(ngModel)]="goal.realDeadline" type="date" />
+          </mat-form-field>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Typical Session Size</mat-label>
-        <mat-select name="typicalSessionSize" [(ngModel)]="goal.typicalSessionSize">
-            <mat-option value="5m">5 Minutes</mat-option>
-            <mat-option value="10m">10 Minutes</mat-option>
-            <mat-option value="25mr">25 Minutes</mat-option>
-            <mat-option value="60m+">Hour+</mat-option>
-        </mat-select>
-    </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Target Date</mat-label>
+            <input matInput name="targetDate" [(ngModel)]="goal.targetDate" type="date" />
+          </mat-form-field>
+        </div>
+      </section>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Energy</mat-label>
-        <mat-select name="energy" [(ngModel)]="goal.energy">
-            <mat-option value="low">Low</mat-option>
-            <mat-option value="medium">Medium</mat-option>
-            <mat-option value="deep">Deep</mat-option>
-        </mat-select>
-    </mat-form-field>
+      <section class="goal-form__section">
+        <h2 class="goal-form__section-title">Progress</h2>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Resistance</mat-label>
-        <mat-select name="resistance" [(ngModel)]="goal.resistance">
-            <mat-option value="low">Low</mat-option>
-            <mat-option value="medium">Medium</mat-option>
-            <mat-option value="high">High</mat-option>
-        </mat-select>
-    </mat-form-field>
+        <div class="goal-form__grid goal-form__grid--two">
+          <mat-form-field appearance="outline">
+            <mat-label>Current Milestone</mat-label>
+            <input matInput name="currentMilestone" [(ngModel)]="goal.currentMilestone" type="text" />
+          </mat-form-field>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Excitement</mat-label>
-        <mat-select name="excitement" [(ngModel)]="goal.excitement">
-            <mat-option value="low">Low</mat-option>
-            <mat-option value="medium">Medium</mat-option>
-            <mat-option value="high">High</mat-option>
-        </mat-select>
-    </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Next Tiny Action</mat-label>
+            <input matInput name="nextTinyAction" [(ngModel)]="goal.nextTinyAction" type="text" />
+          </mat-form-field>
+        </div>
+      </section>
 
-    <mat-form-field appearance="fill">
-        <mat-label>Notes</mat-label>
-        <textarea matInput name="notes" [(ngModel)]="goal.notes" rows="5"></textarea>
-    </mat-form-field>
+      <section class="goal-form__section">
+        <h2 class="goal-form__section-title">Effort & Feel</h2>
 
-    <button mat-raised-button color="primary" type="submit">Save</button>
+        <div class="goal-form__grid goal-form__grid--four">
+          <mat-form-field appearance="outline">
+            <mat-label>Typical Session Size</mat-label>
+            <mat-select name="typicalSessionSize" [(ngModel)]="goal.typicalSessionSize">
+              <mat-option value="5m">5 Minutes</mat-option>
+              <mat-option value="10m">10 Minutes</mat-option>
+              <mat-option value="25m">25 Minutes</mat-option>
+              <mat-option value="60m+">Hour+</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-</form>
+          <mat-form-field appearance="outline">
+            <mat-label>Energy</mat-label>
+            <mat-select name="energy" [(ngModel)]="goal.energy">
+              <mat-option value="low">Low</mat-option>
+              <mat-option value="medium">Medium</mat-option>
+              <mat-option value="deep">Deep</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Resistance</mat-label>
+            <mat-select name="resistance" [(ngModel)]="goal.resistance">
+              <mat-option value="low">Low</mat-option>
+              <mat-option value="medium">Medium</mat-option>
+              <mat-option value="high">High</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Excitement</mat-label>
+            <mat-select name="excitement" [(ngModel)]="goal.excitement">
+              <mat-option value="low">Low</mat-option>
+              <mat-option value="medium">Medium</mat-option>
+              <mat-option value="high">High</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <section class="goal-form__section">
+        <h2 class="goal-form__section-title">Notes</h2>
+
+        <mat-form-field appearance="outline" class="goal-form__full">
+          <mat-label>Notes</mat-label>
+          <textarea matInput name="notes" [(ngModel)]="goal.notes" rows="5"></textarea>
+        </mat-form-field>
+      </section>
+
+      <div class="goal-form__actions">
+        <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="goalForm.invalid">
+          {{ isNewGoal ? 'Create Goal' : 'Save Goal' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

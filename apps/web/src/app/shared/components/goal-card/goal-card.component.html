@@ -34,27 +34,27 @@
   <div class="goal-card__meta" *ngIf="hasMeta">
     <div class="goal-card__meta-item" *ngIf="goal.minimumTouchFrequency">
       <span class="goal-card__meta-label">Touch</span>
-      <span class="goal-card__meta-value">{{ goal.minimumTouchFrequency }}</span>
+      <span class="goal-card__meta-value">{{ getDisplayLabel(goal.minimumTouchFrequency) }}</span>
     </div>
 
     <div class="goal-card__meta-item" *ngIf="goal.typicalSessionSize">
       <span class="goal-card__meta-label">Session</span>
-      <span class="goal-card__meta-value">{{ goal.typicalSessionSize }}</span>
+      <span class="goal-card__meta-value">{{ getDisplayLabel(goal.typicalSessionSize) }}</span>
     </div>
 
     <div class="goal-card__meta-item" *ngIf="goal.energy">
       <span class="goal-card__meta-label">Energy</span>
-      <span class="goal-card__meta-value">{{ goal.energy }}</span>
+      <span class="goal-card__meta-value">{{ getDisplayLabel(goal.energy) }}</span>
     </div>
 
     <div class="goal-card__meta-item" *ngIf="goal.resistance">
       <span class="goal-card__meta-label">Resistance</span>
-      <span class="goal-card__meta-value">{{ goal.resistance }}</span>
+      <span class="goal-card__meta-value">{{ getDisplayLabel(goal.resistance) }}</span>
     </div>
 
     <div class="goal-card__meta-item" *ngIf="goal.excitement">
       <span class="goal-card__meta-label">Excitement</span>
-      <span class="goal-card__meta-value">{{ goal.excitement }}</span>
+      <span class="goal-card__meta-value">{{ getDisplayLabel(goal.excitement) }}</span>
     </div>
   </div>
 
