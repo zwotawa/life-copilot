@@ -178,7 +178,7 @@
       </section>
 
       <div class="goal-form__actions">
-        <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+        <button mat-stroked-button type="button" [routerLink]="['/goals']">Cancel</button>
         <button mat-raised-button color="primary" type="submit" [disabled]="goalForm.invalid">
           {{ isNewGoal ? 'Create Goal' : 'Save Goal' }}
         </button>

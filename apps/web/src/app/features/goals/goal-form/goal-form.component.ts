@@ -40,11 +40,6 @@ export class GoalFormComponent implements OnInit {
     addGoal(newGoal);
   }
 
-
-  public cancel(): void {
-    // Logic to handle form cancellation, e.g., navigate back or reset the form
-  }
-
   get isNewGoal(): boolean {
     return !this.goal.id;
   }
