@@ -27,37 +27,58 @@ export class RotationEngineService {
     const infrastructureGoal = findById(weeklyReview.infrastructureGoalId);
     const creativeGoal = findById(weeklyReview.creativeGoalId);
 
-    const responsibleGoal =
-      infrastructureGoal ??
-      activeGoals.find(goal => goal.dueStyle !== 'cadence_only') ??
-      anchorGoals[0] ??
-      activeGoals[0];
+    const usedGoalIds = new Set<string>();
 
-    const momentumGoal =
-      anchorGoals[0] ??
-      activeGoals.find(goal => goal.type === 'project') ??
-      activeGoals[0];
+    const responsibleGoal = this.pickGoal(
+      [
+        ...(infrastructureGoal ? [infrastructureGoal] : []),
+        ...activeGoals.filter(goal => goal.dueStyle !== 'cadence_only'),
+        ...anchorGoals,
+        ...activeGoals
+      ],
+      usedGoalIds
+    );
 
-    const maintenanceGoal =
-      maintenanceGoals[0] ??
-      activeGoals.find(goal => goal.type === 'maintain') ??
-      activeGoals[0];
+    const momentumGoal = this.pickGoal(
+      [
+        ...anchorGoals,
+        ...activeGoals.filter(goal => goal.type === 'project'),
+        ...activeGoals
+      ],
+      usedGoalIds
+    );
 
-    const interestingGoal =
-      creativeGoal ??
-      activeGoals.find(goal => goal.type === 'exploration') ??
-      anchorGoals[1] ??
-      anchorGoals[0] ??
-      activeGoals[0];
+    const maintenanceGoal = this.pickGoal(
+      [
+        ...maintenanceGoals,
+        ...activeGoals.filter(goal => goal.type === 'maintain'),
+        ...activeGoals
+      ],
+      usedGoalIds
+    );
 
-    const fallbackGoal =
-      activeGoals.find(goal =>
-        (goal.typicalSessionSize === '5m' || goal.typicalSessionSize === '10m') &&
-        goal.resistance === 'low'
-      ) ??
-      maintenanceGoals[0] ??
-      activeGoals.find(goal => goal.resistance === 'low') ??
-      activeGoals[0];
+    const interestingGoal = this.pickGoal(
+      [
+        ...(creativeGoal ? [creativeGoal] : []),
+        ...activeGoals.filter(goal => goal.type === 'exploration'),
+        ...anchorGoals,
+        ...activeGoals
+      ],
+      usedGoalIds
+    );
+
+    const fallbackGoal = this.pickGoal(
+      [
+        ...activeGoals.filter(goal =>
+          (goal.typicalSessionSize === '5m' || goal.typicalSessionSize === '10m') &&
+          goal.resistance === 'low'
+        ),
+        ...maintenanceGoals,
+        ...activeGoals.filter(goal => goal.resistance === 'low'),
+        ...activeGoals
+      ],
+      usedGoalIds
+    );
 
     return [
       this.toRotationItem('responsible', responsibleGoal),
@@ -68,11 +89,37 @@ export class RotationEngineService {
     ];
   }
 
+  private pickGoal(candidates: Goal[], usedGoalIds: Set<string>): Goal | undefined {
+    const uniqueCandidates = this.uniqueGoals(candidates);
+
+    const unusedCandidates = uniqueCandidates.filter(goal => !usedGoalIds.has(goal.id));
+    const pool = unusedCandidates.length > 0 ? unusedCandidates : uniqueCandidates;
+
+    if (pool.length === 0) {
+      return undefined;
+    }
+
+    const selected = pool[Math.floor(Math.random() * pool.length)];
+    usedGoalIds.add(selected.id);
+    return selected;
+  }
+
+  private uniqueGoals(goals: Goal[]): Goal[] {
+    const seen = new Set<string>();
+    return goals.filter(goal => {
+      if (seen.has(goal.id)) {
+        return false;
+      }
+      seen.add(goal.id);
+      return true;
+    });
+  }
+
   private toRotationItem(category: DailyRotationItem['category'], goal?: Goal): DailyRotationItem {
     const today = new Date().toISOString();
 
     return {
-      id: `${category}-${goal?.id ?? 'none'}-${Date.now()}`,
+      id: `${category}-${goal?.id ?? 'none'}-${Date.now()}-${Math.random()}`,
       date: today,
       category,
       goalId: goal?.id ?? null,
