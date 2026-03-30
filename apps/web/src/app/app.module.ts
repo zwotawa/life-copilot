@@ -33,6 +33,7 @@ import { GoalFormComponent } from './features/goals/goal-form/goal-form.componen
 import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/weekly-review-page.component';
 import { DailyRotationPageComponent } from './features/daily/daily-rotation-page/daily-rotation-page.component';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { DashboardPageComponent } from './features/dashboard/dashboard-page/dashboard-page.component';
 
 @NgModule({
   declarations: [
@@ -53,7 +54,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     GoalDetailPageComponent,
     GoalFormComponent,
     WeeklyReviewPageComponent,
-    DailyRotationPageComponent
+    DailyRotationPageComponent,
+    DashboardPageComponent
   ],
   imports: [
     BrowserModule,

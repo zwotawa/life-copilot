@@ -1,0 +1,169 @@
+<div class="dashboard-page">
+  <div class="dashboard-page__container">
+    <header class="dashboard-page__header">
+      <p class="dashboard-page__eyebrow">Life Copilot</p>
+      <h1 class="dashboard-page__title">Dashboard</h1>
+      <p class="dashboard-page__subtitle">
+        A quick view of what matters this week, what you can do today, and what needs attention.
+      </p>
+    </header>
+
+    <section class="dashboard-stats">
+      <article class="dashboard-stat-card">
+        <div class="dashboard-stat-card__label">Active goals</div>
+        <div class="dashboard-stat-card__value">{{ activeGoalCount }}</div>
+      </article>
+
+      <article class="dashboard-stat-card">
+        <div class="dashboard-stat-card__label">Projects</div>
+        <div class="dashboard-stat-card__value">{{ projectGoalCount }}</div>
+      </article>
+
+      <article class="dashboard-stat-card">
+        <div class="dashboard-stat-card__label">Maintenance</div>
+        <div class="dashboard-stat-card__value">{{ maintainGoalCount }}</div>
+      </article>
+
+      <article class="dashboard-stat-card">
+        <div class="dashboard-stat-card__label">Exploration</div>
+        <div class="dashboard-stat-card__value">{{ explorationGoalCount }}</div>
+      </article>
+    </section>
+
+    <div class="dashboard-grid">
+      <section class="dashboard-card">
+        <div class="dashboard-card__header">
+          <h2>Weekly focus</h2>
+          <a routerLink="/weekly" class="dashboard-card__link">Open Weekly</a>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Anchor goals</div>
+          <div class="dashboard-chip-list">
+            <span class="dashboard-chip" *ngFor="let goal of selectedAnchorGoals; trackBy: trackByGoalId">
+              {{ goal.title }}
+            </span>
+            <span class="dashboard-empty" *ngIf="selectedAnchorGoals.length === 0">
+              None selected
+            </span>
+          </div>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Infrastructure</div>
+          <div class="dashboard-chip-list">
+            <span class="dashboard-chip" *ngIf="selectedInfrastructureGoal">
+              {{ selectedInfrastructureGoal.title }}
+            </span>
+            <span class="dashboard-empty" *ngIf="!selectedInfrastructureGoal">
+              None selected
+            </span>
+          </div>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Maintenance</div>
+          <div class="dashboard-chip-list">
+            <span class="dashboard-chip" *ngFor="let goal of selectedMaintenanceGoals; trackBy: trackByGoalId">
+              {{ goal.title }}
+            </span>
+            <span class="dashboard-empty" *ngIf="selectedMaintenanceGoals.length === 0">
+              None selected
+            </span>
+          </div>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Creative</div>
+          <div class="dashboard-chip-list">
+            <span class="dashboard-chip" *ngIf="selectedCreativeGoal">
+              {{ selectedCreativeGoal.title }}
+            </span>
+            <span class="dashboard-empty" *ngIf="!selectedCreativeGoal">
+              None selected
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-card">
+        <div class="dashboard-card__header">
+          <h2>Today’s menu</h2>
+          <a routerLink="/daily" class="dashboard-card__link">Open Daily</a>
+        </div>
+
+        <div class="dashboard-rotation-list">
+          <article
+            class="dashboard-rotation-item"
+            *ngFor="let item of dailyRotation; trackBy: trackByRotationId"
+          >
+            <div class="dashboard-rotation-item__eyebrow">
+              {{ getCategoryLabel(item.category) }}
+            </div>
+            <div class="dashboard-rotation-item__title">
+              {{ item.goalTitle }}
+            </div>
+            <div class="dashboard-rotation-item__action">
+              {{ item.actionText }}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="dashboard-card">
+        <div class="dashboard-card__header">
+          <h2>Needs attention</h2>
+          <a routerLink="/goals" class="dashboard-card__link">Open Goals</a>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Missing milestone</div>
+          <ul class="dashboard-list" *ngIf="goalsMissingMilestone.length > 0; else noMissingMilestone">
+            <li *ngFor="let goal of goalsMissingMilestone; trackBy: trackByGoalId">
+              {{ goal.title }}
+            </li>
+          </ul>
+          <ng-template #noMissingMilestone>
+            <div class="dashboard-empty">Nothing here right now.</div>
+          </ng-template>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Missing next action</div>
+          <ul class="dashboard-list" *ngIf="goalsMissingNextAction.length > 0; else noMissingAction">
+            <li *ngFor="let goal of goalsMissingNextAction; trackBy: trackByGoalId">
+              {{ goal.title }}
+            </li>
+          </ul>
+          <ng-template #noMissingAction>
+            <div class="dashboard-empty">Nothing here right now.</div>
+          </ng-template>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Date-based goals</div>
+          <ul class="dashboard-list" *ngIf="deadlineGoals.length > 0; else noDateGoals">
+            <li *ngFor="let goal of deadlineGoals; trackBy: trackByGoalId">
+              {{ goal.title }}
+            </li>
+          </ul>
+          <ng-template #noDateGoals>
+            <div class="dashboard-empty">No date-based goals found.</div>
+          </ng-template>
+        </div>
+      </section>
+
+      <section class="dashboard-card">
+        <div class="dashboard-card__header">
+          <h2>Quick actions</h2>
+        </div>
+
+        <div class="dashboard-quick-links">
+          <a mat-stroked-button routerLink="/goals">Goals</a>
+          <a mat-stroked-button routerLink="/weekly">Weekly</a>
+          <a mat-stroked-button routerLink="/daily">Daily</a>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

@@ -8,9 +8,10 @@ import { GoalsPageComponent } from './features/goals/goals-page/goals-page.compo
 import { GoalDetailPageComponent } from './features/goals/goal-detail-page/goal-detail-page.component';
 import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/weekly-review-page.component';
 import { DailyRotationPageComponent } from './features/daily/daily-rotation-page/daily-rotation-page.component';
+import { DashboardPageComponent } from './features/dashboard/dashboard-page/dashboard-page.component';
 
 const routes: Routes = [
-  { path: '', component: DashboardComponent },
+  { path: '', component: DashboardPageComponent },
   { path: 'job', component: JobComponent },
   { path: 'vehicle', component: VehicleComponent },
   { path: 'declutter', component: DeclutterComponent },
