@@ -1,0 +1,51 @@
+<div class="daily-page">
+  <div class="daily-page__container">
+    <header class="daily-page__header">
+      <p class="daily-page__eyebrow">Daily Rotation</p>
+      <h1 class="daily-page__title">Today’s menu</h1>
+      <p class="daily-page__subtitle">
+        Pick from a few good options instead of forcing a rigid plan.
+      </p>
+    </header>
+
+    <div class="daily-page__actions">
+      <button mat-stroked-button type="button" (click)="generateDailyRotation()">
+        Regenerate
+      </button>
+    </div>
+
+    <section class="daily-list">
+      <article
+        class="daily-card"
+        *ngFor="let item of rotationItems; trackBy: trackByItemId"
+        [class.daily-card--completed]="item.completed"
+      >
+        <div class="daily-card__header">
+          <div>
+            <p class="daily-card__eyebrow">{{ getCategoryLabel(item.category) }}</p>
+            <h2 class="daily-card__title">{{ item.goalTitle }}</h2>
+            <p class="daily-card__description">
+              {{ getCategoryDescription(item.category) }}
+            </p>
+          </div>
+
+          <mat-checkbox
+            [checked]="item.completed"
+            (change)="toggleCompleted(item)"
+          >
+            Done
+          </mat-checkbox>
+        </div>
+
+        <div class="daily-card__section">
+          <div class="daily-card__label">Next tiny action</div>
+          <div class="daily-card__value">{{ item.actionText }}</div>
+        </div>
+
+        <div class="daily-card__meta" *ngIf="item.sessionSize">
+          <span class="daily-card__chip">Session: {{ item.sessionSize }}</span>
+        </div>
+      </article>
+    </section>
+  </div>
+</div>

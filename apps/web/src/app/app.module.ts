@@ -31,6 +31,8 @@ import { GoalCardComponent } from './shared/components/goal-card/goal-card.compo
 import { GoalDetailPageComponent } from './features/goals/goal-detail-page/goal-detail-page.component';
 import { GoalFormComponent } from './features/goals/goal-form/goal-form.component';
 import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/weekly-review-page.component';
+import { DailyRotationPageComponent } from './features/daily/daily-rotation-page/daily-rotation-page.component';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [
@@ -50,7 +52,8 @@ import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/
     GoalCardComponent,
     GoalDetailPageComponent,
     GoalFormComponent,
-    WeeklyReviewPageComponent
+    WeeklyReviewPageComponent,
+    DailyRotationPageComponent
   ],
   imports: [
     BrowserModule,
@@ -65,7 +68,8 @@ import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/
     FormsModule,
     MatIconModule,
     HttpClientModule,
-    MatSelectModule
+    MatSelectModule,
+    MatCheckboxModule
   ],
   providers: [JobService],
   bootstrap: [AppComponent]

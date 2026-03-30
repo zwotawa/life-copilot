@@ -1,0 +1,157 @@
+.daily-page {
+  min-height: 100%;
+  padding: 2rem 1rem 4rem;
+  background: #f6f8fb;
+}
+
+.daily-page__container {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.daily-page__header {
+  margin-bottom: 1.25rem;
+}
+
+.daily-page__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.daily-page__title {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #111827;
+}
+
+.daily-page__subtitle {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: #667085;
+}
+
+.daily-page__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.daily-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.daily-card {
+  padding: 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e6ebf2;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.daily-card--completed {
+  opacity: 0.68;
+}
+
+.daily-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.daily-card__eyebrow {
+  margin: 0 0 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.daily-card__title {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.daily-card__description {
+  margin: 0.4rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #667085;
+}
+
+.daily-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.daily-card__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.daily-card__value {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+.daily-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.daily-card__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #215a96;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+@media (max-width: 700px) {
+  .daily-card__header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .daily-page {
+    padding: 1rem 0.75rem 3rem;
+  }
+
+  .daily-page__title {
+    font-size: 1.6rem;
+  }
+
+  .daily-card {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .daily-page__actions {
+    justify-content: stretch;
+  }
+}
