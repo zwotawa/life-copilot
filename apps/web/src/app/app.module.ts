@@ -34,6 +34,7 @@ import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/
 import { DailyRotationPageComponent } from './features/daily/daily-rotation-page/daily-rotation-page.component';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { DashboardPageComponent } from './features/dashboard/dashboard-page/dashboard-page.component';
+import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.component';
 
 @NgModule({
   declarations: [
@@ -55,7 +56,8 @@ import { DashboardPageComponent } from './features/dashboard/dashboard-page/dash
     GoalFormComponent,
     WeeklyReviewPageComponent,
     DailyRotationPageComponent,
-    DashboardPageComponent
+    DashboardPageComponent,
+    InboxPageComponent
   ],
   imports: [
     BrowserModule,

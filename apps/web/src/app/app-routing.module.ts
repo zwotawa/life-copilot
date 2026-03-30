@@ -9,6 +9,7 @@ import { GoalDetailPageComponent } from './features/goals/goal-detail-page/goal-
 import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/weekly-review-page.component';
 import { DailyRotationPageComponent } from './features/daily/daily-rotation-page/daily-rotation-page.component';
 import { DashboardPageComponent } from './features/dashboard/dashboard-page/dashboard-page.component';
+import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.component';
 
 const routes: Routes = [
   { path: '', component: DashboardPageComponent },
@@ -18,7 +19,8 @@ const routes: Routes = [
   { path: 'goals', component: GoalsPageComponent },
   { path: 'goals/:id', component: GoalDetailPageComponent },
   { path: 'weekly', component: WeeklyReviewPageComponent },
-  { path: 'daily', component: DailyRotationPageComponent }
+  { path: 'daily', component: DailyRotationPageComponent },
+  { path: 'inbox', component: InboxPageComponent }
 ];
 
 @NgModule({

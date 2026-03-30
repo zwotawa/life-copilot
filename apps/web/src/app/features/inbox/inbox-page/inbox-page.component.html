@@ -1,0 +1,128 @@
+<div class="inbox-page">
+  <div class="inbox-page__container">
+    <header class="inbox-page__header">
+      <p class="inbox-page__eyebrow">Inbox</p>
+      <h1 class="inbox-page__title">Capture first, decide later</h1>
+      <p class="inbox-page__subtitle">
+        Put ideas here before they become commitments.
+      </p>
+    </header>
+
+    <section class="inbox-stats">
+      <article class="inbox-stat-card">
+        <div class="inbox-stat-card__label">New</div>
+        <div class="inbox-stat-card__value">{{ newCount }}</div>
+      </article>
+
+      <article class="inbox-stat-card">
+        <div class="inbox-stat-card__label">Clarified</div>
+        <div class="inbox-stat-card__value">{{ clarifiedCount }}</div>
+      </article>
+
+      <article class="inbox-stat-card">
+        <div class="inbox-stat-card__label">Deferred</div>
+        <div class="inbox-stat-card__value">{{ deferredCount }}</div>
+      </article>
+
+      <article class="inbox-stat-card">
+        <div class="inbox-stat-card__label">Archived</div>
+        <div class="inbox-stat-card__value">{{ archivedCount }}</div>
+      </article>
+    </section>
+
+    <section class="inbox-card">
+      <div class="inbox-card__header">
+        <h2>Quick capture</h2>
+      </div>
+
+      <div class="inbox-capture">
+        <mat-form-field appearance="outline" class="inbox-capture__field">
+          <mat-label>New inbox item</mat-label>
+          <textarea
+            matInput
+            rows="3"
+            [(ngModel)]="newEntryText"
+            name="newEntryText"
+            placeholder="Add an idea, reminder, or possible goal..."
+          ></textarea>
+        </mat-form-field>
+
+        <div class="inbox-capture__actions">
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="addEntry()"
+            [disabled]="!newEntryText.trim()"
+          >
+            Add to Inbox
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="inbox-card">
+      <div class="inbox-card__header inbox-card__header--split">
+        <div>
+          <h2>Inbox items</h2>
+          <p>Review, defer, or archive without forcing immediate commitment.</p>
+        </div>
+
+        <mat-form-field appearance="outline" class="inbox-filter">
+          <mat-label>Status filter</mat-label>
+          <mat-select [(ngModel)]="selectedStatusFilter" name="selectedStatusFilter">
+            <mat-option value="all">All</mat-option>
+            <mat-option value="new">New</mat-option>
+            <mat-option value="clarified">Clarified</mat-option>
+            <mat-option value="deferred">Deferred</mat-option>
+            <mat-option value="archived">Archived</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="inbox-list" *ngIf="filteredEntries.length > 0; else emptyInbox">
+        <article
+          class="inbox-entry"
+          *ngFor="let entry of filteredEntries; trackBy: trackByEntryId"
+        >
+          <div class="inbox-entry__header">
+            <div class="inbox-entry__status-chip">
+              {{ getStatusLabel(entry.status) }}
+            </div>
+            <div class="inbox-entry__date">
+              {{ entry.capturedAt | date:'mediumDate' }}
+            </div>
+          </div>
+
+          <div class="inbox-entry__text">
+            {{ entry.text }}
+          </div>
+
+          <div class="inbox-entry__actions">
+            <button mat-stroked-button type="button" (click)="updateStatus(entry, 'new')">
+              New
+            </button>
+            <button mat-stroked-button type="button" (click)="updateStatus(entry, 'clarified')">
+              Clarified
+            </button>
+            <button mat-stroked-button type="button" (click)="updateStatus(entry, 'deferred')">
+              Deferred
+            </button>
+            <button mat-stroked-button type="button" (click)="updateStatus(entry, 'archived')">
+              Archived
+            </button>
+            <button mat-button color="warn" type="button" (click)="deleteEntry(entry)">
+              Delete
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <ng-template #emptyInbox>
+        <div class="inbox-empty">
+          No inbox items for this filter yet.
+        </div>
+      </ng-template>
+    </section>
+  </div>
+</div>
