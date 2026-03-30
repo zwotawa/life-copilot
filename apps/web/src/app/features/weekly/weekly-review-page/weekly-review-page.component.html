@@ -8,20 +8,77 @@
       </p>
     </header>
 
+          <section class="weekly-summary">
+  <div class="weekly-summary__section">
+    <div class="weekly-summary__label">Anchor goals</div>
+    <div class="weekly-summary__chips">
+      <span class="weekly-chip" *ngFor="let goal of selectedAnchorGoals">
+        {{ goal.title }}
+      </span>
+      <span class="weekly-summary__empty" *ngIf="selectedAnchorGoals.length === 0">
+        None selected
+      </span>
+    </div>
+  </div>
+
+  <div class="weekly-summary__section">
+    <div class="weekly-summary__label">Infrastructure</div>
+    <div class="weekly-summary__chips">
+      <span class="weekly-chip" *ngIf="selectedInfrastructureGoal">
+        {{ selectedInfrastructureGoal.title }}
+      </span>
+      <span class="weekly-summary__empty" *ngIf="!selectedInfrastructureGoal">
+        None selected
+      </span>
+    </div>
+  </div>
+
+  <div class="weekly-summary__section">
+    <div class="weekly-summary__label">Maintenance</div>
+    <div class="weekly-summary__chips">
+      <span class="weekly-chip" *ngFor="let goal of selectedMaintenanceGoals">
+        {{ goal.title }}
+      </span>
+      <span class="weekly-summary__empty" *ngIf="selectedMaintenanceGoals.length === 0">
+        None selected
+      </span>
+    </div>
+  </div>
+
+  <div class="weekly-summary__section">
+    <div class="weekly-summary__label">Creative</div>
+    <div class="weekly-summary__chips">
+      <span class="weekly-chip" *ngIf="selectedCreativeGoal">
+        {{ selectedCreativeGoal.title }}
+      </span>
+      <span class="weekly-summary__empty" *ngIf="!selectedCreativeGoal">
+        None selected
+      </span>
+    </div>
+  </div>
+</section>
+
     <section class="weekly-section">
       <div class="weekly-section__header">
         <h2>Anchor goals</h2>
-        <p>Choose up to 2 goals that deserve the most focus this week.</p>
+        <p>
+            Choose up to 2 goals that deserve the most focus this week.
+            <strong>({{ review.anchorGoalIds.length }}/2 selected)</strong>
+        </p>
       </div>
+
+
 
       <div class="weekly-goal-list">
         <label
           class="weekly-goal-option"
+          [class.weekly-goal-option--disabled]="isAnchorDisabled(goal.id)"
           *ngFor="let goal of activeGoals; trackBy: trackByGoalId"
         >
           <input
             type="checkbox"
             [checked]="isAnchorSelected(goal.id)"
+            [disabled]="isAnchorDisabled(goal.id)"
             (change)="toggleAnchor(goal.id)"
           />
           <div class="weekly-goal-option__body">
@@ -57,17 +114,22 @@
     <section class="weekly-section">
       <div class="weekly-section__header">
         <h2>Maintenance goals</h2>
-        <p>Choose up to 5 goals that just need light touches this week.</p>
+        <p>
+            Choose up to 5 goals that just need light touches this week.
+            <strong>({{ review.maintenanceGoalIds.length }}/5 selected)</strong>
+        </p>
       </div>
 
       <div class="weekly-goal-list">
         <label
           class="weekly-goal-option"
+          [class.weekly-goal-option--disabled]="isMaintenanceDisabled(goal.id)"
           *ngFor="let goal of activeGoals; trackBy: trackByGoalId"
         >
           <input
             type="checkbox"
             [checked]="isMaintenanceSelected(goal.id)"
+            [disabled]="isMaintenanceDisabled(goal.id)"
             (change)="toggleMaintenance(goal.id)"
           />
           <div class="weekly-goal-option__body">
