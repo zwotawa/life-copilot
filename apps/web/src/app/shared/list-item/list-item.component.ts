@@ -1,5 +1,4 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 
 @Component({
   selector: 'app-list-item',
@@ -15,10 +14,10 @@ export class ListItemComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  public moveToGoal(goal: GoalKey) {
+  public moveToGoal(goal: any) {
 
     if(this.itemData) {
-      const action: GoalAction = {
+      const action: any = {
         id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
         text: this.itemData.text,
         goalKey: goal,

@@ -1,5 +1,4 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { GoalAction } from 'src/app/core/goal-action.model';
 import { JobCard } from 'src/app/core/job-pipeline.model';
 
 export interface CardMovement {
@@ -48,7 +47,7 @@ export class JobCardComponent implements OnInit {
   }
 
   public addJobAction(): void {
-    const action: GoalAction = {
+    const action: any = {
       id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
       text: `Follow up with ${this.jobCardData.company} about ${this.jobCardData.role}`,
       goalKey: 'job',

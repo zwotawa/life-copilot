@@ -2,7 +2,6 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TimerDialogData } from '../legacy-goal-card/legacy-goal-card.component';
 import { map, Observable, timer, BehaviorSubject, switchMap, NEVER } from 'rxjs';
-import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { loadCompletedActions, saveCompletedActions } from 'src/app/core/completed-action.storage';
 
 
@@ -45,7 +44,7 @@ export class TimerDialogComponent implements OnInit {
     }
   ]
 
-  public goalType: GoalKey;
+  public goalType: any;
   public actionText: string = '';
   public secondsLeft: number = 5;
   public isRunning: boolean = true;
@@ -100,7 +99,7 @@ export class TimerDialogComponent implements OnInit {
 
   public moveToCompleted(): void {
     this.totalSecondsPassed += 600 - this.secondsLeft;
-    const updatedGoalAction: GoalAction = {
+    const updatedGoalAction: any = {
       id: this.data.goal.id,
       text: this.data.goal.text,
       createdAt: this.data.goal.createdAt,
@@ -110,8 +109,8 @@ export class TimerDialogComponent implements OnInit {
       goalKey: this.goalType
     }
 
-    const completedActions: GoalAction[] = loadCompletedActions();
-    const updatedCompletedActions: GoalAction[] = [updatedGoalAction, ...completedActions]
+    const completedActions: any[] = loadCompletedActions();
+    const updatedCompletedActions: any[] = [updatedGoalAction, ...completedActions]
     saveCompletedActions(updatedCompletedActions);
 
     switch(this.goalType.toLowerCase()) {

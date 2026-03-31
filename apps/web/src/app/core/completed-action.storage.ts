@@ -1,26 +1,25 @@
-import { GoalAction } from "./goal-action.model";
 
 
 const KEY = 'lifeCopilot.actions.completed';
 const MAX_ITEMS = 200;
 
-export function loadCompletedActions(): GoalAction[] {
+export function loadCompletedActions(): any[] {
     try {
         const raw = localStorage.getItem(KEY);
         if(!raw) return [];
-        const parsed = JSON.parse(raw) as GoalAction[];
+        const parsed = JSON.parse(raw) as any[];
         return Array.isArray(parsed) ? parsed.slice(0, MAX_ITEMS) : [];
     } catch {
         return [];
     }
 }
 
-export function saveCompletedActions(items: GoalAction[]): void {
+export function saveCompletedActions(items: any[]): void {
     localStorage.setItem(KEY, JSON.stringify(items));
 }
 
 export function removeCompletedActionById(idToRemove: string): void {
-    const items: GoalAction[] = loadCompletedActions();
-    const updatedCompletedItems: GoalAction[] = items.filter(item => item.id !== idToRemove);
+    const items: any[] = loadCompletedActions();
+    const updatedCompletedItems: any[] = items.filter(item => item.id !== idToRemove);
     saveCompletedActions(updatedCompletedItems);
 }

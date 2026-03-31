@@ -3,19 +3,18 @@ import { GoalCard } from 'src/app/pages/dashboard/dashboard.component';
 import { TimerDialogComponent } from '../timer-dialog/timer-dialog.component';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
-import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { CapitalilzeFirstLetter } from '../pipes/capitalize-first-letter.pipe';
 import { loadSelectedActions, saveSelectedActions } from 'src/app/core/selected-action.storage';
 import { MatRadioModule } from '@angular/material/radio';
 
 export interface TimerDialogData {
-  goalKey: GoalKey;
-  goal: GoalAction;
+  goalKey: any;
+  goal: any;
   goalReason: string;
 }
 
 export interface SelectedAction {
-  goalKey: GoalKey;
+  goalKey: any;
   selection: string;
 }
 
@@ -88,7 +87,7 @@ export class LegacyGoalCardComponent implements OnInit {
   }
   
 
-  trackById: TrackByFunction<GoalAction> = (item: any): string => {return item.id}
+  trackById: TrackByFunction<any> = (item: any): string => {return item.id}
   
 
 }

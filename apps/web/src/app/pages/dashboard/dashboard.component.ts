@@ -1,12 +1,11 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { loadCompletedActions } from 'src/app/core/completed-action.storage';
-import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { isSameDay } from 'src/app/shared/utility/same-day-comparison';
 
   export interface GoalCard {
-    goalKey: GoalKey;
+    goalKey: any;
     why: string;
-    nextActions: GoalAction[];
+    nextActions: any[];
   }
 
 @Component({
@@ -35,7 +34,7 @@ export class DashboardComponent implements OnInit {
   public newText :string = '';
   public addDisabled: boolean = true;
   public inboxCount = 0;
-  public todaysCompletedActions: GoalAction[] = [];
+  public todaysCompletedActions: any[] = [];
   public todaysWinCount: number = 0;
   public streakCount = 0;
 
@@ -96,7 +95,7 @@ export class DashboardComponent implements OnInit {
   }
 
   private completedActionsStreak(): void {
-    const completedActions: GoalAction[] = loadCompletedActions();
+    const completedActions: any[] = loadCompletedActions();
 
     if(this.todaysWinCount) {
       this.streakCount += 1;
