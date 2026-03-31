@@ -4,7 +4,6 @@ import { TimerDialogComponent } from '../timer-dialog/timer-dialog.component';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { CapitalilzeFirstLetter } from '../pipes/capitalize-first-letter.pipe';
-import { loadSelectedActions, saveSelectedActions } from 'src/app/core/selected-action.storage';
 import { MatRadioModule } from '@angular/material/radio';
 
 export interface TimerDialogData {
@@ -43,7 +42,6 @@ export class LegacyGoalCardComponent implements OnInit {
       this.actionsLength = this.cardData.nextActions.length;
       this.selectedAction.goalKey = this.cardData.goalKey;
     }
-    this.restoreSelectedActions();
   }
 
   public openTimerDialog(): void {
@@ -58,36 +56,5 @@ export class LegacyGoalCardComponent implements OnInit {
     });
   }
 
-  public saveSelection(id: string): void {
-    const persistedActions: SelectedAction[] = loadSelectedActions();
-    persistedActions.forEach(selectedAction => {
-      if(selectedAction.goalKey === this.cardData?.goalKey) {
-        selectedAction.selection = id;
-      }
-    });
-    saveSelectedActions(persistedActions);
-  }
-
-  public restoreSelectedActions(): void {
-    const persistedActions: SelectedAction[] = loadSelectedActions();
-    let updatedPersistedActions: SelectedAction[] = [];
-    let match: boolean = false;
-    persistedActions.forEach(selectedAction => {
-      if(selectedAction.goalKey === this.cardData?.goalKey) {
-        this.currentSelectionId = selectedAction.selection;        
-        match = true;
-      }
-    });
-
-    //seed data if entry doesn't exist
-    if(!match) {
-      updatedPersistedActions = [this.selectedAction, ...persistedActions];
-      saveSelectedActions(updatedPersistedActions);
-    }
-  }
-  
-
   trackById: TrackByFunction<any> = (item: any): string => {return item.id}
-  
-
 }
