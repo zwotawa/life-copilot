@@ -15,38 +15,49 @@
     </div>
 
     <section class="daily-list">
-      <article
-        class="daily-card"
-        *ngFor="let item of rotationItems; trackBy: trackByItemId"
-        [class.daily-card--completed]="item.completed"
-        [routerLink]="['/goals', item.goalId]"
+  <article
+    class="daily-card"
+    *ngFor="let item of rotationItems; trackBy: trackByItemId"
+    [class.daily-card--completed]="item.completed"
+  >
+    <div class="daily-card__header">
+      <div>
+        <p class="daily-card__eyebrow">{{ getCategoryLabel(item.category) }}</p>
+        <h2 class="daily-card__title">{{ item.goalTitle }}</h2>
+        <p class="daily-card__description">
+          {{ getCategoryDescription(item.category) }}
+        </p>
+      </div>
+
+      <mat-checkbox
+        [checked]="item.completed"
+        (change)="toggleCompleted(item)"
       >
-        <div class="daily-card__header">
-          <div>
-            <p class="daily-card__eyebrow">{{ getCategoryLabel(item.category) }}</p>
-            <h2 class="daily-card__title">{{ item.goalTitle }}</h2>
-            <p class="daily-card__description">
-              {{ getCategoryDescription(item.category) }}
-            </p>
-          </div>
+        Done
+      </mat-checkbox>
+    </div>
 
-          <mat-checkbox
-            [checked]="item.completed"
-            (change)="toggleCompleted(item)"
-          >
-            Done
-          </mat-checkbox>
-        </div>
+    <div class="daily-card__section">
+      <div class="daily-card__label">Next tiny action</div>
+      <div class="daily-card__value">{{ item.actionText }}</div>
+    </div>
 
-        <div class="daily-card__section">
-          <div class="daily-card__label">Next tiny action</div>
-          <div class="daily-card__value">{{ item.actionText }}</div>
-        </div>
+    <div class="daily-card__meta">
+      <span class="daily-card__chip" *ngIf="item.sessionSize">
+        Session: {{ item.sessionSize }}
+      </span>
 
-        <div class="daily-card__meta" *ngIf="item.sessionSize">
-          <span class="daily-card__chip">Session: {{ item.sessionSize }}</span>
-        </div>
-      </article>
-    </section>
+      <a
+        mat-stroked-button
+        color="primary"
+        *ngIf="item.goalId"
+        [routerLink]="['/goals', item.goalId]"
+        (click)="$event.stopPropagation()"
+      >
+        Open Goal
+      </a>
+    </div>
+  </article>
+</section>
   </div>
 </div>

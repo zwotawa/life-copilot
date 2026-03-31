@@ -52,8 +52,4 @@ public archiveGoalById(idToArchive: string): void {
     this.saveGoals(updatedGoals);
 }
 
-public getGoalTitle(id: string): string {
-    const goal = this.getGoalById(id);
-    return goal?.title || 'Unknown Goal';
-}
 }

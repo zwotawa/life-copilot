@@ -96,8 +96,4 @@ export class InboxPageComponent implements OnInit {
       }
     });
   }
-
-  public getGoalTitle(goalId: string | null | undefined): string {
-    return this.goalstoreService.getGoalTitle(goalId ?? '');
-  }
 }

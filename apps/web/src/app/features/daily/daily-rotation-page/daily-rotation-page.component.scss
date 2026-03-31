@@ -113,13 +113,6 @@
   color: #1f2937;
 }
 
-.daily-card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
 .daily-card__chip {
   display: inline-flex;
   align-items: center;
@@ -154,4 +147,16 @@
   .daily-page__actions {
     justify-content: stretch;
   }
+}
+
+.daily-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.daily-card__meta a[mat-stroked-button] {
+  margin-left: auto;
 }
