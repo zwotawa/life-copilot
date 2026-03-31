@@ -9,7 +9,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
-import { ListItemComponent } from './shared/list-item/list-item.component';
 import { TimerDialogComponent } from './shared/timer-dialog/timer-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
@@ -36,7 +35,6 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
   declarations: [
     AppComponent,
     JobComponent,
-    ListItemComponent,
     TimerDialogComponent,
     SecondsToMinutesPipe,
     CapitalilzeFirstLetter,
