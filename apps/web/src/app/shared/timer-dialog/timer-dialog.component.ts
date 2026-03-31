@@ -1,6 +1,5 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { TimerDialogData } from '../legacy-goal-card/legacy-goal-card.component';
 import { map, Observable, timer, BehaviorSubject, switchMap, NEVER } from 'rxjs';
 import { loadCompletedActions, saveCompletedActions } from 'src/app/core/completed-action.storage';
 
@@ -59,7 +58,7 @@ export class TimerDialogComponent implements OnInit {
 
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: TimerDialogData) {
+    @Inject(MAT_DIALOG_DATA) public data: any) {
       this.goalType = this.data.goalKey;
      }
 

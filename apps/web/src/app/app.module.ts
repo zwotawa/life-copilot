@@ -7,7 +7,6 @@ import { JobComponent } from './pages/job/job.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import { LegacyGoalCardComponent } from './shared/legacy-goal-card/legacy-goal-card.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { ListItemComponent } from './shared/list-item/list-item.component';
@@ -37,7 +36,6 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
   declarations: [
     AppComponent,
     JobComponent,
-    LegacyGoalCardComponent,
     ListItemComponent,
     TimerDialogComponent,
     SecondsToMinutesPipe,
