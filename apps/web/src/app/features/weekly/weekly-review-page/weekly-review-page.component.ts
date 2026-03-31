@@ -69,12 +69,32 @@ export class WeeklyReviewPageComponent implements OnInit {
     return this.goals.filter(goal => goal.status === 'active');
   }
 
+  public get anchorCandidates(): Goal[] {
+    return this.activeGoals.filter(goal => goal.type !== 'maintain');
+  }
+
   public get infrastructureCandidates(): Goal[] {
-    return this.activeGoals;
+    return this.activeGoals.filter(goal =>
+      goal.type === 'maintain' ||
+      [
+        'life_systems',
+        'money_admin',
+        'home_environment',
+        'community_tools',
+        'mobility_transportation'
+      ].includes(goal.lane)
+    );
   }
 
   public get creativeCandidates(): Goal[] {
-    return this.activeGoals.filter(goal => goal.type === 'exploration');
+    return this.activeGoals.filter(goal =>
+      goal.type === 'exploration' ||
+      goal.lane === 'creative_experiments'
+    );
+  }
+
+  public get maintenanceCandidates(): Goal[] {
+    return this.activeGoals.filter(goal => goal.type === 'maintain');
   }
 
   public getGoalTitle(goalId: string | null | undefined): string {

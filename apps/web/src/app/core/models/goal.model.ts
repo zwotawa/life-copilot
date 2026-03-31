@@ -18,6 +18,8 @@ export type TouchFrequency = 'daily' | '3x_week' | 'weekly' | 'biweekly' | 'mont
 export type SessionSize = '5m' | '10m' | '25m' | '60m+';
 export type EnergyLevel = 'low' | 'medium' | 'deep';
 export type IntensityLevel = 'low' | 'medium' | 'high';
+export type GoalPriority = 'low' | 'medium' | 'high';
+
 
 export interface Goal {
   id: string;
@@ -26,6 +28,7 @@ export interface Goal {
   lane: GoalLane;
   type: GoalType;
   status: GoalStatus;
+  priority?: GoalPriority;
 
   dueStyle: DueStyle;
   realDeadline?: string | null;

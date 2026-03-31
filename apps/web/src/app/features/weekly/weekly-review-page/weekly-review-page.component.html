@@ -73,7 +73,7 @@
         <label
           class="weekly-goal-option"
           [class.weekly-goal-option--disabled]="isAnchorDisabled(goal.id)"
-          *ngFor="let goal of activeGoals; trackBy: trackByGoalId"
+          *ngFor="let goal of anchorCandidates; trackBy: trackByGoalId"
         >
           <input
             type="checkbox"
@@ -124,7 +124,7 @@
         <label
           class="weekly-goal-option"
           [class.weekly-goal-option--disabled]="isMaintenanceDisabled(goal.id)"
-          *ngFor="let goal of activeGoals; trackBy: trackByGoalId"
+          *ngFor="let goal of maintenanceCandidates; trackBy: trackByGoalId"
         >
           <input
             type="checkbox"
