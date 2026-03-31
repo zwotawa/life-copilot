@@ -1,6 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
-import {  removeInboxItemById } from 'src/app/core/inbox.storage';
 
 @Component({
   selector: 'app-list-item',
@@ -27,6 +26,7 @@ export class ListItemComponent implements OnInit {
         sourceInboxId: this.itemData.id
       }
 
+      //add to goal's next actions
       switch (goal) {
         case 'job':
           break;
@@ -38,7 +38,7 @@ export class ListItemComponent implements OnInit {
           break;
       }
 
-      removeInboxItemById(this.itemData.id);
+      //remove from inbox
     }
   }
 }

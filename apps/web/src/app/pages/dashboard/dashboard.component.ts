@@ -1,7 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { loadCompletedActions } from 'src/app/core/completed-action.storage';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
-import { loadInbox, saveInbox } from 'src/app/core/inbox.storage';
 import { isSameDay } from 'src/app/shared/utility/same-day-comparison';
 
   export interface GoalCard {
@@ -32,7 +31,7 @@ export class DashboardComponent implements OnInit {
     }
   ];
 
-  public items: any[];
+  public items: any[] = [];
   public newText :string = '';
   public addDisabled: boolean = true;
   public inboxCount = 0;
@@ -41,7 +40,7 @@ export class DashboardComponent implements OnInit {
   public streakCount = 0;
 
   constructor() { 
-    this.items = loadInbox();
+    //load inbox items
   }
 
   ngOnInit(): void {
@@ -72,8 +71,8 @@ export class DashboardComponent implements OnInit {
     //save limit of 50 items
     if(items.length > 49) return;
 
-    saveInbox(items);
-    this.items = loadInbox();
+    //save items
+    //update local items
     this.inboxCount = this.items.length;
   }
   
