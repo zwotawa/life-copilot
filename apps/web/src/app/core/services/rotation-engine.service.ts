@@ -3,6 +3,8 @@ import { Goal } from '../models/goal.model';
 import { DailyRotationItem } from '../models/daily-rotation.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 
+const STORAGE_KEY = 'lifeCopilot.dailyRotation';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -80,13 +82,15 @@ export class RotationEngineService {
       usedGoalIds
     );
 
-    return [
+    const dailyRotationItems: DailyRotationItem[] = [
       this.toRotationItem('responsible', responsibleGoal),
       this.toRotationItem('momentum', momentumGoal),
       this.toRotationItem('maintenance', maintenanceGoal),
       this.toRotationItem('interesting', interestingGoal),
       this.toRotationItem('fallback', fallbackGoal)
     ];
+    this.saveRotationItems(dailyRotationItems);
+    return dailyRotationItems;
   }
 
   private pickGoal(candidates: Goal[], usedGoalIds: Set<string>): Goal | undefined {
@@ -128,5 +132,25 @@ export class RotationEngineService {
       sessionSize: goal?.typicalSessionSize ?? null,
       completed: false
     };
+  }
+
+  public saveRotationItems(items: DailyRotationItem[]): void {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }
+
+  public loadRotationItems(): DailyRotationItem[] {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) {
+      return [];
+    }
+    try {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      return [];
+    } catch {
+      return [];
+    }
   }
 }

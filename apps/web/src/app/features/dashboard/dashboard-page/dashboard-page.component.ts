@@ -25,7 +25,7 @@ export class DashboardPageComponent implements OnInit {
   ngOnInit(): void {
     this.goals = this.goalStoreService.getGoals();
     this.review = this.weeklyReviewService.getCurrentWeeklyReview();
-    this.dailyRotation = this.rotationEngineService.generateDailyRotation(this.goals, this.review);
+    this.loadDailySelections();
   }
 
   public get activeGoals(): Goal[] {
@@ -103,5 +103,18 @@ export class DashboardPageComponent implements OnInit {
 
   public trackByRotationId(index: number, item: DailyRotationItem): string {
     return item.id;
+  }
+
+  public  loadDailySelections(): void {
+    const saved = this.rotationEngineService.loadRotationItems();
+
+    if (saved) {
+      this.dailyRotation = saved;
+      return;
+    }
+
+    // Optional: only do this if you want a first-time auto-generate
+    this.dailyRotation = this.rotationEngineService.generateDailyRotation(this.goals, this.review);
+    this.rotationEngineService.saveRotationItems(this.dailyRotation);
   }
 }
