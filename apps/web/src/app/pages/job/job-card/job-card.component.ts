@@ -1,6 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { GoalAction } from 'src/app/core/goal-action.model';
-import { loadJobActions, saveJobActions } from 'src/app/core/job-action.storage';
 import { JobCard } from 'src/app/core/job-pipeline.model';
 
 export interface CardMovement {
@@ -56,9 +55,7 @@ export class JobCardComponent implements OnInit {
       createdAt: Date.now(),
     }
 
-    const jobActions = loadJobActions();
-    const updatedJobActions: GoalAction[] = [action, ...jobActions];
-    saveJobActions(updatedJobActions);
+    //do something
   }
 
   get stale(): boolean {

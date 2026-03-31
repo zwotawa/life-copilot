@@ -3,7 +3,6 @@ import { loadCompletedActions } from 'src/app/core/completed-action.storage';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { InboxItem } from 'src/app/core/inbox.model';
 import { loadInbox, saveInbox } from 'src/app/core/inbox.storage';
-import { loadJobActions } from 'src/app/core/job-action.storage';
 import { isSameDay } from 'src/app/shared/utility/same-day-comparison';
 
   export interface GoalCard {
@@ -22,7 +21,7 @@ export class DashboardComponent implements OnInit {
   public goalCards: GoalCard[] = [
     { goalKey: 'job',
       why: 'to secure retirement funds',
-      nextActions: loadJobActions()
+      nextActions: []
     },
     { goalKey: 'vehicle',
       why: 'to go to land',

@@ -2,7 +2,6 @@ import { Component, OnInit, Input } from '@angular/core';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { InboxItem } from 'src/app/core/inbox.model';
 import {  removeInboxItemById } from 'src/app/core/inbox.storage';
-import { loadJobActions, saveJobActions } from 'src/app/core/job-action.storage';
 
 @Component({
   selector: 'app-list-item',
@@ -31,9 +30,6 @@ export class ListItemComponent implements OnInit {
 
       switch (goal) {
         case 'job':
-          const jobActions = loadJobActions();
-          const updatedJobActions: GoalAction[] = [action, ...jobActions];
-          saveJobActions(updatedJobActions);
           break;
         case 'vehicle':
           break;

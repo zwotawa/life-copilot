@@ -4,7 +4,6 @@ import { TimerDialogData } from '../legacy-goal-card/legacy-goal-card.component'
 import { map, Observable, timer, BehaviorSubject, Subject, switchMap, NEVER } from 'rxjs';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { loadCompletedActions, saveCompletedActions } from 'src/app/core/completed-action.storage';
-import { removeJobActionById } from 'src/app/core/job-action.storage';
 
 
 interface StuckReasons {
@@ -117,7 +116,6 @@ export class TimerDialogComponent implements OnInit {
 
     switch(this.goalType.toLowerCase()) {
       case 'job':
-        removeJobActionById(this.data.goal.id);
         break;
       case 'vehicle':
         break;
