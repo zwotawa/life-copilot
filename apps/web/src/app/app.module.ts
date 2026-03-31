@@ -3,7 +3,6 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { JobComponent } from './pages/job/job.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -37,7 +36,6 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
 @NgModule({
   declarations: [
     AppComponent,
-    DashboardComponent,
     JobComponent,
     LegacyGoalCardComponent,
     ListItemComponent,

@@ -1,5 +1,4 @@
 import { Component, OnInit, Input, TrackByFunction } from '@angular/core';
-import { GoalCard } from 'src/app/pages/dashboard/dashboard.component';
 import { TimerDialogComponent } from '../timer-dialog/timer-dialog.component';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
@@ -25,7 +24,7 @@ export interface SelectedAction {
 })
 export class LegacyGoalCardComponent implements OnInit {
 
-  @Input() cardData?: GoalCard;
+  @Input() cardData?: any;
 
   public actionsLength: number = 0;
   public currentSelectionId: string | null = '';
