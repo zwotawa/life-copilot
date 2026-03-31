@@ -1,10 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { InboxItem } from 'src/app/core/inbox.model';
-import { loadInbox, removeInboxItemById, saveInbox } from 'src/app/core/inbox.storage';
+import {  removeInboxItemById } from 'src/app/core/inbox.storage';
 import { loadJobActions, saveJobActions } from 'src/app/core/job-action.storage';
-import { loadVehicleActions, saveVehicleActions } from 'src/app/core/vehicle-action.storage';
-import { loadDeclutterActions, saveDeclutterActions } from 'src/app/core/declutter-action.storage';
 
 @Component({
   selector: 'app-list-item',
@@ -38,14 +36,8 @@ export class ListItemComponent implements OnInit {
           saveJobActions(updatedJobActions);
           break;
         case 'vehicle':
-          const vehicleActions = loadVehicleActions();
-          const updatedVehicleActions: GoalAction[] = [action, ...vehicleActions];
-          saveVehicleActions(updatedVehicleActions);
           break;
         case 'declutter':
-          const declutterActions = loadDeclutterActions();
-          const updatedDeclutterActions: GoalAction[] = [action, ...declutterActions];
-          saveDeclutterActions(updatedDeclutterActions);
           break;
         default:
           break;

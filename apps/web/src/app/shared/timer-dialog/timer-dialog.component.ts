@@ -1,14 +1,11 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TimerDialogData } from '../legacy-goal-card/legacy-goal-card.component';
-import { SecondsToMinutesPipe } from '../pipes/seconds-to-minutes.pipe';
 import { map, Observable, timer, BehaviorSubject, Subject, switchMap, NEVER } from 'rxjs';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { loadCompletedActions, saveCompletedActions } from 'src/app/core/completed-action.storage';
-import { formatDate } from '@angular/common';
 import { removeJobActionById } from 'src/app/core/job-action.storage';
-import { removeVehicleActionById } from 'src/app/core/vehicle-action.storage';
-import { removeDeclutterActionById } from 'src/app/core/declutter-action.storage';
+
 
 interface StuckReasons {
   reason: string;
@@ -123,10 +120,8 @@ export class TimerDialogComponent implements OnInit {
         removeJobActionById(this.data.goal.id);
         break;
       case 'vehicle':
-        removeVehicleActionById(this.data.goal.id);
         break;
       case 'declutter':
-        removeDeclutterActionById(this.data.goal.id);
         break;
       default:
         break;

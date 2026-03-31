@@ -1,12 +1,9 @@
-import { formatDate } from '@angular/common';
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { loadCompletedActions } from 'src/app/core/completed-action.storage';
-import { loadDeclutterActions } from 'src/app/core/declutter-action.storage';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { InboxItem } from 'src/app/core/inbox.model';
 import { loadInbox, saveInbox } from 'src/app/core/inbox.storage';
 import { loadJobActions } from 'src/app/core/job-action.storage';
-import { loadVehicleActions } from 'src/app/core/vehicle-action.storage';
 import { isSameDay } from 'src/app/shared/utility/same-day-comparison';
 
   export interface GoalCard {
@@ -29,11 +26,11 @@ export class DashboardComponent implements OnInit {
     },
     { goalKey: 'vehicle',
       why: 'to go to land',
-      nextActions: loadVehicleActions()
+      nextActions: []
     },
     { goalKey: 'declutter',
       why: 'peace of mind',
-      nextActions: loadDeclutterActions()
+      nextActions: []
     }
   ];
 
