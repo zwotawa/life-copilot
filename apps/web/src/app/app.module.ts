@@ -5,7 +5,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { JobComponent } from './pages/job/job.component';
-import { VehicleComponent } from './pages/vehicle/vehicle.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,7 +39,6 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
     AppComponent,
     DashboardComponent,
     JobComponent,
-    VehicleComponent,
     LegacyGoalCardComponent,
     ListItemComponent,
     TimerDialogComponent,

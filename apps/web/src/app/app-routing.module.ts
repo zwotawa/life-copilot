@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { JobComponent } from './pages/job/job.component';
-import { VehicleComponent } from './pages/vehicle/vehicle.component';
 import { GoalsPageComponent } from './features/goals/goals-page/goals-page.component';
 import { GoalDetailPageComponent } from './features/goals/goal-detail-page/goal-detail-page.component';
 import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/weekly-review-page.component';
@@ -12,7 +11,6 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
 const routes: Routes = [
   { path: '', component: DashboardPageComponent },
   { path: 'job', component: JobComponent },
-  { path: 'vehicle', component: VehicleComponent },
   { path: 'goals', component: GoalsPageComponent },
   { path: 'goals/:id', component: GoalDetailPageComponent },
   { path: 'weekly', component: WeeklyReviewPageComponent },
