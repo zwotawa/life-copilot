@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { InboxEntry, InboxEntryStatus } from 'src/app/core/models/inbox-entry.model';
 import { InboxService } from 'src/app/core/services/inbox.service';
 
@@ -12,7 +13,9 @@ export class InboxPageComponent implements OnInit {
   public newEntryText = '';
   public selectedStatusFilter: 'all' | InboxEntryStatus = 'all';
 
-  constructor(private inboxService: InboxService) {}
+  constructor(private inboxService: InboxService,
+    private router: Router  
+  ) {}
 
   ngOnInit(): void {
     this.loadEntries();
@@ -40,26 +43,27 @@ export class InboxPageComponent implements OnInit {
 
   public get filteredEntries(): InboxEntry[] {
     if (this.selectedStatusFilter === 'all') {
-      return this.entries;
+      return this.activeInboxItems;
     }
 
-    return this.entries.filter(entry => entry.status === this.selectedStatusFilter);
+    return this.activeInboxItems
+    .filter(entry => entry.status === this.selectedStatusFilter);
   }
 
   public get newCount(): number {
-    return this.entries.filter(entry => entry.status === 'new').length;
+    return this.activeInboxItems.filter(entry => entry.status === 'new').length;
   }
 
   public get clarifiedCount(): number {
-    return this.entries.filter(entry => entry.status === 'clarified').length;
+    return this.activeInboxItems.filter(entry => entry.status === 'clarified').length;
   }
 
   public get deferredCount(): number {
-    return this.entries.filter(entry => entry.status === 'deferred').length;
+    return this.activeInboxItems.filter(entry => entry.status === 'deferred').length;
   }
 
   public get archivedCount(): number {
-    return this.entries.filter(entry => entry.status === 'archived').length;
+    return this.activeInboxItems.filter(entry => entry.status === 'archived').length;
   }
 
   public trackByEntryId(index: number, entry: InboxEntry): string {
@@ -80,4 +84,17 @@ export class InboxPageComponent implements OnInit {
         return status;
     }
   }
+
+  public convertToGoal(item: InboxEntry): void {
+    this.router.navigate(['/goals/new'], {
+      state: {
+        inboxItemId: item.id,
+        prefillGoalTitle: item.text
+      }
+    });
+  }
+
+  private get activeInboxItems(): InboxEntry[] {
+  return this.entries.filter(entry => !entry.completedAt && !entry.convertedAt);
+}
 }

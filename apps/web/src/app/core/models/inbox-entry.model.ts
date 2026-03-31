@@ -12,4 +12,7 @@ export interface InboxEntry {
   linkedGoalId?: string | null;
   capturedAt: string;
   updatedAt: string;
+  completedAt?: string;
+  convertedGoalId?: string;
+  convertedAt?: string;
 }

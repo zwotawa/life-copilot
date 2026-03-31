@@ -61,4 +61,18 @@ export class InboxService {
     const entries = this.getEntries().filter(entry => entry.id !== entryId);
     this.saveEntries(entries);
   }
+
+  markAsConverted(inboxEntryId: string, goalId: string): void {
+  const entries = this.getEntries().map(entry =>
+    entry.id == inboxEntryId
+      ? {
+          ...entry,
+          convertedGoalId: goalId,
+          convertedAt: new Date().toISOString()
+        }
+      : entry
+  );
+
+  this.saveEntries(entries);
+}
 }
