@@ -6,7 +6,6 @@ import { AppComponent } from './app.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { JobComponent } from './pages/job/job.component';
 import { VehicleComponent } from './pages/vehicle/vehicle.component';
-import { DeclutterComponent } from './pages/declutter/declutter.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -42,7 +41,6 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
     DashboardComponent,
     JobComponent,
     VehicleComponent,
-    DeclutterComponent,
     LegacyGoalCardComponent,
     ListItemComponent,
     TimerDialogComponent,

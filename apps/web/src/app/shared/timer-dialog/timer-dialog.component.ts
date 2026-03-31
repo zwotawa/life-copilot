@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TimerDialogData } from '../legacy-goal-card/legacy-goal-card.component';
-import { map, Observable, timer, BehaviorSubject, Subject, switchMap, NEVER } from 'rxjs';
+import { map, Observable, timer, BehaviorSubject, switchMap, NEVER } from 'rxjs';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
 import { loadCompletedActions, saveCompletedActions } from 'src/app/core/completed-action.storage';
 
