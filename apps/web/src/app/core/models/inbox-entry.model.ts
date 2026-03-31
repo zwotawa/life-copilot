@@ -13,6 +13,4 @@ export interface InboxEntry {
   capturedAt: string;
   updatedAt: string;
   completedAt?: string;
-  convertedGoalId?: string;
-  convertedAt?: string;
 }

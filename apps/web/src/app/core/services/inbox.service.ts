@@ -63,16 +63,19 @@ export class InboxService {
   }
 
   markAsConverted(inboxEntryId: string, goalId: string): void {
-  const entries = this.getEntries().map(entry =>
-    entry.id == inboxEntryId
-      ? {
-          ...entry,
-          convertedGoalId: goalId,
-          convertedAt: new Date().toISOString()
-        }
-      : entry
-  );
+    const archived: InboxEntryStatus = 'archived';
+    const now = new Date().toISOString();
+    const entries = this.getEntries().map(entry =>
+      entry.id == inboxEntryId
+        ? {
+            ...entry,
+            linkedGoalId: goalId,
+            updatedAt: now,
+            status: archived
+          }
+        : entry
+    );
 
-  this.saveEntries(entries);
-}
+    this.saveEntries(entries);
+  }
 }

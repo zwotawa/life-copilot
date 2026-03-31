@@ -19,6 +19,7 @@
         class="daily-card"
         *ngFor="let item of rotationItems; trackBy: trackByItemId"
         [class.daily-card--completed]="item.completed"
+        [routerLink]="['/goals', item.goalId]"
       >
         <div class="daily-card__header">
           <div>

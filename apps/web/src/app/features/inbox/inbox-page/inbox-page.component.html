@@ -117,6 +117,9 @@
             <button mat-button color="primary" (click)="convertToGoal(entry)" [disabled]="entry.status === 'archived'">
                 Convert to Goal
             </button>
+            <a *ngIf="entry.linkedGoalId" class="inbox-entry__linked-goal" [routerLink]="['/goals', entry.linkedGoalId]">
+                Linked goal: {{ entry.linkedGoalId ? (getGoalTitle(entry.linkedGoalId) || 'Unknown Goal') : 'None' }}
+            </a>
           </div>
         </article>
       </div>

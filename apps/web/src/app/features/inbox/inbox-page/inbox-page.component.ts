@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { InboxEntry, InboxEntryStatus } from 'src/app/core/models/inbox-entry.model';
+import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { InboxService } from 'src/app/core/services/inbox.service';
 
 @Component({
@@ -13,8 +14,10 @@ export class InboxPageComponent implements OnInit {
   public newEntryText = '';
   public selectedStatusFilter: 'all' | InboxEntryStatus = 'all';
 
-  constructor(private inboxService: InboxService,
-    private router: Router  
+  constructor(
+    private inboxService: InboxService,
+    private router: Router,
+    private goalstoreService: GoalStoreService
   ) {}
 
   ngOnInit(): void {
@@ -43,27 +46,27 @@ export class InboxPageComponent implements OnInit {
 
   public get filteredEntries(): InboxEntry[] {
     if (this.selectedStatusFilter === 'all') {
-      return this.activeInboxItems;
+      return this.entries;
     }
 
-    return this.activeInboxItems
+    return this.entries
     .filter(entry => entry.status === this.selectedStatusFilter);
   }
 
   public get newCount(): number {
-    return this.activeInboxItems.filter(entry => entry.status === 'new').length;
+    return this.entries.filter(entry => entry.status === 'new').length;
   }
 
   public get clarifiedCount(): number {
-    return this.activeInboxItems.filter(entry => entry.status === 'clarified').length;
+    return this.entries.filter(entry => entry.status === 'clarified').length;
   }
 
   public get deferredCount(): number {
-    return this.activeInboxItems.filter(entry => entry.status === 'deferred').length;
+    return this.entries.filter(entry => entry.status === 'deferred').length;
   }
 
   public get archivedCount(): number {
-    return this.activeInboxItems.filter(entry => entry.status === 'archived').length;
+    return this.entries.filter(entry => entry.status === 'archived').length;
   }
 
   public trackByEntryId(index: number, entry: InboxEntry): string {
@@ -94,7 +97,7 @@ export class InboxPageComponent implements OnInit {
     });
   }
 
-  private get activeInboxItems(): InboxEntry[] {
-  return this.entries.filter(entry => !entry.completedAt && !entry.convertedAt);
-}
+  public getGoalTitle(goalId: string | null | undefined): string {
+    return this.goalstoreService.getGoalTitle(goalId ?? '');
+  }
 }
