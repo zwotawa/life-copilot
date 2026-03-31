@@ -154,6 +154,42 @@
       </section>
 
       <section class="dashboard-card">
+  <div class="dashboard-card__header">
+    <h2>Inbox</h2>
+    <a routerLink="/inbox" class="dashboard-card__link">Open Inbox</a>
+  </div>
+
+  <div class="dashboard-card__section">
+    <div class="dashboard-card__label">Active entries</div>
+    <div class="dashboard-stat-inline">{{ activeInboxCount }}</div>
+  </div>
+
+  <div class="dashboard-card__section">
+    <div class="dashboard-card__label">Status breakdown</div>
+    <div class="dashboard-chip-list">
+      <span class="dashboard-chip">New: {{ newInboxCount }}</span>
+      <span class="dashboard-chip">Clarified: {{ clarifiedInboxCount }}</span>
+      <span class="dashboard-chip" *ngIf="deferredInboxCount > 0">
+        Deferred: {{ deferredInboxCount }}
+      </span>
+    </div>
+  </div>
+
+  <div class="dashboard-card__section" *ngIf="recentInboxEntries.length > 0">
+    <div class="dashboard-card__label">Recent captures</div>
+    <ul class="dashboard-list">
+      <li *ngFor="let entry of recentInboxEntries; trackBy: trackByInboxId">
+        {{ entry.text }}
+      </li>
+    </ul>
+  </div>
+
+  <div class="dashboard-card__section" *ngIf="activeInboxCount === 0">
+    <div class="dashboard-empty">Inbox is clear right now.</div>
+  </div>
+</section>
+
+      <section class="dashboard-card">
         <div class="dashboard-card__header">
           <h2>Quick actions</h2>
         </div>

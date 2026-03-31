@@ -5,6 +5,8 @@ import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { RotationEngineService } from 'src/app/core/services/rotation-engine.service';
 import { WeeklyReviewService } from 'src/app/core/services/weekly-review.service';
+import { InboxEntry } from 'src/app/core/models/inbox-entry.model';
+import { InboxService } from 'src/app/core/services/inbox.service';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -16,16 +18,25 @@ export class DashboardPageComponent implements OnInit {
   public review!: WeeklyReviewState;
   public dailyRotation: DailyRotationItem[] = [];
 
+  public activeInboxCount = 0;
+  public newInboxCount = 0;
+  public clarifiedInboxCount = 0;
+  public deferredInboxCount = 0;
+  public recentInboxEntries: InboxEntry[] = [];
+
+
   constructor(
     private goalStoreService: GoalStoreService,
     private weeklyReviewService: WeeklyReviewService,
-    private rotationEngineService: RotationEngineService
+    private rotationEngineService: RotationEngineService,
+    private inboxService: InboxService
   ) {}
 
   ngOnInit(): void {
     this.goals = this.goalStoreService.getGoals();
     this.review = this.weeklyReviewService.getCurrentWeeklyReview();
     this.loadDailySelections();
+    this.loadInboxSummary();
   }
 
   public get activeGoals(): Goal[] {
@@ -116,5 +127,24 @@ export class DashboardPageComponent implements OnInit {
     // Optional: only do this if you want a first-time auto-generate
     this.dailyRotation = this.rotationEngineService.generateDailyRotation(this.goals, this.review);
     this.rotationEngineService.saveRotationItems(this.dailyRotation);
+  }
+
+  public loadInboxSummary(): void {
+    const allInboxEntries = this.inboxService.getEntries();
+    const activeEntries = allInboxEntries.filter(entry => entry.status !== 'archived' && entry.status !== 'deferred');
+
+    this.activeInboxCount = activeEntries.length;
+    this.newInboxCount = activeEntries.filter(entry => entry.status === 'new').length;
+    this.clarifiedInboxCount = activeEntries.filter(entry => entry.status === 'clarified').length;
+    this.deferredInboxCount = activeEntries.filter(entry => entry.status === 'deferred').length;
+
+    this.recentInboxEntries = activeEntries
+      .slice()
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      .slice(0, 3);
+  }
+
+  trackByInboxId(index: number, entry: InboxEntry): string {
+    return entry.id;
   }
 }
