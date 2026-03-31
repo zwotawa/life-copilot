@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Goal } from 'src/app/core/models/goal.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
+import { GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
 import { WeeklyReviewService } from 'src/app/core/services/weekly-review.service';
 
 @Component({
@@ -15,7 +16,8 @@ export class WeeklyReviewPageComponent implements OnInit {
 
   constructor(
     private goalStoreService: GoalStoreService,
-    private weeklyReviewService: WeeklyReviewService
+    private weeklyReviewService: WeeklyReviewService,
+    private goalSurfacingService: GoalSurfacingService
   ) {}
 
   ngOnInit(): void {
@@ -69,33 +71,39 @@ export class WeeklyReviewPageComponent implements OnInit {
     return this.goals.filter(goal => goal.status === 'active');
   }
 
-  public get anchorCandidates(): Goal[] {
-    return this.activeGoals.filter(goal => goal.type !== 'maintain');
-  }
+public get anchorCandidates(): Goal[] {
+  const candidates = this.activeGoals.filter(goal => goal.type !== 'maintain');
+  return this.goalSurfacingService.sortGoalsBySurfacing(candidates, this.review);
+}
 
-  public get infrastructureCandidates(): Goal[] {
-    return this.activeGoals.filter(goal =>
-      goal.type === 'maintain' ||
-      [
-        'life_systems',
-        'money_admin',
-        'home_environment',
-        'community_tools',
-        'mobility_transportation'
-      ].includes(goal.lane)
-    );
-  }
+public get maintenanceCandidates(): Goal[] {
+  const candidates = this.activeGoals.filter(goal => goal.type === 'maintain');
+  return this.goalSurfacingService.sortGoalsBySurfacing(candidates, this.review);
+}
 
-  public get creativeCandidates(): Goal[] {
-    return this.activeGoals.filter(goal =>
-      goal.type === 'exploration' ||
-      goal.lane === 'creative_experiments'
-    );
-  }
+public get infrastructureCandidates(): Goal[] {
+  const candidates = this.activeGoals.filter(goal =>
+    goal.type === 'maintain' ||
+    [
+      'life_systems',
+      'money_admin',
+      'home_environment',
+      'community_tools',
+      'mobility_transportation'
+    ].includes(goal.lane)
+  );
 
-  public get maintenanceCandidates(): Goal[] {
-    return this.activeGoals.filter(goal => goal.type === 'maintain');
-  }
+  return this.goalSurfacingService.sortGoalsBySurfacing(candidates, this.review);
+}
+
+public get creativeCandidates(): Goal[] {
+  const candidates = this.activeGoals.filter(goal =>
+    goal.type === 'exploration' ||
+    goal.lane === 'creative_experiments'
+  );
+
+  return this.goalSurfacingService.sortGoalsBySurfacing(candidates, this.review);
+}
 
   public getGoalTitle(goalId: string | null | undefined): string {
     if (!goalId) return '';
@@ -126,5 +134,13 @@ export class WeeklyReviewPageComponent implements OnInit {
 
   public isMaintenanceDisabled(goalId: string): boolean {
     return !this.isMaintenanceSelected(goalId) && this.review.maintenanceGoalIds.length >= 5;
+  }
+
+  public getSurfacingScore(goal: Goal): number {
+    return this.goalSurfacingService.getSurfacingScore(goal, this.review);
+  }
+
+  public getSuggestedCategory(goal: Goal): string | null {
+    return this.goalSurfacingService.getSuggestedDailyCategory(goal, this.review);
   }
 }

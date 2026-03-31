@@ -14,6 +14,7 @@
     <div class="weekly-summary__chips">
       <span class="weekly-chip" *ngFor="let goal of selectedAnchorGoals">
         {{ goal.title }}
+        
       </span>
       <span class="weekly-summary__empty" *ngIf="selectedAnchorGoals.length === 0">
         None selected
@@ -86,6 +87,9 @@
             <div class="weekly-goal-option__meta">
               {{ goal.lane }} · {{ goal.type }}
             </div>
+            <div class="goal-hint">
+  Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
+</div>
           </div>
         </label>
       </div>
@@ -105,7 +109,7 @@
             *ngFor="let goal of infrastructureCandidates; trackBy: trackByGoalId"
             [value]="goal.id"
           >
-            {{ goal.title }}
+            {{ goal.title }} - Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
           </mat-option>
         </mat-select>
       </mat-form-field>
@@ -137,6 +141,9 @@
             <div class="weekly-goal-option__meta">
               {{ goal.minimumTouchFrequency }} · {{ goal.type }}
             </div>
+            <div class="goal-hint">
+  Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
+</div>
           </div>
         </label>
       </div>
@@ -156,7 +163,7 @@
             *ngFor="let goal of creativeCandidates; trackBy: trackByGoalId"
             [value]="goal.id"
           >
-            {{ goal.title }}
+            {{ goal.title }} - Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
           </mat-option>
         </mat-select>
       </mat-form-field>
