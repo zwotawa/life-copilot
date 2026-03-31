@@ -1,6 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
-import { InboxItem } from 'src/app/core/inbox.model';
 import {  removeInboxItemById } from 'src/app/core/inbox.storage';
 
 @Component({
@@ -10,7 +9,7 @@ import {  removeInboxItemById } from 'src/app/core/inbox.storage';
 })
 export class ListItemComponent implements OnInit {
 
-  @Input() itemData?: InboxItem;
+  @Input() itemData?: any;
 
   constructor() { }
 

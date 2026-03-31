@@ -1,7 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { loadCompletedActions } from 'src/app/core/completed-action.storage';
 import { GoalAction, GoalKey } from 'src/app/core/goal-action.model';
-import { InboxItem } from 'src/app/core/inbox.model';
 import { loadInbox, saveInbox } from 'src/app/core/inbox.storage';
 import { isSameDay } from 'src/app/shared/utility/same-day-comparison';
 
@@ -33,7 +32,7 @@ export class DashboardComponent implements OnInit {
     }
   ];
 
-  public items: InboxItem[];
+  public items: any[];
   public newText :string = '';
   public addDisabled: boolean = true;
   public inboxCount = 0;
@@ -62,13 +61,13 @@ export class DashboardComponent implements OnInit {
 
   public addItem(): void {
     const newId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-    const item: InboxItem = {
+    const item: any = {
       id: newId,
       text: this.newText.trim(),
       createdAt: Date.now()
     }
 
-    const items: InboxItem[] = [item, ...this.items];
+    const items: any[] = [item, ...this.items];
 
     //save limit of 50 items
     if(items.length > 49) return;
