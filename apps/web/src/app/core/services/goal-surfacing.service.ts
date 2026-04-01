@@ -7,6 +7,8 @@ import {
   TouchFrequency
 } from '../models/goal.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
+import { GoalFreshnessInfo, GoalFreshnessService } from './goal-freshness.service';
+import { capitalize } from 'src/app/shared/utility/capitalize';
 
 export type SuggestedDailyCategory =
   | 'responsible'
@@ -28,13 +30,17 @@ export interface GoalSurfacingResult {
   providedIn: 'root'
 })
 export class GoalSurfacingService {
+  
+  constructor(private goalFreshnessService: GoalFreshnessService) {}
+
   public getSurfacingResult(
     goal: Goal,
     review: WeeklyReviewState | null
   ): GoalSurfacingResult {
     const reasons: string[] = [];
 
-    const daysSinceTouched = this.getDaysSinceTouched(goal.lastTouchedAt);
+    const freshness = this.goalFreshnessService.getFreshnessInfo(goal);
+    const daysSinceTouched = freshness.daysSinceTouched;
     const dueInDays = this.getDueInDays(goal);
 
     let score = 0;
@@ -42,43 +48,44 @@ export class GoalSurfacingService {
     const statusWeight = this.getStatusWeight(goal.status);
     score += statusWeight;
     if (statusWeight !== 0) {
-      reasons.push(`status ${goal.status}: ${statusWeight >= 0 ? '+' : ''}${statusWeight}`);
+      reasons.push(`${capitalize(goal.status)} goal`);
     }
 
     const touchWeight = this.getFrequencyWeight(goal.minimumTouchFrequency);
     score += touchWeight;
     if (touchWeight !== 0) {
-      reasons.push(`touch frequency: +${touchWeight}`);
+      reasons.push(`${this.goalFreshnessService.getTouchFrequencyLabel(goal.minimumTouchFrequency)} rhythm`);
     }
 
-    const staleWeight = this.getStalenessWeight(daysSinceTouched);
-    score += staleWeight;
-    if (staleWeight !== 0) {
-      reasons.push(`staleness: +${staleWeight}`);
+    const freshnessWeight = this.getFreshnessWeight(freshness);
+    score += freshnessWeight;
+    const freshnessReason = this.getFreshnessReason(freshness);
+    if (freshnessReason) {
+      reasons.push(freshnessReason);
     }
 
     const dueWeight = this.getDueWeight(dueInDays);
     score += dueWeight;
     if (dueWeight !== 0) {
-      reasons.push(`due timing: +${dueWeight}`);
+      reasons.push(`Due soon`);
     }
 
     const anchorWeight = this.getWeeklySelectionWeight(goal, review);
     score += anchorWeight;
     if (anchorWeight !== 0) {
-      reasons.push(`weekly role: +${anchorWeight}`);
+      reasons.push(`Chosen in weekly review`);
     }
 
     const excitementWeight = this.getExcitementWeight(goal.excitement);
     score += excitementWeight;
     if (excitementWeight !== 0) {
-      reasons.push(`excitement: +${excitementWeight}`);
+      reasons.push(`High interest`);
     }
 
     const resistancePenalty = this.getResistancePenalty(goal.resistance);
     score -= resistancePenalty;
     if (resistancePenalty !== 0) {
-      reasons.push(`resistance: -${resistancePenalty}`);
+      reasons.push(`Higher resistance`);
     }
 
     score = Math.max(0, score);
@@ -210,14 +217,6 @@ export class GoalSurfacingService {
     }
   }
 
-  private getStalenessWeight(daysSinceTouched: number | null): number {
-    if (daysSinceTouched === null) {
-      return 4;
-    }
-
-    return Math.min(14, Math.round(daysSinceTouched / 2));
-  }
-
   private getDueWeight(dueInDays: number | null): number {
     if (dueInDays === null) {
       return 0;
@@ -281,21 +280,6 @@ export class GoalSurfacingService {
     }
   }
 
-  private getDaysSinceTouched(lastTouchedAt?: string | null): number | null {
-    if (!lastTouchedAt) {
-      return null;
-    }
-
-    const touchedDate = new Date(lastTouchedAt);
-    if (Number.isNaN(touchedDate.getTime())) {
-      return null;
-    }
-
-    const now = new Date();
-    const diffMs = now.getTime() - touchedDate.getTime();
-    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  }
-
   private getDueInDays(goal: Goal): number | null {
     let dateString: string | null | undefined = null;
 
@@ -317,5 +301,55 @@ export class GoalSurfacingService {
     const now = new Date();
     const diffMs = dueDate.getTime() - now.getTime();
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  private getFreshnessWeight(freshness: GoalFreshnessInfo): number {
+
+    if (freshness.daysSinceTouched === null) {
+      return 6;
+    }
+
+    if (freshness.isOverRhythm) {
+      return 12;
+    }
+
+    if (freshness.daysSinceTouched === 0) {
+      return 0;
+    }
+
+    if (freshness.daysSinceTouched === 1) {
+      return 1;
+    }
+
+    if (freshness.daysSinceTouched >= 14) {
+      return 10;
+    }
+
+    if (freshness.daysSinceTouched >= 7) {
+      return 6;
+    }
+
+    if (freshness.daysSinceTouched >= 3) {
+      return 3;
+    }
+
+    return 1;
+  }
+
+  private getFreshnessReason(freshness: GoalFreshnessInfo): string | null {
+
+    if (freshness.daysSinceTouched === null) {
+      return 'No touch recorded yet';
+    }
+
+    if (freshness.isOverRhythm) {
+      return freshness.label;
+    }
+
+    if (freshness.daysSinceTouched >= 7) {
+      return freshness.label;
+    }
+
+    return null;
   }
 }
