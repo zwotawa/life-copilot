@@ -7,13 +7,12 @@ import { RotationEngineService } from 'src/app/core/services/rotation-engine.ser
 import { WeeklyReviewService } from 'src/app/core/services/weekly-review.service';
 import { InboxEntry } from 'src/app/core/models/inbox-entry.model';
 import { InboxService } from 'src/app/core/services/inbox.service';
+import { GoalFreshnessInfo, GoalFreshnessService } from 'src/app/core/services/goal-freshness.service';
+
 
 interface GoalFreshnessView {
   goal: Goal;
-  freshnessLabel: string;
-  freshnessTone: 'fresh' | 'neutral' | 'stale' | 'overdue' | 'unknown';
-  daysSinceTouched: number | null;
-  isOverRhythm: boolean;
+  freshness: GoalFreshnessInfo;
 }
 
 @Component({
@@ -37,7 +36,8 @@ export class DashboardPageComponent implements OnInit {
     private goalStoreService: GoalStoreService,
     private weeklyReviewService: WeeklyReviewService,
     private rotationEngineService: RotationEngineService,
-    private inboxService: InboxService
+    private inboxService: InboxService,
+    private goalFreshnessService: GoalFreshnessService
   ) {}
 
   ngOnInit(): void {
@@ -156,110 +156,15 @@ export class DashboardPageComponent implements OnInit {
     return entry.id;
   }
 
- public getDaysSinceTouched(lastTouchedAt?: string | null): number | null {
-    if (!lastTouchedAt) {
-      return null;
-    }
-
-    const touched = new Date(lastTouchedAt);
-    const today = new Date();
-
-    const touchedStart = new Date(
-      touched.getFullYear(),
-      touched.getMonth(),
-      touched.getDate()
-    );
-
-    const todayStart = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
-    );
-
-    const diffMs = todayStart.getTime() - touchedStart.getTime();
-    return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-  }
-
-  public isGoalOverRhythm(goal: Goal): boolean {
-    const days = this.getDaysSinceTouched(goal.lastTouchedAt);
-    const expectedDays = this.getTouchFrequencyDays(goal.minimumTouchFrequency);
-
-    return days !== null && expectedDays !== null && days > expectedDays;
-  }
-
   public getGoalFreshnessLabel(goal: Goal): string {
-    const days = this.getDaysSinceTouched(goal.lastTouchedAt);
-
-    if (days === null) {
-      return 'No touch recorded';
-    }
-
-    if (days === 0) {
-      return 'Touched today';
-    }
-
-    if (days === 1) {
-      return 'Touched yesterday';
-    }
-
-    if (this.isGoalOverRhythm(goal)) {
-      return 'Over weekly rhythm';
-    }
-
-    return `Not touched in ${days} day${days === 1 ? '' : 's'}`;
-  }
-
-  public getGoalFreshnessTone(goal: Goal): 'fresh' | 'neutral' | 'stale' | 'overdue' | 'unknown' {
-    const days = this.getDaysSinceTouched(goal.lastTouchedAt);
-
-    if (days === null) {
-      return 'unknown';
-    }
-
-    if (this.isGoalOverRhythm(goal)) {
-      return 'overdue';
-    }
-
-    if (days <= 1) {
-      return 'fresh';
-    }
-
-    if (days >= 7) {
-      return 'stale';
-    }
-
-    return 'neutral';
+    return this.goalFreshnessService.getLabel(goal);
   }
 
   public toGoalFreshnessView(goal: Goal): GoalFreshnessView {
-    const daysSinceTouched = this.getDaysSinceTouched(goal.lastTouchedAt);
-
     return {
       goal,
-      freshnessLabel: this.getGoalFreshnessLabel(goal),
-      freshnessTone: this.getGoalFreshnessTone(goal),
-      daysSinceTouched,
-      isOverRhythm: this.isGoalOverRhythm(goal)
+      freshness: this.goalFreshnessService.getFreshnessInfo(goal)
     };
-  }
-
-  private getTouchFrequencyDays(frequency: TouchFrequency | undefined | null): number | null {
-    switch (frequency) {
-      case 'daily':
-        return 1;
-      case '3x_week':
-        return 3;
-      case 'weekly':
-        return 7;
-      case 'biweekly':
-        return 14;
-      case 'monthly':
-        return 30;
-      case 'seasonal':
-        return 90;
-      default:
-        return null;
-    }
   }
 
   public get selectedAnchorGoalViews(): GoalFreshnessView[] {
@@ -296,13 +201,15 @@ export class DashboardPageComponent implements OnInit {
 
   public get staleGoalCount(): number {
     return this.activeGoals.filter(goal => {
-      const days = this.getDaysSinceTouched(goal.lastTouchedAt);
-      return days !== null && days >= 7;
+      const info = this.goalFreshnessService.getFreshnessInfo(goal);
+      return info.daysSinceTouched !== null && info.daysSinceTouched >= 7;
     }).length;
   }
 
   public get overRhythmGoalCount(): number {
-    return this.activeGoals.filter(goal => this.isGoalOverRhythm(goal)).length;
+    return this.activeGoals.filter(goal =>
+      this.goalFreshnessService.isOverRhythm(goal)
+    ).length;
   }
 
   public get untouchedGoalCount(): number {
@@ -317,12 +224,16 @@ export class DashboardPageComponent implements OnInit {
   getGoalClass(goalId: string | null): string {
     const goal = this.goals.find(g => g.id === goalId);
     // Ensure safe access if goal might be undefined
-    return goal ? 'dashboard-rotation-item__meta--' + this.getGoalFreshnessTone(goal) : '';
+    return goal ? 'dashboard-rotation-item__meta--' + this.getGoalFreshness(goal).tone : '';
   }
 
   public findGoalById(goalId: string | null): Goal | null {
     if (!goalId) return null;
     return this.goals.find(goal => goal.id === goalId) ?? null;
+  }
+
+  public getGoalFreshness(goal: Goal): GoalFreshnessInfo {
+    return this.goalFreshnessService.getFreshnessInfo(goal);
   }
 
 }

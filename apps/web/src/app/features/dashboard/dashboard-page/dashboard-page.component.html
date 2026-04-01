@@ -51,10 +51,10 @@
             <div
               class="dashboard-chip dashboard-chip--stacked"
               *ngFor="let item of selectedAnchorGoalViews; trackBy: trackByGoalViewId"
-              [ngClass]="'dashboard-chip--' + item.freshnessTone"
+              [ngClass]="'dashboard-chip--' + item.freshness.tone"
             >
               <div class="dashboard-chip__title">{{ item.goal.title }}</div>
-              <div class="dashboard-chip__meta">{{ item.freshnessLabel }}</div>
+              <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
             </div>
             <span class="dashboard-empty" *ngIf="selectedAnchorGoalViews.length === 0">
               None selected
@@ -68,10 +68,10 @@
             <div
               class="dashboard-chip dashboard-chip--stacked"
               *ngIf="selectedInfrastructureGoalView as item"
-              [ngClass]="'dashboard-chip--' + item.freshnessTone"
+              [ngClass]="'dashboard-chip--' + item.freshness.tone"
             >
               <div class="dashboard-chip__title">{{ item.goal.title }}</div>
-              <div class="dashboard-chip__meta">{{ item.freshnessLabel }}</div>
+              <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
             </div>
             <span class="dashboard-empty" *ngIf="!selectedInfrastructureGoalView">
               None selected
@@ -85,10 +85,10 @@
             <div
               class="dashboard-chip dashboard-chip--stacked"
               *ngFor="let item of selectedMaintenanceGoalViews; trackBy: trackByGoalViewId"
-              [ngClass]="'dashboard-chip--' + item.freshnessTone"
+              [ngClass]="'dashboard-chip--' + item.freshness.tone"
             >
               <div class="dashboard-chip__title">{{ item.goal.title }}</div>
-              <div class="dashboard-chip__meta">{{ item.freshnessLabel }}</div>
+              <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
             </div>
             <span class="dashboard-empty" *ngIf="selectedMaintenanceGoalViews.length === 0">
               None selected
@@ -102,10 +102,10 @@
             <div
               class="dashboard-chip dashboard-chip--stacked"
               *ngIf="selectedCreativeGoalView as item"
-              [ngClass]="'dashboard-chip--' + item.freshnessTone"
+              [ngClass]="'dashboard-chip--' + item.freshness.tone"
             >
               <div class="dashboard-chip__title">{{ item.goal.title }}</div>
-              <div class="dashboard-chip__meta">{{ item.freshnessLabel }}</div>
+              <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
             </div>
             <span class="dashboard-empty" *ngIf="!selectedCreativeGoalView">
               None selected
@@ -157,8 +157,8 @@
             <li *ngFor="let item of goalsMissingMilestoneViews; trackBy: trackByGoalViewId">
               <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
               <div class="dashboard-list-item__meta"
-                  [ngClass]="'dashboard-list-item__meta--' + item.freshnessTone">
-                {{ item.freshnessLabel }}
+                  [ngClass]="'dashboard-list-item__meta--' + item.freshness.tone">
+                {{ item.freshness.label }}
               </div>
             </li>
           </ul>
@@ -173,8 +173,8 @@
             <li *ngFor="let item of goalsMissingNextActionViews; trackBy: trackByGoalViewId">
               <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
               <div class="dashboard-list-item__meta"
-                  [ngClass]="'dashboard-list-item__meta--' + item.freshnessTone">
-                {{ item.freshnessLabel }}
+                  [ngClass]="'dashboard-list-item__meta--' + item.freshness.tone">
+                {{ item.freshness.label }}
               </div>
             </li>
           </ul>
@@ -189,8 +189,8 @@
             <li *ngFor="let item of deadlineGoalViews; trackBy: trackByGoalViewId">
               <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
               <div class="dashboard-list-item__meta"
-                  [ngClass]="'dashboard-list-item__meta--' + item.freshnessTone">
-                {{ item.freshnessLabel }}
+                  [ngClass]="'dashboard-list-item__meta--' + item.freshness.tone">
+                {{ item.freshness.label }}
               </div>
             </li>
           </ul>
