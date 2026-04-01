@@ -187,3 +187,13 @@ mat-form-field {
 .weekly-goal-option input:disabled {
   cursor: not-allowed;
 }
+
+.goal-hint {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.68);
+  margin-top: 4px;
+}
+
+.goal-hint--secondary {
+  color: rgba(0, 0, 0, 0.54);
+}

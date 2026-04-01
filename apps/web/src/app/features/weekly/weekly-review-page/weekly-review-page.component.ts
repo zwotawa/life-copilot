@@ -143,4 +143,61 @@ public get creativeCandidates(): Goal[] {
   public getSuggestedCategory(goal: Goal): string | null {
     return this.goalSurfacingService.getSuggestedDailyCategory(goal, this.review);
   }
+
+  public getFreshnessLabel(goal: Goal): string {
+    if (!goal.lastTouchedAt) {
+      return 'No touch recorded';
+    }
+
+    const lastTouched = new Date(goal.lastTouchedAt);
+    if (Number.isNaN(lastTouched.getTime())) {
+      return 'No touch recorded';
+    }
+
+    const now = new Date();
+    const diffMs = now.getTime() - lastTouched.getTime();
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (days <= 0) {
+      return 'Touched today';
+    }
+
+    if (days === 1) {
+      return 'Touched yesterday';
+    }
+
+    return `Touched ${days} days ago`;
+  }
+
+  public getTouchCadenceHint(goal: Goal): string | null {
+    if (!goal.lastTouchedAt) {
+      return null;
+    }
+
+    const lastTouched = new Date(goal.lastTouchedAt);
+    if (Number.isNaN(lastTouched.getTime())) {
+      return null;
+    }
+
+    const now = new Date();
+    const diffDays = Math.floor(
+      (now.getTime() - lastTouched.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    switch (goal.minimumTouchFrequency) {
+      case 'daily':
+        return diffDays >= 1 ? 'Behind daily rhythm' : null;
+      case '3x_week':
+        return diffDays >= 3 ? 'Ready for another touch' : null;
+      case 'weekly':
+        return diffDays >= 7 ? 'Over weekly rhythm' : null;
+      case 'biweekly':
+        return diffDays >= 14 ? 'Over biweekly rhythm' : null;
+      case 'monthly':
+        return diffDays >= 30 ? 'Over monthly rhythm' : null;
+      case 'seasonal':
+      default:
+        return null;
+    }
+  }
 }
