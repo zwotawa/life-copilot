@@ -47,6 +47,12 @@
         Session: {{ item.sessionSize }}
       </span>
 
+      <div *ngIf="item.surfacingReasons?.length">
+        <span class="daily-card__chip" *ngFor="let reason of item.surfacingReasons">
+          {{ reason }}
+        </span>
+      </div>
+
       <a
         mat-stroked-button
         color="primary"

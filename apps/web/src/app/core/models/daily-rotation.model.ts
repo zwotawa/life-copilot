@@ -14,4 +14,6 @@ export interface DailyRotationItem {
   actionText: string;
   sessionSize?: string | null;
   completed: boolean;
+  surfacingScore?: number | null;
+  surfacingReasons?: string[];
 }

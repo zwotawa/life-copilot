@@ -10,6 +10,7 @@ interface ScoredGoalCandidate {
   goal: Goal;
   score: number;
   suggestedCategory: SuggestedDailyCategory | null;
+  reasons: string[];
 }
 
 @Injectable({
@@ -31,7 +32,8 @@ export class RotationEngineService {
     return {
       goal,
       score: result.score,
-      suggestedCategory: result.suggestedCategory
+      suggestedCategory: result.suggestedCategory,
+      reasons: result.reasons
     };
   });
 
@@ -130,35 +132,35 @@ export class RotationEngineService {
     usedGoalIds,
     ultimateFallbackPool
 
-  )?.goal;
+  );
 
   const momentumGoal = this.pickFromPoolWithFallback(
     momentumPool,
     momentumPoolFallback,
     usedGoalIds,
     ultimateFallbackPool
-  )?.goal;
+  );
 
   const maintenanceGoal = this.pickFromPoolWithFallback(
     maintenancePool,
     maintenancePoolFallback,
     usedGoalIds,
     ultimateFallbackPool
-  )?.goal;
+  );
 
   const interestingGoal = this.pickFromPoolWithFallback(
     interestingPool,
     interestingPoolFallback,
     usedGoalIds,
     ultimateFallbackPool
-  )?.goal;
+  );
 
   const fallbackGoal = this.pickFromPoolWithFallback(
     fallbackPool,
     fallbackPoolFallback,
     usedGoalIds,
     ultimateFallbackPool
-  )?.goal;
+  );
 
   const dailyRotationItems: DailyRotationItem[] = [
     this.toRotationItem('responsible', responsibleGoal),
@@ -172,20 +174,27 @@ export class RotationEngineService {
   return dailyRotationItems;
 }
 
-  private toRotationItem(category: DailyRotationItem['category'], goal?: Goal): DailyRotationItem {
-    const today = new Date().toISOString();
+private toRotationItem(
+  category: DailyRotationItem['category'],
+  candidate?: ScoredGoalCandidate | null
+): DailyRotationItem {
+  const today = new Date().toISOString();
 
-    return {
-      id: `${category}-${goal?.id ?? 'none'}-${Date.now()}-${Math.random()}`,
-      date: today,
-      category,
-      goalId: goal?.id ?? null,
-      goalTitle: goal?.title ?? 'No goal selected',
-      actionText: goal?.nextTinyAction ?? 'Define the next tiny action',
-      sessionSize: goal?.typicalSessionSize ?? null,
-      completed: false
-    };
-  }
+  return {
+    id: `${category}-${candidate?.goal.id ?? 'none'}-${Date.now()}-${Math.random()}`,
+    date: today,
+    category,
+    goalId: candidate?.goal.id ?? null,
+    goalTitle: candidate?.goal.title ?? 'No goal selected',
+    actionText: candidate?.goal.nextTinyAction ?? 'Define the next tiny action',
+    sessionSize: candidate?.goal.typicalSessionSize ?? null,
+    completed: false,
+    surfacingScore: candidate?.score ?? null,
+    surfacingReasons: candidate
+      ? this.formatSurfacingReasons(candidate.reasons).slice(0, 3)
+      : []
+  };
+}
 
   public saveRotationItems(items: DailyRotationItem[]): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
@@ -240,4 +249,20 @@ export class RotationEngineService {
     const randomIndex = Math.floor(Math.random() * topCandidates.length);
     return topCandidates[randomIndex];
   }
+
+  private formatSurfacingReasons(reasons: string[]): string[] {
+  return reasons
+    .map(reason => {
+      if (reason.startsWith('due timing:')) return 'Due soon or overdue';
+      if (reason.startsWith('weekly role:')) return 'Chosen in weekly focus';
+      if (reason.startsWith('staleness:')) return 'Has not been touched recently';
+      if (reason.startsWith('touch frequency:')) return 'Needs regular attention';
+      if (reason.startsWith('excitement:')) return 'High interest or momentum';
+      if (reason.startsWith('resistance:')) return 'Worth surfacing despite resistance';
+      if (reason.startsWith('status active:')) return 'Currently active';
+
+      return reason;
+    })
+    .filter((reason, index, array) => array.indexOf(reason) === index);
+}
 }
