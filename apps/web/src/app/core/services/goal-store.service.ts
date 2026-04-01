@@ -52,4 +52,15 @@ public archiveGoalById(idToArchive: string): void {
     this.saveGoals(updatedGoals);
 }
 
+public markGoalTouched(idToMark: string): void {
+    const storedGoals: Goal[] = this.getGoals();
+    const updatedGoals: Goal[] = storedGoals.map(goal => {
+        if(goal.id === idToMark) {
+            return { ...goal, lastTouchedAt: new Date().toISOString() };
+        }
+        return goal;
+    });
+    this.saveGoals(updatedGoals); 
+}
+
 }

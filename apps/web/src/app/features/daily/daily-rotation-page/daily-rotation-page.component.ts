@@ -36,7 +36,14 @@ export class DailyRotationPageComponent implements OnInit {
   }
 
   public toggleCompleted(item: DailyRotationItem): void {
+    const wasCompleted = item.completed;
     item.completed = !item.completed;
+
+    this.rotationEngineService.saveRotationItems(this.rotationItems);
+
+    if (!wasCompleted && item.completed && item.goalId) {
+      this.goalStoreService.markGoalTouched(item.goalId);
+    }
   }
 
   public getCategoryLabel(category: DailyRotationItem['category']): string {
