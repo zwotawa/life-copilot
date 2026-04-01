@@ -28,6 +28,14 @@
         <div class="dashboard-stat-card__label">Exploration</div>
         <div class="dashboard-stat-card__value">{{ explorationGoalCount }}</div>
       </article>
+
+      <article class="dashboard-stat-card">
+        <div class="dashboard-stat-card__label">Over rhythm</div>
+        <div class="dashboard-stat-card__value">{{ overRhythmGoalCount }}</div>
+        <div class="dashboard-stat-card__subvalue">
+          {{ untouchedGoalCount }} no touch · {{ staleGoalCount }} stale
+        </div>
+      </article>
     </section>
 
     <div class="dashboard-grid">
@@ -40,10 +48,15 @@
         <div class="dashboard-card__section">
           <div class="dashboard-card__label">Anchor goals</div>
           <div class="dashboard-chip-list">
-            <span class="dashboard-chip" *ngFor="let goal of selectedAnchorGoals; trackBy: trackByGoalId">
-              {{ goal.title }}
-            </span>
-            <span class="dashboard-empty" *ngIf="selectedAnchorGoals.length === 0">
+            <div
+              class="dashboard-chip dashboard-chip--stacked"
+              *ngFor="let item of selectedAnchorGoalViews; trackBy: trackByGoalViewId"
+              [ngClass]="'dashboard-chip--' + item.freshnessTone"
+            >
+              <div class="dashboard-chip__title">{{ item.goal.title }}</div>
+              <div class="dashboard-chip__meta">{{ item.freshnessLabel }}</div>
+            </div>
+            <span class="dashboard-empty" *ngIf="selectedAnchorGoalViews.length === 0">
               None selected
             </span>
           </div>
@@ -52,10 +65,15 @@
         <div class="dashboard-card__section">
           <div class="dashboard-card__label">Infrastructure</div>
           <div class="dashboard-chip-list">
-            <span class="dashboard-chip" *ngIf="selectedInfrastructureGoal">
-              {{ selectedInfrastructureGoal.title }}
-            </span>
-            <span class="dashboard-empty" *ngIf="!selectedInfrastructureGoal">
+            <div
+              class="dashboard-chip dashboard-chip--stacked"
+              *ngIf="selectedInfrastructureGoalView as item"
+              [ngClass]="'dashboard-chip--' + item.freshnessTone"
+            >
+              <div class="dashboard-chip__title">{{ item.goal.title }}</div>
+              <div class="dashboard-chip__meta">{{ item.freshnessLabel }}</div>
+            </div>
+            <span class="dashboard-empty" *ngIf="!selectedInfrastructureGoalView">
               None selected
             </span>
           </div>
@@ -64,10 +82,15 @@
         <div class="dashboard-card__section">
           <div class="dashboard-card__label">Maintenance</div>
           <div class="dashboard-chip-list">
-            <span class="dashboard-chip" *ngFor="let goal of selectedMaintenanceGoals; trackBy: trackByGoalId">
-              {{ goal.title }}
-            </span>
-            <span class="dashboard-empty" *ngIf="selectedMaintenanceGoals.length === 0">
+            <div
+              class="dashboard-chip dashboard-chip--stacked"
+              *ngFor="let item of selectedMaintenanceGoalViews; trackBy: trackByGoalViewId"
+              [ngClass]="'dashboard-chip--' + item.freshnessTone"
+            >
+              <div class="dashboard-chip__title">{{ item.goal.title }}</div>
+              <div class="dashboard-chip__meta">{{ item.freshnessLabel }}</div>
+            </div>
+            <span class="dashboard-empty" *ngIf="selectedMaintenanceGoalViews.length === 0">
               None selected
             </span>
           </div>
@@ -76,10 +99,15 @@
         <div class="dashboard-card__section">
           <div class="dashboard-card__label">Creative</div>
           <div class="dashboard-chip-list">
-            <span class="dashboard-chip" *ngIf="selectedCreativeGoal">
-              {{ selectedCreativeGoal.title }}
-            </span>
-            <span class="dashboard-empty" *ngIf="!selectedCreativeGoal">
+            <div
+              class="dashboard-chip dashboard-chip--stacked"
+              *ngIf="selectedCreativeGoalView as item"
+              [ngClass]="'dashboard-chip--' + item.freshnessTone"
+            >
+              <div class="dashboard-chip__title">{{ item.goal.title }}</div>
+              <div class="dashboard-chip__meta">{{ item.freshnessLabel }}</div>
+            </div>
+            <span class="dashboard-empty" *ngIf="!selectedCreativeGoalView">
               None selected
             </span>
           </div>
@@ -103,6 +131,13 @@
             <div class="dashboard-rotation-item__title">
               {{ item.goalTitle }}
             </div>
+            <div
+              class="dashboard-rotation-item__meta"
+              [ngClass]="getGoalClass(item.goalId)"
+              *ngIf="findGoalById(item.goalId) as goal"
+            >
+              {{ getGoalFreshnessLabel(goal) }}
+            </div>
             <div class="dashboard-rotation-item__action">
               {{ item.actionText }}
             </div>
@@ -118,9 +153,13 @@
 
         <div class="dashboard-card__section">
           <div class="dashboard-card__label">Missing milestone</div>
-          <ul class="dashboard-list" *ngIf="goalsMissingMilestone.length > 0; else noMissingMilestone">
-            <li *ngFor="let goal of goalsMissingMilestone; trackBy: trackByGoalId">
-              {{ goal.title }}
+          <ul class="dashboard-list" *ngIf="goalsMissingMilestoneViews.length > 0; else noMissingMilestone">
+            <li *ngFor="let item of goalsMissingMilestoneViews; trackBy: trackByGoalViewId">
+              <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
+              <div class="dashboard-list-item__meta"
+                  [ngClass]="'dashboard-list-item__meta--' + item.freshnessTone">
+                {{ item.freshnessLabel }}
+              </div>
             </li>
           </ul>
           <ng-template #noMissingMilestone>
@@ -130,9 +169,13 @@
 
         <div class="dashboard-card__section">
           <div class="dashboard-card__label">Missing next action</div>
-          <ul class="dashboard-list" *ngIf="goalsMissingNextAction.length > 0; else noMissingAction">
-            <li *ngFor="let goal of goalsMissingNextAction; trackBy: trackByGoalId">
-              {{ goal.title }}
+          <ul class="dashboard-list" *ngIf="goalsMissingNextActionViews.length > 0; else noMissingAction">
+            <li *ngFor="let item of goalsMissingNextActionViews; trackBy: trackByGoalViewId">
+              <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
+              <div class="dashboard-list-item__meta"
+                  [ngClass]="'dashboard-list-item__meta--' + item.freshnessTone">
+                {{ item.freshnessLabel }}
+              </div>
             </li>
           </ul>
           <ng-template #noMissingAction>
@@ -142,9 +185,13 @@
 
         <div class="dashboard-card__section">
           <div class="dashboard-card__label">Date-based goals</div>
-          <ul class="dashboard-list" *ngIf="deadlineGoals.length > 0; else noDateGoals">
-            <li *ngFor="let goal of deadlineGoals; trackBy: trackByGoalId">
-              {{ goal.title }}
+          <ul class="dashboard-list" *ngIf="deadlineGoalViews.length > 0; else noDateGoals">
+            <li *ngFor="let item of deadlineGoalViews; trackBy: trackByGoalViewId">
+              <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
+              <div class="dashboard-list-item__meta"
+                  [ngClass]="'dashboard-list-item__meta--' + item.freshnessTone">
+                {{ item.freshnessLabel }}
+              </div>
             </li>
           </ul>
           <ng-template #noDateGoals>
