@@ -8,7 +8,7 @@
 
 /* app.component.scss */
 .nav { position: sticky; top: 0; z-index: 10; }
-.brand { font-weight: 600; letter-spacing: 0.2px; text-decoration: none; color: white; font-size: 22px; }
+.brand { font-weight: 600; letter-spacing: 0.2px; text-decoration: none; color: white; font-size: 22px;  padding-right: 16px;}
 .spacer { flex: 1; }
 .meta { opacity: 0.9; font-size: 13px; }
 
