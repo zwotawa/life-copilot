@@ -7,16 +7,23 @@ import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/
 import { DailyRotationPageComponent } from './features/daily/daily-rotation-page/daily-rotation-page.component';
 import { DashboardPageComponent } from './features/dashboard/dashboard-page/dashboard-page.component';
 import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.component';
+import { AuthGuard } from './core/guards/auth.guard';
+import { LoginComponent } from './features/login/login.component';
 
-const routes: Routes = [
-  { path: '', component: DashboardPageComponent },
-  { path: 'job', component: JobComponent },
-  { path: 'goals', component: GoalsPageComponent },
-  { path: 'goals/:id', component: GoalDetailPageComponent },
-  { path: 'weekly', component: WeeklyReviewPageComponent },
-  { path: 'daily', component: DailyRotationPageComponent },
-  { path: 'inbox', component: InboxPageComponent }
-];
+const routes: Routes = [{
+  path:'',
+  canActivate: [AuthGuard],
+  children: [
+    { path: '', component: DashboardPageComponent },
+    { path: 'job', component: JobComponent },
+    { path: 'goals', component: GoalsPageComponent },
+    { path: 'goals/:id', component: GoalDetailPageComponent },
+    { path: 'weekly', component: WeeklyReviewPageComponent },
+    { path: 'daily', component: DailyRotationPageComponent },
+    { path: 'inbox', component: InboxPageComponent }
+  ]
+},
+{ path: 'login', component: LoginComponent}];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

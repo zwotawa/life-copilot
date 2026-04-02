@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { MockAuthService } from './core/services/mock-auth.service';
 
 @Component({
   selector: 'app-root',
@@ -6,6 +8,15 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  public winsToday: number = 0;
   title = 'life-copilot';
+
+  constructor(
+    private mockAuthService: MockAuthService,
+    private readonly router: Router
+  ) {}
+
+  public async logout(): Promise<void> {
+    await this.mockAuthService.signOut();
+    await this.router.navigate(['/login']);
+  }
 }

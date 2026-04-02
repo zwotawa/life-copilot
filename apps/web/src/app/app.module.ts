@@ -30,6 +30,9 @@ import { DailyRotationPageComponent } from './features/daily/daily-rotation-page
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { DashboardPageComponent } from './features/dashboard/dashboard-page/dashboard-page.component';
 import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.component';
+import { AuthService } from './core/services/auth.service';
+import { MockAuthService } from './core/services/mock-auth.service';
+import { LoginComponent } from './features/login/login.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +50,8 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
     WeeklyReviewPageComponent,
     DailyRotationPageComponent,
     DashboardPageComponent,
-    InboxPageComponent
+    InboxPageComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,
@@ -65,7 +69,10 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
     MatSelectModule,
     MatCheckboxModule
   ],
-  providers: [JobService],
+  providers: [
+    JobService, 
+    {provide: AuthService, useClass: MockAuthService}
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
