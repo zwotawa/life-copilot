@@ -35,6 +35,8 @@ import { MockAuthService } from './core/services/mock-auth.service';
 import { LoginComponent } from './features/login/login.component';
 import { GoalRepository } from './core/repositories/goal.repository';
 import { LocalGoalRepository } from './core/repositories/local-goal.service';
+import { InboxRepository } from './core/repositories/inbox.repository';
+import { LocalInboxService } from './core/services/local-inbox.service';
 
 @NgModule({
   declarations: [
@@ -74,7 +76,8 @@ import { LocalGoalRepository } from './core/repositories/local-goal.service';
   providers: [
     JobService, 
     {provide: AuthService, useClass: MockAuthService},
-    {provide: GoalRepository, useClass: LocalGoalRepository}
+    {provide: GoalRepository, useClass: LocalGoalRepository},
+    {provide: InboxRepository, useClass: LocalInboxService}
   ],
   bootstrap: [AppComponent]
 })

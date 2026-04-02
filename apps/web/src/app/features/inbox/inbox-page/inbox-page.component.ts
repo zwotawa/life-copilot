@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { InboxEntry, InboxEntryStatus } from 'src/app/core/models/inbox-entry.model';
-import { InboxService } from 'src/app/core/services/inbox.service';
+import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
 
 @Component({
   selector: 'app-inbox-page',
@@ -14,7 +14,7 @@ export class InboxPageComponent implements OnInit {
   public selectedStatusFilter: 'all' | InboxEntryStatus = 'all';
 
   constructor(
-    private inboxService: InboxService,
+    private inboxService: InboxStoreService,
     private router: Router
   ) {}
 

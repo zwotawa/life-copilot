@@ -2,16 +2,17 @@ import { Injectable } from '@angular/core';
 import { InboxEntry, InboxEntryStatus } from '../models/inbox-entry.model';
 import { StorageKeyService } from './storage-key.service';
 import { LocalStorageService } from './local-storage.service';
+import { InboxRepository } from '../repositories/inbox.repository';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class InboxService {
+@Injectable()
+export class LocalInboxService extends InboxRepository{
 
   constructor(
     private readonly storageKeyService: StorageKeyService,
     private localStorageService: LocalStorageService
-  ) {}
+  ) {
+    super();
+  }
 
   private get storageKey(): string {
     return this.storageKeyService.forCurrentUser('inbox');

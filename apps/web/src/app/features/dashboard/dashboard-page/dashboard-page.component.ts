@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { Goal, TouchFrequency } from 'src/app/core/models/goal.model';
+import { Goal } from 'src/app/core/models/goal.model';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { RotationEngineService } from 'src/app/core/services/rotation-engine.service';
 import { WeeklyReviewService } from 'src/app/core/services/weekly-review.service';
 import { InboxEntry } from 'src/app/core/models/inbox-entry.model';
-import { InboxService } from 'src/app/core/services/inbox.service';
 import { GoalFreshnessInfo, GoalFreshnessService } from 'src/app/core/services/goal-freshness.service';
 import { GoalStoreService } from 'src/app/core/repositories/goal-store.service';
+import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
 
 
 interface GoalFreshnessView {
@@ -36,7 +36,7 @@ export class DashboardPageComponent implements OnInit {
     private goalStoreService: GoalStoreService,
     private weeklyReviewService: WeeklyReviewService,
     private rotationEngineService: RotationEngineService,
-    private inboxService: InboxService,
+    private inboxService: InboxStoreService,
     private goalFreshnessService: GoalFreshnessService
   ) {}
 

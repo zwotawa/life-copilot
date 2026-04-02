@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Goal } from 'src/app/core/models/goal.model';
 import { GoalStoreService } from 'src/app/core/repositories/goal-store.service';
-import { InboxService } from 'src/app/core/services/inbox.service';
+import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
 
 @Component({
   selector: 'app-goal-form',
@@ -22,7 +22,7 @@ export class GoalFormComponent implements OnInit {
   constructor(
     private goalStoreService: GoalStoreService,
     private router: Router,
-    private inboxService: InboxService
+    private inboxService: InboxStoreService
   ) { }
 
   ngOnInit(): void {
