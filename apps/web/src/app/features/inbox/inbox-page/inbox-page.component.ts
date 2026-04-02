@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { InboxEntry, InboxEntryStatus } from 'src/app/core/models/inbox-entry.model';
-import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { InboxService } from 'src/app/core/services/inbox.service';
 
 @Component({
@@ -16,8 +15,7 @@ export class InboxPageComponent implements OnInit {
 
   constructor(
     private inboxService: InboxService,
-    private router: Router,
-    private goalstoreService: GoalStoreService
+    private router: Router
   ) {}
 
   ngOnInit(): void {

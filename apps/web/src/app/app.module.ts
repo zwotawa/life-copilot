@@ -33,6 +33,8 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
 import { AuthService } from './core/services/auth.service';
 import { MockAuthService } from './core/services/mock-auth.service';
 import { LoginComponent } from './features/login/login.component';
+import { GoalRepository } from './core/repositories/goal.repository';
+import { LocalGoalRepository } from './core/repositories/local-goal.service';
 
 @NgModule({
   declarations: [
@@ -71,7 +73,8 @@ import { LoginComponent } from './features/login/login.component';
   ],
   providers: [
     JobService, 
-    {provide: AuthService, useClass: MockAuthService}
+    {provide: AuthService, useClass: MockAuthService},
+    {provide: GoalRepository, useClass: LocalGoalRepository}
   ],
   bootstrap: [AppComponent]
 })

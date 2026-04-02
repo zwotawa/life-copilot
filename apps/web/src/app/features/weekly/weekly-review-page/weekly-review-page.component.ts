@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Goal } from 'src/app/core/models/goal.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
-import { GoalStoreService } from 'src/app/core/services/goal-store.service';
+import { GoalStoreService } from 'src/app/core/repositories/goal-store.service';
 import { GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
 import { WeeklyReviewService } from 'src/app/core/services/weekly-review.service';
 
