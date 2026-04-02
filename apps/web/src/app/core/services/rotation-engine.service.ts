@@ -3,8 +3,8 @@ import { Goal } from '../models/goal.model';
 import { DailyRotationItem } from '../models/daily-rotation.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { GoalSurfacingService, SuggestedDailyCategory } from './goal-surfacing.service';
-
-const STORAGE_KEY = 'lifeCopilot.dailyRotation';
+import { LocalStorageService } from './local-storage.service';
+import { StorageKeyService } from './storage-key.service';
 
 interface ScoredGoalCandidate {
   goal: Goal;
@@ -18,7 +18,32 @@ interface ScoredGoalCandidate {
 })
 export class RotationEngineService {
 
-  constructor(private goalSurfacingService: GoalSurfacingService) {}
+  constructor(
+    private goalSurfacingService: GoalSurfacingService,
+    private readonly localStorageService: LocalStorageService,
+    private readonly storageKeyService: StorageKeyService  
+  ) {}
+
+  private get storageKey(): string {
+    return this.storageKeyService.forCurrentUser('dailyRotation');
+  }
+
+  private migrateLegacyIfNeeded(): void {
+        const newKey = this.storageKeyService.forCurrentUser('dailyRotation');
+        const legacyKey = this.storageKeyService.legacy('dailyRotation');
+
+        const hasNewValue = this.localStorageService.getItem(newKey);
+        if (hasNewValue) {
+            return;
+        }
+
+        const legacyValue = this.localStorageService.getItem(legacyKey);
+        if (!legacyValue) {
+            return;
+        }
+
+        this.localStorageService.setItem(newKey, legacyValue);
+        }
 
   public generateDailyRotation(
   goals: Goal[],
@@ -197,11 +222,12 @@ private toRotationItem(
 }
 
   public saveRotationItems(items: DailyRotationItem[]): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    this.localStorageService.setItem(this.storageKey, JSON.stringify(items));
   }
 
   public loadRotationItems(): DailyRotationItem[] {
-    const data = localStorage.getItem(STORAGE_KEY);
+    this.migrateLegacyIfNeeded();
+    const data = this.localStorageService.getItem(this.storageKey);
     if (!data) {
       return [];
     }

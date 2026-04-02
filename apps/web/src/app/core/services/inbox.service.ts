@@ -1,20 +1,49 @@
 import { Injectable } from '@angular/core';
 import { InboxEntry, InboxEntryStatus } from '../models/inbox-entry.model';
-
-const STORAGE_KEY = 'lifeCopilot.inbox';
+import { StorageKeyService } from './storage-key.service';
+import { LocalStorageService } from './local-storage.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class InboxService {
+
+  constructor(
+    private readonly storageKeyService: StorageKeyService,
+    private localStorageService: LocalStorageService
+  ) {}
+
+  private get storageKey(): string {
+    return this.storageKeyService.forCurrentUser('inbox');
+  }
+
+  private migrateLegacyIfNeeded(): void {
+  const newKey = this.storageKeyService.forCurrentUser('inbox');
+  const legacyKey = this.storageKeyService.legacy('inbox');
+
+  const hasNewValue = this.localStorageService.getItem(newKey);
+  if (hasNewValue) {
+    return;
+  }
+
+  const legacyValue = this.localStorageService.getItem(legacyKey);
+  if (!legacyValue) {
+    return;
+  }
+
+  this.localStorageService.setItem(newKey, legacyValue);
+}
+
   public getEntries(): InboxEntry[] {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    this.migrateLegacyIfNeeded();
+
+    const stored = this.localStorageService.getItem(this.storageKey);
     if (!stored) return [];
     return JSON.parse(stored) as InboxEntry[];
   }
 
   public saveEntries(entries: InboxEntry[]): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    this.localStorageService.setItem(this.storageKey, JSON.stringify(entries));
   }
 
   public addEntry(text: string): void {

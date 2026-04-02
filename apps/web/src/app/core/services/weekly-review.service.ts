@@ -1,14 +1,42 @@
 import { Injectable } from '@angular/core';
 import { WeeklyReviewState } from '../models/weekly-review.model';
-
-const STORAGE_KEY = 'lifeCopilot.weeklyReview';
+import { StorageKeyService } from './storage-key.service';
+import { LocalStorageService } from './local-storage.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WeeklyReviewService {
+
+  constructor(
+    private readonly storageKeyService: StorageKeyService,
+    private readonly localStorageService: LocalStorageService
+  ) {}
+
+  private get storageKey(): string {
+    return this.storageKeyService.forCurrentUser('weeklyReview');
+  }
+
+  private migrateLegacyIfNeeded(): void {
+        const newKey = this.storageKeyService.forCurrentUser('weeklyReview');
+        const legacyKey = this.storageKeyService.legacy('weeklyReview');
+
+        const hasNewValue = this.localStorageService.getItem(newKey);
+        if (hasNewValue) {
+            return;
+        }
+
+        const legacyValue = this.localStorageService.getItem(legacyKey);
+        if (!legacyValue) {
+            return;
+        }
+
+        this.localStorageService.setItem(newKey, legacyValue);
+        }
+
   public getCurrentWeeklyReview(): WeeklyReviewState {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    this.migrateLegacyIfNeeded();
+    const stored = this.localStorageService.getItem(this.storageKey);
 
     if (stored) {
       return JSON.parse(stored) as WeeklyReviewState;
@@ -25,7 +53,7 @@ export class WeeklyReviewService {
       updatedAt: new Date().toISOString()
     };
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedReview));
+    this.localStorageService.setItem(this.storageKey, JSON.stringify(updatedReview));
   }
 
   public resetWeeklyReview(): WeeklyReviewState {

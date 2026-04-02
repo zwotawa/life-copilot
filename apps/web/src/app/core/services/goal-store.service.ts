@@ -1,7 +1,8 @@
 import { Goal } from "../models/goal.model";
 import { Injectable } from "@angular/core";
+import { StorageKeyService } from "./storage-key.service";
+import { LocalStorageService } from "./local-storage.service";
 
-const KEY = 'lifeCopilot.goals';
 const MAX_ITEMS = 200;
 
 @Injectable({
@@ -9,13 +10,41 @@ const MAX_ITEMS = 200;
 })
 export class GoalStoreService {
 
+    constructor(
+        private readonly storageKeyService: StorageKeyService,
+        private localStorageService: LocalStorageService
+    ) {}
+
+    private get storageKey(): string {
+        return this.storageKeyService.forCurrentUser('goals');
+    }
+
+    private migrateLegacyIfNeeded(): void {
+        const newKey = this.storageKeyService.forCurrentUser('goals');
+        const legacyKey = this.storageKeyService.legacy('goals');
+
+        const hasNewValue = this.localStorageService.getItem(newKey);
+        if (hasNewValue) {
+            return;
+        }
+
+        const legacyValue = this.localStorageService.getItem(legacyKey);
+        if (!legacyValue) {
+            return;
+        }
+
+        this.localStorageService.setItem(newKey, legacyValue);
+        }
+
 public getGoals(): Goal[] {
+        this.migrateLegacyIfNeeded();
     try {
-        const raw = localStorage.getItem(KEY);
+        const raw = this.localStorageService.getItem(this.storageKey);
         if(!raw) return [];
         const parsed = JSON.parse(raw) as Goal[];
         return Array.isArray(parsed) ? parsed.slice(0, MAX_ITEMS) : [];
-    } catch {
+    } catch (error) {
+        console.error('Error parsing goals from localStorage:', error);
         return [];
     }
 }
@@ -26,7 +55,7 @@ public getGoalById(id: string): Goal | undefined {
 }
 
 private saveGoals(goals: Goal[]): void {
-    localStorage.setItem(KEY, JSON.stringify(goals));
+    this.localStorageService.setItem(this.storageKey, JSON.stringify(goals));
 }
 
 public addGoal(goal: Goal): void {
