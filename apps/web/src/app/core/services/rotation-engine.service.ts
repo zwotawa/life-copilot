@@ -3,8 +3,6 @@ import { Goal } from '../models/goal.model';
 import { DailyRotationItem } from '../models/daily-rotation.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { GoalSurfacingService, SuggestedDailyCategory } from './goal-surfacing.service';
-import { LocalStorageService } from './local-storage.service';
-import { StorageKeyService } from './storage-key.service';
 
 interface ScoredGoalCandidate {
   goal: Goal;
@@ -19,31 +17,8 @@ interface ScoredGoalCandidate {
 export class RotationEngineService {
 
   constructor(
-    private goalSurfacingService: GoalSurfacingService,
-    private readonly localStorageService: LocalStorageService,
-    private readonly storageKeyService: StorageKeyService  
+    private goalSurfacingService: GoalSurfacingService  
   ) {}
-
-  private get storageKey(): string {
-    return this.storageKeyService.forCurrentUser('dailyRotation');
-  }
-
-  private migrateLegacyIfNeeded(): void {
-        const newKey = this.storageKeyService.forCurrentUser('dailyRotation');
-        const legacyKey = this.storageKeyService.legacy('dailyRotation');
-
-        const hasNewValue = this.localStorageService.getItem(newKey);
-        if (hasNewValue) {
-            return;
-        }
-
-        const legacyValue = this.localStorageService.getItem(legacyKey);
-        if (!legacyValue) {
-            return;
-        }
-
-        this.localStorageService.setItem(newKey, legacyValue);
-        }
 
   public generateDailyRotation(
   goals: Goal[],
@@ -194,8 +169,6 @@ export class RotationEngineService {
     this.toRotationItem('interesting', interestingGoal),
     this.toRotationItem('fallback', fallbackGoal)
   ];
-
-  this.saveRotationItems(dailyRotationItems);
   return dailyRotationItems;
 }
 
@@ -220,27 +193,6 @@ private toRotationItem(
       : []
   };
 }
-
-  public saveRotationItems(items: DailyRotationItem[]): void {
-    this.localStorageService.setItem(this.storageKey, JSON.stringify(items));
-  }
-
-  public loadRotationItems(): DailyRotationItem[] {
-    this.migrateLegacyIfNeeded();
-    const data = this.localStorageService.getItem(this.storageKey);
-    if (!data) {
-      return [];
-    }
-    try {
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
-      return [];
-    } catch {
-      return [];
-    }
-  }
 
   private pickFromPoolWithFallback(
     primaryPool: ScoredGoalCandidate[],

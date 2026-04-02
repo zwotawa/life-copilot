@@ -8,6 +8,7 @@ import { InboxEntry } from 'src/app/core/models/inbox-entry.model';
 import { GoalFreshnessInfo, GoalFreshnessService } from 'src/app/core/services/goal-freshness.service';
 import { GoalStoreService } from 'src/app/core/repositories/goal-store.service';
 import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
+import { DailyRotationStoreService } from 'src/app/core/services/daily-rotation-store.service';
 
 
 interface GoalFreshnessView {
@@ -35,7 +36,7 @@ export class DashboardPageComponent implements OnInit {
   constructor(
     private goalStoreService: GoalStoreService,
     private weeklyReviewService: WeeklyReviewService,
-    private rotationEngineService: RotationEngineService,
+    private dailyRotationStoreService: DailyRotationStoreService,
     private inboxService: InboxStoreService,
     private goalFreshnessService: GoalFreshnessService
   ) {}
@@ -125,7 +126,7 @@ export class DashboardPageComponent implements OnInit {
   }
 
   public  loadDailySelections(): void {
-    const saved = this.rotationEngineService.loadRotationItems();
+    const saved = this.dailyRotationStoreService.loadRotationItems();
 
     if (saved) {
       this.dailyRotation = saved;
@@ -133,8 +134,8 @@ export class DashboardPageComponent implements OnInit {
     }
 
     // Optional: only do this if you want a first-time auto-generate
-    this.dailyRotation = this.rotationEngineService.generateDailyRotation(this.goals, this.review);
-    this.rotationEngineService.saveRotationItems(this.dailyRotation);
+    this.dailyRotation = this.dailyRotationStoreService.generateDailyRotation(this.goals, this.review);
+    this.dailyRotationStoreService.saveRotationItems(this.dailyRotation);
   }
 
   public loadInboxSummary(): void {

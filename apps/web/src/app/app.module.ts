@@ -37,6 +37,8 @@ import { GoalRepository } from './core/repositories/goal.repository';
 import { LocalGoalRepository } from './core/repositories/local-goal.service';
 import { InboxRepository } from './core/repositories/inbox.repository';
 import { LocalInboxService } from './core/services/local-inbox.service';
+import { LocalDailyRotationRepository } from './core/services/local-daily-rotation.service';
+import { DailyRotationRepository } from './core/repositories/daily-rotation.repository';
 
 @NgModule({
   declarations: [
@@ -77,7 +79,8 @@ import { LocalInboxService } from './core/services/local-inbox.service';
     JobService, 
     {provide: AuthService, useClass: MockAuthService},
     {provide: GoalRepository, useClass: LocalGoalRepository},
-    {provide: InboxRepository, useClass: LocalInboxService}
+    {provide: InboxRepository, useClass: LocalInboxService},
+    {provide: DailyRotationRepository, useClass: LocalDailyRotationRepository}
   ],
   bootstrap: [AppComponent]
 })

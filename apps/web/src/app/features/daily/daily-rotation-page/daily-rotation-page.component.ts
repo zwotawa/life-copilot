@@ -5,6 +5,7 @@ import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { RotationEngineService } from 'src/app/core/services/rotation-engine.service';
 import { WeeklyReviewService } from 'src/app/core/services/weekly-review.service';
 import { GoalStoreService } from 'src/app/core/repositories/goal-store.service';
+import { DailyRotationStoreService } from 'src/app/core/services/daily-rotation-store.service';
 
 @Component({
   selector: 'app-daily-rotation-page',
@@ -19,7 +20,7 @@ export class DailyRotationPageComponent implements OnInit {
   constructor(
     private goalStoreService: GoalStoreService,
     private weeklyReviewService: WeeklyReviewService,
-    private rotationEngineService: RotationEngineService
+    private dailyRotationStoreService: DailyRotationStoreService
   ) {}
 
   ngOnInit(): void {
@@ -29,7 +30,7 @@ export class DailyRotationPageComponent implements OnInit {
   }
 
   public generateDailyRotation(): void {
-    this.rotationItems = this.rotationEngineService.generateDailyRotation(
+    this.rotationItems = this.dailyRotationStoreService.generateDailyRotation(
       this.goals,
       this.review
     );
@@ -39,7 +40,7 @@ export class DailyRotationPageComponent implements OnInit {
     const wasCompleted = item.completed;
     item.completed = !item.completed;
 
-    this.rotationEngineService.saveRotationItems(this.rotationItems);
+    this.dailyRotationStoreService.saveRotationItems(this.rotationItems);
 
     if (!wasCompleted && item.completed && item.goalId) {
       this.goalStoreService.markGoalTouched(item.goalId);
@@ -85,7 +86,7 @@ export class DailyRotationPageComponent implements OnInit {
   }
 
   loadDailySelections(): void {
-    const saved = this.rotationEngineService.loadRotationItems();
+    const saved = this.dailyRotationStoreService.loadRotationItems();
 
     if (saved) {
       this.rotationItems = saved;
@@ -93,7 +94,7 @@ export class DailyRotationPageComponent implements OnInit {
     }
 
     // Optional: only do this if you want a first-time auto-generate
-    this.rotationItems = this.rotationEngineService.generateDailyRotation(this.goals, this.review);
-    this.rotationEngineService.saveRotationItems(this.rotationItems);
+    this.rotationItems = this.dailyRotationStoreService.generateDailyRotation(this.goals, this.review);
+    this.dailyRotationStoreService.saveRotationItems(this.rotationItems);
   }
 }
