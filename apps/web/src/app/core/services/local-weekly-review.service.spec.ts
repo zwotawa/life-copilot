@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { WeeklyReviewService } from './weekly-review.service';
+import { LocalWeeklyReviewService } from './local-weekly-review.service';
 
 describe('WeeklyReviewService', () => {
-  let service: WeeklyReviewService;
+  let service: LocalWeeklyReviewService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(WeeklyReviewService);
+    service = TestBed.inject(LocalWeeklyReviewService);
   });
 
   it('should be created', () => {

@@ -3,7 +3,7 @@ import { Goal } from 'src/app/core/models/goal.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
-import { WeeklyReviewService } from 'src/app/core/services/weekly-review.service';
+import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
 
 @Component({
   selector: 'app-weekly-review-page',
@@ -16,21 +16,21 @@ export class WeeklyReviewPageComponent implements OnInit {
 
   constructor(
     private goalStoreService: GoalStoreService,
-    private weeklyReviewService: WeeklyReviewService,
+    private weeklyReviewStoreService: WeeklyReviewStoreService,
     private goalSurfacingService: GoalSurfacingService
   ) {}
 
   ngOnInit(): void {
     this.goals = this.goalStoreService.getGoals();
-    this.review = this.weeklyReviewService.getCurrentWeeklyReview();
+    this.review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
   }
 
   public save(): void {
-    this.weeklyReviewService.saveWeeklyReview(this.review);
+    this.weeklyReviewStoreService.saveWeeklyReview(this.review);
   }
 
   public reset(): void {
-    this.review = this.weeklyReviewService.resetWeeklyReview();
+    this.review = this.weeklyReviewStoreService.resetWeeklyReview();
   }
 
   public isAnchorSelected(goalId: string): boolean {

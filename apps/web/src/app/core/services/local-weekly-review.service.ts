@@ -1,17 +1,20 @@
 import { Injectable } from '@angular/core';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { StorageKeyService } from './local/storage-key.service';
-import { LocalStorageService } from '../services/local/local-storage.service';
+import { LocalStorageService } from './local/local-storage.service';
+import { WeeklyReviewRepository } from '../repositories/weekly-review.repository';
 
 @Injectable({
   providedIn: 'root'
 })
-export class WeeklyReviewService {
+export class LocalWeeklyReviewService extends WeeklyReviewRepository {
 
   constructor(
     private readonly storageKeyService: StorageKeyService,
     private readonly localStorageService: LocalStorageService
-  ) {}
+  ) {
+    super();
+  }
 
   private get storageKey(): string {
     return this.storageKeyService.forCurrentUser('weeklyReview');

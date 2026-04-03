@@ -39,6 +39,8 @@ import { InboxRepository } from './core/repositories/inbox.repository';
 import { LocalInboxService } from './core/services/local/local-inbox.service';
 import { LocalDailyRotationRepository } from './core/services/local/local-daily-rotation.service';
 import { DailyRotationRepository } from './core/repositories/daily-rotation.repository';
+import { WeeklyReviewRepository } from './core/repositories/weekly-review.repository';
+import { LocalWeeklyReviewService } from './core/services/local-weekly-review.service';
 
 @NgModule({
   declarations: [
@@ -80,7 +82,8 @@ import { DailyRotationRepository } from './core/repositories/daily-rotation.repo
     {provide: AuthService, useClass: MockAuthService},
     {provide: GoalRepository, useClass: LocalGoalRepository},
     {provide: InboxRepository, useClass: LocalInboxService},
-    {provide: DailyRotationRepository, useClass: LocalDailyRotationRepository}
+    {provide: DailyRotationRepository, useClass: LocalDailyRotationRepository},
+    {provide: WeeklyReviewRepository, useClass: LocalWeeklyReviewService}
   ],
   bootstrap: [AppComponent]
 })

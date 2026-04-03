@@ -2,13 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { Goal } from 'src/app/core/models/goal.model';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
-import { RotationEngineService } from 'src/app/core/services/rotation-engine.service';
-import { WeeklyReviewService } from 'src/app/core/services/weekly-review.service';
 import { InboxEntry } from 'src/app/core/models/inbox-entry.model';
 import { GoalFreshnessInfo, GoalFreshnessService } from 'src/app/core/services/goal-freshness.service';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
 import { DailyRotationStoreService } from 'src/app/core/services/daily-rotation-store.service';
+import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
 
 
 interface GoalFreshnessView {
@@ -35,7 +34,7 @@ export class DashboardPageComponent implements OnInit {
 
   constructor(
     private goalStoreService: GoalStoreService,
-    private weeklyReviewService: WeeklyReviewService,
+    private weeklyReviewStoreService: WeeklyReviewStoreService,
     private dailyRotationStoreService: DailyRotationStoreService,
     private inboxService: InboxStoreService,
     private goalFreshnessService: GoalFreshnessService
@@ -43,7 +42,7 @@ export class DashboardPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.goals = this.goalStoreService.getGoals();
-    this.review = this.weeklyReviewService.getCurrentWeeklyReview();
+    this.review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
     this.loadDailySelections();
     this.loadInboxSummary();
   }
