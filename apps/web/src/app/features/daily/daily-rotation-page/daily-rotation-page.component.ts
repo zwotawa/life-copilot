@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Goal } from 'src/app/core/models/goal.model';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
-import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { DailyRotationStoreService } from 'src/app/core/services/daily-rotation-store.service';
-import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
+import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
 
 @Component({
   selector: 'app-daily-rotation-page',
@@ -12,27 +10,20 @@ import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-st
   styleUrls: ['./daily-rotation-page.component.scss']
 })
 export class DailyRotationPageComponent implements OnInit {
-  public goals: Goal[] = [];
-  public review!: WeeklyReviewState;
   public rotationItems: DailyRotationItem[] = [];
 
   constructor(
     private goalStoreService: GoalStoreService,
-    private weeklyReviewStoreService: WeeklyReviewStoreService,
-    private dailyRotationStoreService: DailyRotationStoreService
+    private dailyRotationStoreService: DailyRotationStoreService,
+    private planningWorkflowService: PlanningWorkflowService
   ) {}
 
   ngOnInit(): void {
-    this.goals = this.goalStoreService.getGoals();
-    this.review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
     this.loadDailySelections();
   }
 
   public generateDailyRotation(): void {
-    this.rotationItems = this.dailyRotationStoreService.generateDailyRotation(
-      this.goals,
-      this.review
-    );
+    this.rotationItems = this.planningWorkflowService.regenerateDailyRotation();
   }
 
   public toggleCompleted(item: DailyRotationItem): void {
@@ -84,16 +75,7 @@ export class DailyRotationPageComponent implements OnInit {
     return item.id;
   }
 
-  loadDailySelections(): void {
-    const saved = this.dailyRotationStoreService.loadRotationItems();
-
-    if (saved) {
-      this.rotationItems = saved;
-      return;
-    }
-
-    // Optional: only do this if you want a first-time auto-generate
-    this.rotationItems = this.dailyRotationStoreService.generateDailyRotation(this.goals, this.review);
-    this.dailyRotationStoreService.saveRotationItems(this.rotationItems);
+  private loadDailySelections(): void {
+    this.rotationItems = this.planningWorkflowService.getOrCreateDailyRotation();
   }
 }
