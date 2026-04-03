@@ -30,14 +30,14 @@ import { DailyRotationPageComponent } from './features/daily/daily-rotation-page
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { DashboardPageComponent } from './features/dashboard/dashboard-page/dashboard-page.component';
 import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.component';
-import { AuthService } from './core/services/auth.service';
-import { MockAuthService } from './core/services/mock-auth.service';
+import { AuthService } from './core/auth/auth.service';
+import { MockAuthService } from './core/auth/mock-auth.service';
 import { LoginComponent } from './features/login/login.component';
 import { GoalRepository } from './core/repositories/goal.repository';
-import { LocalGoalRepository } from './core/repositories/local-goal.service';
+import { LocalGoalRepository } from './core/services/local/local-goal.service';
 import { InboxRepository } from './core/repositories/inbox.repository';
-import { LocalInboxService } from './core/services/local-inbox.service';
-import { LocalDailyRotationRepository } from './core/services/local-daily-rotation.service';
+import { LocalInboxService } from './core/services/local/local-inbox.service';
+import { LocalDailyRotationRepository } from './core/services/local/local-daily-rotation.service';
 import { DailyRotationRepository } from './core/repositories/daily-rotation.repository';
 
 @NgModule({

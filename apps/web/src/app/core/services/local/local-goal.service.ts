@@ -1,8 +1,8 @@
-import { Goal, GoalStatus } from "../models/goal.model";
+import { Goal, GoalStatus } from "../../models/goal.model";
 import { Injectable } from "@angular/core";
-import { StorageKeyService } from "../services/storage-key.service";
-import { LocalStorageService } from "../services/local-storage.service";
-import { GoalRepository } from "./goal.repository";
+import { StorageKeyService } from "./storage-key.service";
+import { LocalStorageService } from "./local-storage.service";
+import { GoalRepository } from "../../repositories/goal.repository";
 
 const MAX_ITEMS = 200;
 

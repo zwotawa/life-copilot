@@ -1,8 +1,8 @@
 import { Injectable } from "@angular/core";
-import { DailyRotationRepository } from "../repositories/daily-rotation.repository";
+import { DailyRotationRepository } from "../../repositories/daily-rotation.repository";
 import { LocalStorageService } from "./local-storage.service";
 import { StorageKeyService } from "./storage-key.service";
-import { DailyRotationItem } from "../models/daily-rotation.model";
+import { DailyRotationItem } from "../../models/daily-rotation.model";
 
 @Injectable()
 export class LocalDailyRotationRepository extends DailyRotationRepository {

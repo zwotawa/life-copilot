@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { UserContextService } from './user-context.service';
+import { UserContextService } from '../user-context.service';
 
 type StorageEntity =
   | 'goals'

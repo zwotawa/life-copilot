@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { MockAuthService } from 'src/app/core/services/mock-auth.service';
+  import { MockAuthService } from '../../core/auth/mock-auth.service';
 
 @Component({
   selector: 'app-login',

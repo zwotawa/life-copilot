@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MockAuthService } from './mock-auth.service';
+import { MockAuthService } from '../auth/mock-auth.service';
 import { CurrentUser } from '../models/auth.model';
 
 @Injectable({

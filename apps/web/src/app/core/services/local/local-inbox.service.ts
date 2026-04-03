@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { InboxEntry, InboxEntryStatus } from '../models/inbox-entry.model';
+import { InboxEntry, InboxEntryStatus } from '../../models/inbox-entry.model';
 import { StorageKeyService } from './storage-key.service';
 import { LocalStorageService } from './local-storage.service';
-import { InboxRepository } from '../repositories/inbox.repository';
+import { InboxRepository } from '../../repositories/inbox.repository';
 
 @Injectable()
 export class LocalInboxService extends InboxRepository{

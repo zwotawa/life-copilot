@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { WeeklyReviewState } from '../models/weekly-review.model';
-import { StorageKeyService } from './storage-key.service';
-import { LocalStorageService } from './local-storage.service';
+import { StorageKeyService } from './local/storage-key.service';
+import { LocalStorageService } from '../services/local/local-storage.service';
 
 @Injectable({
   providedIn: 'root'

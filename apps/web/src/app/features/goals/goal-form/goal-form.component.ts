@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Goal } from 'src/app/core/models/goal.model';
+import { GoalCreationWorkflowService } from 'src/app/core/services/goal-creation-workflow.service';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
 
@@ -22,7 +23,8 @@ export class GoalFormComponent implements OnInit {
   constructor(
     private goalStoreService: GoalStoreService,
     private router: Router,
-    private inboxService: InboxStoreService
+    private inboxService: InboxStoreService,
+    private goalCreateWorkflowService: GoalCreationWorkflowService
   ) { }
 
   ngOnInit(): void {
@@ -36,28 +38,11 @@ export class GoalFormComponent implements OnInit {
   }
 
   public onSubmit(goalForm: any): void {
-    const now = new Date().toISOString();
-
     if (this.goal.id) {
-      this.goalStoreService.updateGoal({
-        ...this.goal,
-        updatedAt: now
-      });
+      this.goalCreateWorkflowService.updateGoal(this.goal);
       return;
     }
-
-    const newGoal: Goal = {
-      ...this.goal,
-      id: this.goal.title.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now(),
-      createdAt: now,
-      updatedAt: now
-    };
-    this.goalStoreService.addGoal(newGoal);
-
-    if (newGoal && this.navState?.inboxItemId) {
-      console.log('Marking inbox entry as converted:', this.navState.inboxItemId, 'to goal:', newGoal.id);
-      this.inboxService.markAsConverted(this.navState.inboxItemId, newGoal.id);
-    }
+    this.goalCreateWorkflowService.createGoal(this.goal, this.navState?.inboxItemId);
   }
 
   get isNewGoal(): boolean {
