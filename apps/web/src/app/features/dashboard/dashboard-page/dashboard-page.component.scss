@@ -1,25 +1,25 @@
 .dashboard-page {
   min-height: 100%;
   padding: 2rem 1rem 4rem;
-  background: #f6f8fb;
+  background: #f6f8fb
 }
 
 .dashboard-page__container {
   max-width: 1100px;
-  margin: 0 auto;
+  margin: 0 auto
 }
 
 .dashboard-page__header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem
 }
 
 .dashboard-page__eyebrow {
-  margin: 0 0 0.35rem;
-  font-size: 0.8rem;
+  margin: 0 0 .35rem;
+  font-size: .8rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: .08em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: #6b7280
 }
 
 .dashboard-page__title {
@@ -27,55 +27,55 @@
   font-size: 2rem;
   line-height: 1.1;
   font-weight: 700;
-  color: #111827;
+  color: #111827
 }
 
 .dashboard-page__subtitle {
-  margin: 0.5rem 0 0;
+  margin: .5rem 0 0;
   font-size: 1rem;
   line-height: 1.45;
-  color: #667085;
+  color: #667085
 }
 
 .dashboard-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1rem
 }
 
 .dashboard-stat-card {
   padding: 1rem 1.1rem;
-  background: #ffffff;
+  background: #fff;
   border: 1px solid #e6ebf2;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  box-shadow: 0 4px 16px rgba(17,24,39,.04)
 }
 
 .dashboard-stat-card__label {
-  font-size: 0.85rem;
-  color: #667085;
+  font-size: .85rem;
+  color: #667085
 }
 
 .dashboard-stat-card__value {
-  margin-top: 0.35rem;
+  margin-top: .35rem;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #111827;
+  color: #111827
 }
 
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1rem
 }
 
 .dashboard-card {
   padding: 1.25rem;
-  background: #ffffff;
+  background: #fff;
   border: 1px solid #e6ebf2;
   border-radius: 18px;
-  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  box-shadow: 0 4px 16px rgba(17,24,39,.04)
 }
 
 .dashboard-card__header {
@@ -83,109 +83,109 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1rem
 }
 
 .dashboard-card__header h2 {
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
-  color: #1f2937;
+  color: #1f2937
 }
 
 .dashboard-card__link {
-  font-size: 0.92rem;
+  font-size: .92rem;
   color: #215a96;
-  text-decoration: none;
+  text-decoration: none
 }
 
 .dashboard-card__link:hover {
-  text-decoration: underline;
+  text-decoration: underline
 }
 
 .dashboard-card__section + .dashboard-card__section {
-  margin-top: 1rem;
+  margin-top: 1rem
 }
 
 .dashboard-card__label {
-  margin-bottom: 0.45rem;
-  font-size: 0.78rem;
+  margin-bottom: .45rem;
+  font-size: .78rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: .05em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: #6b7280
 }
 
 .dashboard-chip-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: .5rem
 }
 
 .dashboard-chip {
   display: inline-flex;
   align-items: center;
-  padding: 0.35rem 0.7rem;
+  padding: .35rem .7rem;
   border-radius: 999px;
   background: #eef4ff;
   color: #215a96;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: .85rem;
+  font-weight: 500
 }
 
 .dashboard-empty {
   color: #6b7280;
-  font-size: 0.92rem;
+  font-size: .92rem
 }
 
 .dashboard-rotation-list {
   display: grid;
-  gap: 0.75rem;
+  gap: .75rem
 }
 
 .dashboard-rotation-item {
-  padding: 0.9rem 1rem;
+  padding: .9rem 1rem;
   border: 1px solid #e8edf3;
   border-radius: 14px;
-  background: #fafbfd;
+  background: #fafbfd
 }
 
 .dashboard-rotation-item__eyebrow {
-  margin-bottom: 0.25rem;
-  font-size: 0.75rem;
+  margin-bottom: .25rem;
+  font-size: .75rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: .05em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: #6b7280
 }
 
 .dashboard-rotation-item__title {
   font-weight: 600;
   color: #1f2937;
-  line-height: 1.35;
+  line-height: 1.35
 }
 
 .dashboard-rotation-item__action {
-  margin-top: 0.3rem;
+  margin-top: .3rem;
   color: #667085;
   line-height: 1.45;
-  font-size: 0.95rem;
+  font-size: .95rem
 }
 
 .dashboard-list {
   margin: 0;
   padding-left: 1.1rem;
-  color: #1f2937;
+  color: #1f2937
 }
 
 .dashboard-list li + li {
-  margin-top: 0.35rem;
+  margin-top: .35rem
 }
 
 .dashboard-quick-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: .75rem
 }
 
 @media (max-width: 950px) {
@@ -200,7 +200,7 @@
 
 @media (max-width: 600px) {
   .dashboard-page {
-    padding: 1rem 0.75rem 3rem;
+    padding: 1rem .75rem 3rem;
   }
 
   .dashboard-page__title {
@@ -226,7 +226,7 @@
 .dashboard-stat-inline {
   font-size: 1.75rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.2
 }
 
 .dashboard-chip--stacked {
@@ -234,69 +234,69 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  padding: 10px 12px;
+  padding: 10px 12px
 }
 
 .dashboard-chip__title {
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.2
 }
 
 .dashboard-chip__meta {
   font-size: 12px;
-  opacity: 0.8;
+  opacity: .8
 }
 
 .dashboard-list-item__title {
-  font-weight: 500;
+  font-weight: 500
 }
 
 .dashboard-list-item__meta {
   font-size: 12px;
   margin-top: 2px;
-  opacity: 0.8;
+  opacity: .8
 }
 
 .dashboard-rotation-item__meta {
   font-size: 12px;
   margin-top: 4px;
   margin-bottom: 6px;
-  opacity: 0.8;
+  opacity: .8
 }
 
 .dashboard-stat-card__subvalue {
   margin-top: 6px;
   font-size: 12px;
-  color: #666;
+  color: #666
 }
 
 .dashboard-chip--fresh,
 .dashboard-list-item__meta--fresh,
 .dashboard-rotation-item__meta--fresh {
-  color: #2e7d32;
+  color: #2e7d32
 }
 
 .dashboard-chip--neutral,
 .dashboard-list-item__meta--neutral,
 .dashboard-rotation-item__meta--neutral {
-  color: #616161;
+  color: #616161
 }
 
 .dashboard-chip--stale,
 .dashboard-list-item__meta--stale,
 .dashboard-rotation-item__meta--stale {
-  color: #ef6c00;
+  color: #ef6c00
 }
 
 .dashboard-chip--overdue,
 .dashboard-list-item__meta--overdue,
 .dashboard-rotation-item__meta--overdue {
-  color: #c62828;
+  color: #c62828
 }
 
 .dashboard-chip--unknown,
 .dashboard-list-item__meta--unknown,
 .dashboard-rotation-item__meta--unknown {
   color: #757575;
-  font-style: italic;
+  font-style: italic
 }

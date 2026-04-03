@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { GoalStoreService } from './goal-store.service';
+import { GoalStoreService } from '../services/goal-store.service';
 
 describe('GoalStoreService', () => {
   let service: GoalStoreService;

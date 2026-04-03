@@ -6,7 +6,7 @@ import { RotationEngineService } from 'src/app/core/services/rotation-engine.ser
 import { WeeklyReviewService } from 'src/app/core/services/weekly-review.service';
 import { InboxEntry } from 'src/app/core/models/inbox-entry.model';
 import { GoalFreshnessInfo, GoalFreshnessService } from 'src/app/core/services/goal-freshness.service';
-import { GoalStoreService } from 'src/app/core/repositories/goal-store.service';
+import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
 import { DailyRotationStoreService } from 'src/app/core/services/daily-rotation-store.service';
 

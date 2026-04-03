@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Goal } from 'src/app/core/models/goal.model';
-import { GoalStoreService } from 'src/app/core/repositories/goal-store.service';
+import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 
 @Component({
   selector: 'app-goal-detail-page',
