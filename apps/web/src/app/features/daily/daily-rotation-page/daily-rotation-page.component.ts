@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
-import { GoalStoreService } from 'src/app/core/services/goal-store.service';
-import { DailyRotationStoreService } from 'src/app/core/services/daily-rotation-store.service';
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
 
 @Component({
@@ -13,8 +11,6 @@ export class DailyRotationPageComponent implements OnInit {
   public rotationItems: DailyRotationItem[] = [];
 
   constructor(
-    private goalStoreService: GoalStoreService,
-    private dailyRotationStoreService: DailyRotationStoreService,
     private planningWorkflowService: PlanningWorkflowService
   ) {}
 
@@ -27,16 +23,8 @@ export class DailyRotationPageComponent implements OnInit {
   }
 
   public toggleCompleted(item: DailyRotationItem): void {
-    const today = this.getTodayKey();
-    const wasCompleted = item.completed;
-    item.completed = !item.completed;
-
-    this.dailyRotationStoreService.saveRotationItemsForDate(today, this.rotationItems);
-
-    if (!wasCompleted && item.completed && item.goalId) {
-      this.goalStoreService.markGoalTouched(item.goalId);
-    }
-  }
+  this.rotationItems = this.planningWorkflowService.toggleRotationItemCompleted(item.id);
+}
 
   public getCategoryLabel(category: DailyRotationItem['category']): string {
     switch (category) {

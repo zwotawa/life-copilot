@@ -36,6 +36,48 @@ export class PlanningWorkflowService {
     return this.dailyRotationStoreService.generateDailyRotationForDate(today, goals, weeklyReview);
   }
 
+  public setRotationItemCompleted(
+    itemId: string,
+    completed: boolean
+  ): DailyRotationItem[] {
+    const today = this.getTodayKey();
+    const items = this.dailyRotationStoreService.loadRotationItemsForDate(today);
+
+    const target = items.find(item => item.id === itemId);
+    if (!target) {
+      return items;
+    }
+
+    const wasCompleted = target.completed;
+
+    const updatedItems = items.map(item =>
+      item.id === itemId
+        ? { ...item, completed }
+        : item
+    );
+
+    this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
+
+    if (!wasCompleted && completed && target.goalId) {
+      this.goalStoreService.markGoalTouched(target.goalId);
+    }
+
+    return updatedItems;
+  }
+
+  public toggleRotationItemCompleted(itemId: string): DailyRotationItem[] {
+    const today = this.getTodayKey();
+    const items = this.dailyRotationStoreService.loadRotationItemsForDate(today);
+
+    const target = items.find(item => item.id === itemId);
+    if (!target) {
+      return items;
+    }
+
+    return this.setRotationItemCompleted(itemId, !target.completed);
+  }
+  
+
   private getTodayKey(): string {
     return new Date().toISOString().slice(0, 10);
   }
