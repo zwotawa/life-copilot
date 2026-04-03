@@ -18,7 +18,8 @@ export class PlanningWorkflowService {
   ) { }
 
   public getOrCreateDailyRotation(): DailyRotationItem[] {
-    const saved: DailyRotationItem[] = this.dailyRotationStoreService.loadRotationItems();
+    const today = this.getTodayKey();
+    const saved: DailyRotationItem[] = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
     if(saved.length > 0) {
       return saved;
@@ -28,9 +29,14 @@ export class PlanningWorkflowService {
   }
 
   public regenerateDailyRotation(): DailyRotationItem[] {
+    const today = this.getTodayKey();
     const goals: Goal[] = this.goalStoreService.getGoals();
     const weeklyReview: WeeklyReviewState = this.weeklyReviewStoreService.getCurrentWeeklyReview();
 
-    return this.dailyRotationStoreService.generateDailyRotation(goals, weeklyReview);
+    return this.dailyRotationStoreService.generateDailyRotationForDate(today, goals, weeklyReview);
+  }
+
+  private getTodayKey(): string {
+    return new Date().toISOString().slice(0, 10);
   }
 }

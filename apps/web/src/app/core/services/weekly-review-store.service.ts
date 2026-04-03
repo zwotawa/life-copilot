@@ -14,7 +14,7 @@ export class WeeklyReviewStoreService {
   }
 
   public saveWeeklyReview(review: WeeklyReviewState): void {
-    this.saveWeeklyReview(review);
+    this.weeklyReviewRepository.saveWeeklyReview(review);
   }
 
   public resetWeeklyReview(): WeeklyReviewState {

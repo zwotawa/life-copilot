@@ -15,24 +15,29 @@ export class DailyRotationStoreService {
     private dailyRotationRepository: DailyRotationRepository
   ) { }
 
-  public generateDailyRotation(
+  public generateDailyRotationForDate(
+    date: string,
     goals: Goal[],
     weeklyReview: WeeklyReviewState
   ): DailyRotationItem[] {
-    const items = this.rotationEngineService.generateDailyRotation(goals, weeklyReview);
-    this.dailyRotationRepository.saveRotationItems(items);
+    const items = this.rotationEngineService.generateDailyRotation(goals, weeklyReview)
+      .map(item => ({
+        ...item,
+        date
+      }));
+    this.dailyRotationRepository.saveRotationForDate(date, items);
     return items;
   }
 
-  public loadRotationItems(): DailyRotationItem[] {
-    return this.dailyRotationRepository.loadRotationItems();
+  public loadRotationItemsForDate(date: string): DailyRotationItem[] {
+    return this.dailyRotationRepository.getRotationForDate(date);
   }
 
-  public saveRotationItems(items: DailyRotationItem[]): void {
-    this.dailyRotationRepository.saveRotationItems(items);
+  public saveRotationItemsForDate(date: string, items: DailyRotationItem[]): void {
+    this.dailyRotationRepository.saveRotationForDate(date, items);
   }
 
-  public clearRotationItems(): void {
-    this.dailyRotationRepository.clearRotationItems();
+  public clearRotationItemsForDate(date: string): void {
+    this.dailyRotationRepository.clearRotationForDate(date);
   }
 }

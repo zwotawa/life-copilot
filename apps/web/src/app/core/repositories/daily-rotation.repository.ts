@@ -1,7 +1,7 @@
 import { DailyRotationItem } from "../models/daily-rotation.model";
 
 export abstract class DailyRotationRepository {
-    abstract saveRotationItems(item: DailyRotationItem[]): void;
-    abstract loadRotationItems(): DailyRotationItem[];
-    abstract clearRotationItems(): void;
+    abstract saveRotationForDate(date: string, item: DailyRotationItem[]): void;
+    abstract getRotationForDate(date: string): DailyRotationItem[];
+    abstract clearRotationForDate(date: string): void;
 }

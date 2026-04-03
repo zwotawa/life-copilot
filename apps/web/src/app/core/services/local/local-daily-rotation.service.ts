@@ -4,6 +4,8 @@ import { LocalStorageService } from "./local-storage.service";
 import { StorageKeyService } from "./storage-key.service";
 import { DailyRotationItem } from "../../models/daily-rotation.model";
 
+type DailyRotationMap = Record<string, DailyRotationItem[]>;
+
 @Injectable()
 export class LocalDailyRotationRepository extends DailyRotationRepository {
     constructor(
@@ -34,28 +36,49 @@ export class LocalDailyRotationRepository extends DailyRotationRepository {
         this.localStorageService.setItem(newKey, legacyValue);
     }
 
-    public saveRotationItems(items: DailyRotationItem[]): void {
-        this.localStorageService.setItem(this.storageKey, JSON.stringify(items));
+    public saveRotationForDate(date: string, items: DailyRotationItem[]): void {
+        const map = this.readRotationMap();
+        map[date] = items;
+        this.saveRotationMap(map);
     }
 
-    public loadRotationItems(): DailyRotationItem[] {
+    public getRotationForDate(date: string): DailyRotationItem[] {
+        const map = this.readRotationMap();
+        const items = map[date];
+        return Array.isArray(items) ? items : [];
+    }
+
+    public clearRotationForDate(date: string): void {
+        const map = this.readRotationMap();
+        delete map[date];
+        this.saveRotationMap(map);
+    }
+
+    private readRotationMap(): DailyRotationMap {
         this.migrateLegacyIfNeeded();
+
         const data = this.localStorageService.getItem(this.storageKey);
-        if (!data) {
-        return [];
+        if(!data) {
+            return {};
         }
+
         try {
-        const parsed = JSON.parse(data);
-        if (Array.isArray(parsed)) {
-            return parsed;
-        }
-        return [];
+            const parsed = JSON.parse(data);
+            if (Array.isArray(parsed)) {
+                const firstDate =
+                    parsed.length > 0 && typeof parsed[0]?.date === 'string'
+                    ? parsed[0].date
+                    : new Date().toISOString().slice(0, 10);
+
+                    return { [firstDate]: parsed };
+           }
+           return parsed && typeof parsed === 'object' ? parsed : {};
         } catch {
-        return [];
+            return {};
         }
     }
 
-    public clearRotationItems(): void {
-        
+    private saveRotationMap(map: DailyRotationMap): void {
+        this.localStorageService.setItem(this.storageKey, JSON.stringify(map));
     }
 }

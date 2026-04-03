@@ -27,10 +27,11 @@ export class DailyRotationPageComponent implements OnInit {
   }
 
   public toggleCompleted(item: DailyRotationItem): void {
+    const today = this.getTodayKey();
     const wasCompleted = item.completed;
     item.completed = !item.completed;
 
-    this.dailyRotationStoreService.saveRotationItems(this.rotationItems);
+    this.dailyRotationStoreService.saveRotationItemsForDate(today, this.rotationItems);
 
     if (!wasCompleted && item.completed && item.goalId) {
       this.goalStoreService.markGoalTouched(item.goalId);
@@ -77,5 +78,9 @@ export class DailyRotationPageComponent implements OnInit {
 
   private loadDailySelections(): void {
     this.rotationItems = this.planningWorkflowService.getOrCreateDailyRotation();
+  }
+
+  private getTodayKey(): string {
+    return new Date().toISOString().slice(0, 10);
   }
 }
