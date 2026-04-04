@@ -167,7 +167,37 @@
 }
 
 .daily-page-replace-button {
-
   text-orientation: upright;
   writing-mode: vertical-rl;
+}
+
+.daily-progress-summary {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: #f5f7fb;
+}
+
+.daily-progress-summary__text {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.daily-progress-summary__bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #dfe6f1;
+  overflow: hidden;
+}
+
+.daily-progress-summary__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #4f46e5;
+  transition: width 0.2s ease;
+}
+
+.daily-progress-summary__done {
+  margin-top: 0.5rem;
+  font-weight: 600;
 }

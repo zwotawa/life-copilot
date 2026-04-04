@@ -8,6 +8,23 @@
       </p>
     </header>
 
+    <div class="daily-progress-summary" *ngIf="totalCount > 0">
+      <div class="daily-progress-summary__text">
+        {{ progressMessage }} ({{ completionPercent }}%)
+      </div>
+
+      <div class="daily-progress-summary__bar">
+        <div
+          class="daily-progress-summary__fill"
+          [style.width.%]="completionPercent">
+        </div>
+      </div>
+
+      <div class="daily-progress-summary__done" *ngIf="isDayComplete">
+        Done for today
+      </div>
+    </div>
+
     <div class="daily-page__actions">
       <button mat-stroked-button type="button" (click)="generateDailyRotation()">
         Regenerate

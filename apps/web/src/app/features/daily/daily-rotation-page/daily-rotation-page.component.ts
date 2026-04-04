@@ -18,13 +18,49 @@ export class DailyRotationPageComponent implements OnInit {
     this.loadDailySelections();
   }
 
+  public get completedCount(): number {
+    return this.rotationItems.filter(item => item.completed).length;
+  }
+
+  public get totalCount(): number {
+    return this.rotationItems.length;
+  }
+
+  public get completionPercent(): number {
+    if (this.totalCount === 0) {
+      return 0;
+    }
+
+    return Math.round((this.completedCount / this.totalCount) * 100);
+  }
+
+  public get isDayComplete(): boolean {
+    return this.totalCount > 0 && this.completedCount === this.totalCount;
+  }
+
+  public get progressMessage(): string {
+    if (this.totalCount === 0) {
+      return 'No items planned for today.';
+    }
+
+    if (this.isDayComplete) {
+      return 'Done for today.';
+    }
+
+    if (this.completedCount === 0) {
+      return 'Ready to get started.';
+    }
+
+    return `${this.completedCount} of ${this.totalCount} completed.`;
+  }
+
   public generateDailyRotation(): void {
     this.rotationItems = this.planningWorkflowService.refreshTodayPlan();
   }
 
   public toggleCompleted(item: DailyRotationItem): void {
-  this.rotationItems = this.planningWorkflowService.toggleRotationItemCompleted(item.id);
-}
+    this.rotationItems = this.planningWorkflowService.toggleRotationItemCompleted(item.id);
+  }
 
   public getCategoryLabel(category: DailyRotationItem['category']): string {
     switch (category) {
