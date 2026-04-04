@@ -38,6 +38,51 @@ export class PlanningWorkflowService {
     return this.dailyRotationStoreService.generateDailyRotationForDate(today, goals, weeklyReview);
   }
 
+  public regenerateDailyRotationPreservingCompleted(): DailyRotationItem[] {
+    const today = this.getTodayKey();
+    const currentItems = this.dailyRotationStoreService.loadRotationItemsForDate(today);
+
+    if (currentItems.length === 0) {
+      return this.regenerateDailyRotation();
+    }
+
+    const goals = this.goalStoreService.getGoals();
+    const review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
+    const freshItems = this.rotationEngineService.generateDailyRotation(goals, review);
+
+    const usedGoalIds = new Set(
+      currentItems
+        .filter(item => item.completed && item.goalId)
+        .map(item => item.goalId as string)
+    );
+
+    const updatedItems = currentItems.map(currentItem => {
+      if (currentItem.completed) {
+        return currentItem;
+      }
+
+      const replacement = this.pickReplacementForCategory(
+        currentItem,
+        freshItems,
+        usedGoalIds,
+        today
+      );
+
+      if (!replacement) {
+        return currentItem;
+      }
+
+      if (replacement.goalId) {
+        usedGoalIds.add(replacement.goalId);
+      }
+
+      return replacement;
+    });
+
+    this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
+    return updatedItems;
+  }
+
   public setRotationItemCompleted(
     itemId: string,
     completed: boolean
@@ -154,4 +199,43 @@ export class PlanningWorkflowService {
       completed: false
     };
   }
+
+  private pickReplacementForCategory(
+  currentItem: DailyRotationItem,
+  freshItems: DailyRotationItem[],
+  usedGoalIds: Set<string>,
+  today: string
+): DailyRotationItem | null {
+  const sameCategoryCandidates = freshItems.filter(
+    item => item.category === currentItem.category
+  );
+
+  const preferred = sameCategoryCandidates.find(candidate => {
+    const hasGoalId = !!candidate.goalId;
+    const isSameGoal = hasGoalId && candidate.goalId === currentItem.goalId;
+    const isAlreadyUsed = hasGoalId && usedGoalIds.has(candidate.goalId!);
+
+    return !isSameGoal && !isAlreadyUsed;
+  });
+
+  const fallback = sameCategoryCandidates.find(candidate => {
+    const hasGoalId = !!candidate.goalId;
+    const isAlreadyUsed = hasGoalId && usedGoalIds.has(candidate.goalId!);
+
+    return !isAlreadyUsed;
+  });
+
+  const chosen = preferred ?? fallback ?? sameCategoryCandidates[0] ?? null;
+
+  if (!chosen) {
+    return null;
+  }
+
+  return {
+    ...chosen,
+    id: currentItem.id,
+    date: today,
+    completed: false
+  };
+}
 }
