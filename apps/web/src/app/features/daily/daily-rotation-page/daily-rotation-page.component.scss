@@ -55,6 +55,7 @@
   border-radius: 18px;
   box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
   transition: opacity 0.2s ease, transform 0.2s ease;
+  flex-grow: 1;
 }
 
 .daily-card--completed {
@@ -159,4 +160,14 @@
 
 .daily-card__meta a[mat-stroked-button] {
   margin-left: auto;
+}
+
+.daily-card-slot {
+  display: flex;
+}
+
+.daily-page-replace-button {
+
+  text-orientation: upright;
+  writing-mode: vertical-rl;
 }

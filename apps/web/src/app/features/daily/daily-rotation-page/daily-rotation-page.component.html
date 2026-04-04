@@ -15,9 +15,9 @@
     </div>
 
     <section class="daily-list">
+      <div class="daily-card-slot" *ngFor="let item of rotationItems; trackBy: trackByItemId">
   <article
     class="daily-card"
-    *ngFor="let item of rotationItems; trackBy: trackByItemId"
     [class.daily-card--completed]="item.completed"
   >
     <div class="daily-card__header">
@@ -64,6 +64,12 @@
       </a>
     </div>
   </article>
+  <button  mat-stroked-button (click)="replaceItem(item)">
+    <p class="daily-page-replace-button">
+    Replace
+  </p></button>
+</div>
+  
 </section>
   </div>
 </div>

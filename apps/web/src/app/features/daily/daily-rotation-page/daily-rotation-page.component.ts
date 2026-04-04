@@ -64,6 +64,10 @@ export class DailyRotationPageComponent implements OnInit {
     return item.id;
   }
 
+  public replaceItem(item: DailyRotationItem): void {
+    this.rotationItems = this.planningWorkflowService.replaceRotationItem(item.id);
+  }
+
   private loadDailySelections(): void {
     this.rotationItems = this.planningWorkflowService.getOrCreateDailyRotation();
   }

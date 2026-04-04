@@ -40,9 +40,11 @@ export class GoalFormComponent implements OnInit {
   public onSubmit(goalForm: any): void {
     if (this.goal.id) {
       this.goalCreateWorkflowService.updateGoal(this.goal);
+      this.router.navigate(['/goals']);
       return;
     }
     this.goalCreateWorkflowService.createGoal(this.goal, this.navState?.inboxItemId);
+    this.router.navigate(['/goals']);
   }
 
   get isNewGoal(): boolean {
