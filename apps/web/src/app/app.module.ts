@@ -41,6 +41,8 @@ import { LocalDailyRotationRepository } from './core/services/local/local-daily-
 import { DailyRotationRepository } from './core/repositories/daily-rotation.repository';
 import { WeeklyReviewRepository } from './core/repositories/weekly-review.repository';
 import { LocalWeeklyReviewService } from './core/services/local-weekly-review.service';
+import { DailyCompletionHistoryRepository } from './core/repositories/daily-completion-history.repository';
+import { LocalDailyCompletionHistoryService } from './core/services/local/local-daily-completion-history.service';
 
 @NgModule({
   declarations: [
@@ -83,7 +85,8 @@ import { LocalWeeklyReviewService } from './core/services/local-weekly-review.se
     {provide: GoalRepository, useClass: LocalGoalRepository},
     {provide: InboxRepository, useClass: LocalInboxService},
     {provide: DailyRotationRepository, useClass: LocalDailyRotationRepository},
-    {provide: WeeklyReviewRepository, useClass: LocalWeeklyReviewService}
+    {provide: WeeklyReviewRepository, useClass: LocalWeeklyReviewService},
+    {provide: DailyCompletionHistoryRepository, useClass: LocalDailyCompletionHistoryService}
   ],
   bootstrap: [AppComponent]
 })
