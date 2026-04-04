@@ -27,10 +27,12 @@ export class PlanningWorkflowService {
       return saved;
     }
 
-    return this.regenerateDailyRotation();
+    return this.resetTodayPlan();
   }
 
-  public regenerateDailyRotation(): DailyRotationItem[] {
+
+
+  private regenerateDailyRotation(): DailyRotationItem[] {
     const today = this.getTodayKey();
     const goals: Goal[] = this.goalStoreService.getGoals();
     const weeklyReview: WeeklyReviewState = this.weeklyReviewStoreService.getCurrentWeeklyReview();
@@ -38,17 +40,25 @@ export class PlanningWorkflowService {
     return this.dailyRotationStoreService.generateDailyRotationForDate(today, goals, weeklyReview);
   }
 
-  public regenerateDailyRotationPreservingCompleted(): DailyRotationItem[] {
+
+  //wrapper functions for wording clarity
+  public refreshTodayPlan(): DailyRotationItem[] {
+    return this.regenerateDailyRotationPreservingCompleted();
+  }
+
+  private resetTodayPlan(): DailyRotationItem[] {
+    return this.regenerateDailyRotation();
+  }
+
+  private regenerateDailyRotationPreservingCompleted(): DailyRotationItem[] {
     const today = this.getTodayKey();
     const currentItems = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
     if (currentItems.length === 0) {
-      return this.regenerateDailyRotation();
+      return this.resetTodayPlan();
     }
 
-    const goals = this.goalStoreService.getGoals();
-    const review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
-    const freshItems = this.rotationEngineService.generateDailyRotation(goals, review);
+    const freshItems = this.buildFreshRotationCandidates();
 
     const usedGoalIds = new Set(
       currentItems
@@ -138,10 +148,7 @@ export class PlanningWorkflowService {
       return currentItems;
     }
 
-    const goals = this.goalStoreService.getGoals();
-    const review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
-
-    const freshItems = this.rotationEngineService.generateDailyRotation(goals, review);
+    const freshItems = this.buildFreshRotationCandidates();
 
     const replacement = this.pickReplacementCandidate(
       itemToReplace,
@@ -237,5 +244,11 @@ export class PlanningWorkflowService {
     date: today,
     completed: false
   };
+}
+
+private buildFreshRotationCandidates(): DailyRotationItem[] {
+  const goals = this.goalStoreService.getGoals();
+  const review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
+  return this.rotationEngineService.generateDailyRotation(goals, review);
 }
 }

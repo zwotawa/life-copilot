@@ -19,7 +19,7 @@ export class DailyRotationPageComponent implements OnInit {
   }
 
   public generateDailyRotation(): void {
-    this.rotationItems = this.planningWorkflowService.regenerateDailyRotationPreservingCompleted();
+    this.rotationItems = this.planningWorkflowService.refreshTodayPlan();
   }
 
   public toggleCompleted(item: DailyRotationItem): void {
