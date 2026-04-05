@@ -299,3 +299,28 @@
   color: #757575;
   font-style: italic;
 }
+
+.dashboard-card {
+  padding: 1rem;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-card__header {
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-card__header h3 {
+  margin: 0;
+}
+
+.dashboard-card__body p {
+  margin: 0.5rem 0;
+}
+
+.dashboard-card__actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}

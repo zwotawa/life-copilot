@@ -9,6 +9,8 @@ import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
 import { DailyRotationStoreService } from 'src/app/core/services/daily-rotation-store.service';
 import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
+import { DashboardExecutionSnapshot } from 'src/app/core/models/dashboard-execution-snapshot.model';
+import { DashboardInsightService } from 'src/app/core/services/dashboard-insight.service';
 
 
 interface GoalFreshnessView {
@@ -31,15 +33,16 @@ export class DashboardPageComponent implements OnInit {
   public clarifiedInboxCount = 0;
   public deferredInboxCount = 0;
   public recentInboxEntries: InboxEntry[] = [];
+  public executionSnapshot: DashboardExecutionSnapshot | null = null;
 
 
   constructor(
     private goalStoreService: GoalStoreService,
     private weeklyReviewStoreService: WeeklyReviewStoreService,
-    private dailyRotationStoreService: DailyRotationStoreService,
     private inboxService: InboxStoreService,
     private goalFreshnessService: GoalFreshnessService,
-    private planningWorkflowService: PlanningWorkflowService
+    private planningWorkflowService: PlanningWorkflowService,
+    private readonly dashboardInsightService: DashboardInsightService
   ) {}
 
   ngOnInit(): void {
@@ -47,6 +50,7 @@ export class DashboardPageComponent implements OnInit {
     this.review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
     this.loadDailySelections();
     this.loadInboxSummary();
+    this.loadExecutionSnapshot();
   }
 
   public get activeGoals(): Goal[] {
@@ -229,4 +233,7 @@ export class DashboardPageComponent implements OnInit {
     return this.goalFreshnessService.getFreshnessInfo(goal);
   }
 
+  private loadExecutionSnapshot(): void {
+    this.executionSnapshot = this.dashboardInsightService.getExecutionSnapshot();
+  }
 }
