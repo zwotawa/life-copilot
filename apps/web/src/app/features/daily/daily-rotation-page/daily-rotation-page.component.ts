@@ -9,6 +9,7 @@ import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow
 })
 export class DailyRotationPageComponent implements OnInit {
   public rotationItems: DailyRotationItem[] = [];
+  public activeCompletionDays: number = 0;
 
   constructor(
     private planningWorkflowService: PlanningWorkflowService
@@ -106,5 +107,6 @@ export class DailyRotationPageComponent implements OnInit {
 
   private loadDailySelections(): void {
     this.rotationItems = this.planningWorkflowService.getOrCreateDailyRotation();
+    this.activeCompletionDays = this.planningWorkflowService.getLastSevenDaysCompletions();
   }
 }

@@ -1,5 +1,6 @@
-import { DailyRotationItem } from "../models/daily-rotation.model";
+import { DailyCompletionSummary } from "../models/daily-completion.model";
 
 export abstract class DailyCompletionHistoryRepository {
-    abstract saveTodayCompletionSummary(rotationItems: DailyRotationItem[]): void;
+    abstract saveSummary(dailyCompletionSummary: DailyCompletionSummary): void;
+    abstract getSummaries(): DailyCompletionSummary[];
 }

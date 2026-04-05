@@ -8,6 +8,10 @@
       </p>
     </header>
 
+    <div>
+      Last 7 Days: {{ activeCompletionDays }} active day(s)
+    </div>
+
     <div class="daily-progress-summary" *ngIf="totalCount > 0">
       <div class="daily-progress-summary__text">
         {{ progressMessage }} ({{ completionPercent }}%)

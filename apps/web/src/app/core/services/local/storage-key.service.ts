@@ -5,7 +5,8 @@ type StorageEntity =
   | 'goals'
   | 'inbox'
   | 'weeklyReview'
-  | 'dailyRotation';
+  | 'dailyRotation'
+  | 'completionHistory';
 
 @Injectable({
   providedIn: 'root'
