@@ -17,26 +17,45 @@ export class LocalDailyCompletionHistoryService extends DailyCompletionHistoryRe
    }
 
    public saveSummary(dailyCompletionSummary: DailyCompletionSummary): void {
-     const currentSummaries = this.getSummaries();
-     const updatedSummaries = currentSummaries.map(summary => {
-      return summary.date === dailyCompletionSummary.date
-      ? dailyCompletionSummary
-      : summary
-     })
-     this.saveSummaries(updatedSummaries);
-   }
+    const currentSummaries = this.getSummaries();
+    const existingIndex = currentSummaries.findIndex(
+      summary => summary.date === dailyCompletionSummary.date
+    );
+
+    let updatedSummaries: DailyCompletionSummary[];
+
+    if (existingIndex >= 0) {
+      updatedSummaries = currentSummaries.map(summary =>
+        summary.date === dailyCompletionSummary.date
+          ? dailyCompletionSummary
+          : summary
+      );
+    } else {
+      updatedSummaries = [...currentSummaries, dailyCompletionSummary];
+    }
+
+    updatedSummaries.sort((a, b) => a.date.localeCompare(b.date));
+    this.saveSummaries(updatedSummaries);
+  }
 
    private saveSummaries(dailyCompletionSummaries: DailyCompletionSummary[]): void {
       this.localStorageService.setItem(this.storageKey, JSON.stringify(dailyCompletionSummaries));
    }
 
    public getSummaries(): DailyCompletionSummary[] {
-     this.migrateLegacyIfNeeded();
-     
-      const stored = this.localStorageService.getItem(this.storageKey);
-      if (!stored) return [];
-      return JSON.parse(stored) as DailyCompletionSummary[];
-   }
+    this.migrateLegacyIfNeeded();
+
+    const stored = this.localStorageService.getItem(this.storageKey);
+    if (!stored) return [];
+
+    try {
+      const parsed = JSON.parse(stored) as DailyCompletionSummary[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error('Error parsing completion history from localStorage:', error);
+      return [];
+    }
+  }
 
    private get storageKey(): string {
     return this.storageKeyService.forCurrentUser('completionHistory');

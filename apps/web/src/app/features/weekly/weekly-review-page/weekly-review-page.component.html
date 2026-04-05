@@ -8,56 +8,68 @@
       </p>
     </header>
 
-          <section class="weekly-summary">
-  <div class="weekly-summary__section">
-    <div class="weekly-summary__label">Anchor goals</div>
-    <div class="weekly-summary__chips">
-      <span class="weekly-chip" *ngFor="let goal of selectedAnchorGoals">
-        {{ goal.title }}
-        
-      </span>
-      <span class="weekly-summary__empty" *ngIf="selectedAnchorGoals.length === 0">
-        None selected
-      </span>
-    </div>
-  </div>
+    <div class="weekly-insights">
+      <h3>Execution Insights</h3>
 
-  <div class="weekly-summary__section">
-    <div class="weekly-summary__label">Infrastructure</div>
-    <div class="weekly-summary__chips">
-      <span class="weekly-chip" *ngIf="selectedInfrastructureGoal">
-        {{ selectedInfrastructureGoal.title }}
-      </span>
-      <span class="weekly-summary__empty" *ngIf="!selectedInfrastructureGoal">
-        None selected
-      </span>
-    </div>
-  </div>
+      <p>Active days: {{ weeklyInsights.activeDays }}/7</p>
+      <p>Average completion: {{ weeklyInsights.averageCompletionPercent }}%</p>
+      <p>Fully completed days: {{ weeklyInsights.fullyCompletedDays }}</p>
 
-  <div class="weekly-summary__section">
-    <div class="weekly-summary__label">Maintenance</div>
-    <div class="weekly-summary__chips">
-      <span class="weekly-chip" *ngFor="let goal of selectedMaintenanceGoals">
-        {{ goal.title }}
-      </span>
-      <span class="weekly-summary__empty" *ngIf="selectedMaintenanceGoals.length === 0">
-        None selected
-      </span>
+      <p *ngIf="weeklyInsights.bestDay">
+        Best day: {{ weeklyInsights.bestDay.date }} ({{ weeklyInsights.bestDay.completionPercent }}%)
+      </p>
     </div>
-  </div>
 
-  <div class="weekly-summary__section">
-    <div class="weekly-summary__label">Creative</div>
-    <div class="weekly-summary__chips">
-      <span class="weekly-chip" *ngIf="selectedCreativeGoal">
-        {{ selectedCreativeGoal.title }}
-      </span>
-      <span class="weekly-summary__empty" *ngIf="!selectedCreativeGoal">
-        None selected
-      </span>
-    </div>
-  </div>
-</section>
+    <section class="weekly-summary">
+      <div class="weekly-summary__section">
+        <div class="weekly-summary__label">Anchor goals</div>
+        <div class="weekly-summary__chips">
+          <span class="weekly-chip" *ngFor="let goal of selectedAnchorGoals">
+            {{ goal.title }}
+            
+          </span>
+          <span class="weekly-summary__empty" *ngIf="selectedAnchorGoals.length === 0">
+            None selected
+          </span>
+        </div>
+      </div>
+
+      <div class="weekly-summary__section">
+        <div class="weekly-summary__label">Infrastructure</div>
+        <div class="weekly-summary__chips">
+          <span class="weekly-chip" *ngIf="selectedInfrastructureGoal">
+            {{ selectedInfrastructureGoal.title }}
+          </span>
+          <span class="weekly-summary__empty" *ngIf="!selectedInfrastructureGoal">
+            None selected
+          </span>
+        </div>
+      </div>
+
+      <div class="weekly-summary__section">
+        <div class="weekly-summary__label">Maintenance</div>
+        <div class="weekly-summary__chips">
+          <span class="weekly-chip" *ngFor="let goal of selectedMaintenanceGoals">
+            {{ goal.title }}
+          </span>
+          <span class="weekly-summary__empty" *ngIf="selectedMaintenanceGoals.length === 0">
+            None selected
+          </span>
+        </div>
+      </div>
+
+      <div class="weekly-summary__section">
+        <div class="weekly-summary__label">Creative</div>
+        <div class="weekly-summary__chips">
+          <span class="weekly-chip" *ngIf="selectedCreativeGoal">
+            {{ selectedCreativeGoal.title }}
+          </span>
+          <span class="weekly-summary__empty" *ngIf="!selectedCreativeGoal">
+            None selected
+          </span>
+        </div>
+      </div>
+    </section>
 
     <section class="weekly-section">
       <div class="weekly-section__header">

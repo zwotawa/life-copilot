@@ -3,6 +3,7 @@ import { Goal } from 'src/app/core/models/goal.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
+import { WeeklyInsightService } from 'src/app/core/services/weekly-insights.service';
 import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
 
 @Component({
@@ -13,11 +14,13 @@ import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-st
 export class WeeklyReviewPageComponent implements OnInit {
   public goals: Goal[] = [];
   public review!: WeeklyReviewState;
+  public weeklyInsights = this.weeklyInsightService.getLast7DaysInsights();
 
   constructor(
     private goalStoreService: GoalStoreService,
     private weeklyReviewStoreService: WeeklyReviewStoreService,
-    private goalSurfacingService: GoalSurfacingService
+    private goalSurfacingService: GoalSurfacingService,
+    private weeklyInsightService: WeeklyInsightService
   ) {}
 
   ngOnInit(): void {
