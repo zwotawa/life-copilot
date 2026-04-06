@@ -1,7 +1,14 @@
 
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using LifeCopilot.Api.Data;
 using LifeCopilot.Api.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +39,34 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Auth
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] 
+    ?? throw new InvalidOperationException("Missing Jwt:Issuer");
+var jwtAudience = builder.Configuration["Jwt:Audience"] 
+    ?? throw new InvalidOperationException("Missing Jwt:Audience");
+var jwtKey = builder.Configuration["Jwt:Key"] 
+    ?? throw new InvalidOperationException("Missing Jwt:Key");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<PasswordHasher<UserEntity>>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -51,6 +86,9 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseCors(CorsPolicyName);
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 var apiKey = (app.Configuration["API_KEY"])?.Trim();
 
 app.Use(async (context, next) =>
@@ -62,8 +100,9 @@ app.Use(async (context, next) =>
     var isHealth = path.StartsWith("/health", StringComparison.OrdinalIgnoreCase);
 
     var isMutation = HttpMethods.IsPost(method) || HttpMethods.IsPut(method) || HttpMethods.IsDelete(method) || HttpMethods.IsPatch(method);
+    var isAuth = path.StartsWith("/api/auth", StringComparison.OrdinalIgnoreCase);
 
-    if (!isMutation || isSwagger || isHealth)
+    if (!isMutation || isSwagger || isHealth || isAuth)
     {
         await next();
         return;
@@ -88,6 +127,11 @@ app.Use(async (context, next) =>
 
     await next();
 });
+
+app.MapGet("/debug/claims", (ClaimsPrincipal principal) =>
+{
+    return Results.Ok(principal.Claims.Select(c => new { c.Type, c.Value }));
+}).RequireAuthorization();
 
 app.MapGet("/health", (IHostEnvironment env,IConfiguration config) =>
 {
@@ -186,6 +230,103 @@ app.MapGet("/health/db", async (LifeCopilotDbContext db) =>
     }
 });
 
+app.MapPost("/api/auth/register", async (
+    RegisterRequest req,
+    LifeCopilotDbContext db,
+    PasswordHasher<UserEntity> passwordHasher,
+    IConfiguration config) =>
+{
+    var email = req.Email.Trim().ToLowerInvariant();
+    var displayName = string.IsNullOrWhiteSpace(req.DisplayName) ? null : req.DisplayName.Trim();
+
+    var errors = new Dictionary<string, string[]>();
+
+    if (string.IsNullOrWhiteSpace(email))
+        errors["email"] = ["Email is required."];
+    if (string.IsNullOrWhiteSpace(req.Password))
+        errors["password"] = ["Password is required."];
+    else if (req.Password.Length < 8)
+        errors["password"] = ["Password must be at least 8 characters."];
+    if (!string.IsNullOrWhiteSpace(displayName) && displayName.Length > 200)
+        errors["displayName"] = ["Display name must be <= 200 characters."];
+
+    if (errors.Count > 0)
+        return Results.ValidationProblem(errors);
+
+    var existing = await db.Users.FirstOrDefaultAsync(x => x.Email == email);
+    if (existing is not null)
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["email"] = ["An account with that email already exists."]
+        });
+    }
+
+    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+    var user = new UserEntity
+    {
+        Id = Guid.NewGuid(),
+        Email = email,
+        DisplayName = displayName,
+        CreatedAt = now,
+        UpdatedAt = now
+    };
+
+    user.PasswordHash = passwordHasher.HashPassword(user, req.Password);
+
+    db.Users.Add(user);
+    await db.SaveChangesAsync();
+
+    var token = CreateJwt(user, config);
+
+    return Results.Ok(new AuthResponse
+    {
+        User = ToCurrentUserDto(user),
+        AccessToken = token
+    });
+});
+
+app.MapPost("/api/auth/login", async (
+    LoginRequest req,
+    LifeCopilotDbContext db,
+    PasswordHasher<UserEntity> passwordHasher,
+    IConfiguration config) =>
+{
+    var email = req.Email.Trim().ToLowerInvariant();
+
+    var user = await db.Users.FirstOrDefaultAsync(x => x.Email == email);
+    if (user is null)
+        return Results.Unauthorized();
+
+    var verification = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, req.Password);
+    if (verification == PasswordVerificationResult.Failed)
+        return Results.Unauthorized();
+
+    var token = CreateJwt(user, config);
+
+    return Results.Ok(new AuthResponse
+    {
+        User = ToCurrentUserDto(user),
+        AccessToken = token
+    });
+});
+
+app.MapGet("/api/auth/me", async (
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userIdValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (!Guid.TryParse(userIdValue, out var userId))
+        return Results.Unauthorized();
+
+    var user = await db.Users.FirstOrDefaultAsync(x => x.Id == userId);
+    if (user is null)
+        return Results.Unauthorized();
+
+    return Results.Ok(ToCurrentUserDto(user));
+}).RequireAuthorization();
+
 app.Run();
 
 static Dictionary<string, string[]> ValidateCreation(CreateJobCardRequest req) 
@@ -218,3 +359,43 @@ static Dictionary<string, string[]> ValidateCore(string company, string role, st
 
     return errors;
 }   
+
+static string CreateJwt(UserEntity user, IConfiguration config)
+{
+    var issuer = config["Jwt:Issuer"]!;
+    var audience = config["Jwt:Audience"]!;
+    var key = config["Jwt:Key"]!;
+    var expiryMinutes = int.TryParse(config["Jwt:ExpiryMinutes"], out var parsed) ? parsed : 60;
+
+    var claims = new List<Claim>
+    {
+        new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new(ClaimTypes.Email, user.Email)
+    };
+
+    if (!string.IsNullOrWhiteSpace(user.DisplayName))
+    {
+        claims.Add(new Claim(ClaimTypes.Name, user.DisplayName));
+    }
+
+    var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+    var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+
+    var token = new JwtSecurityToken(
+        issuer: issuer,
+        audience: audience,
+        claims: claims,
+        expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
+        signingCredentials: credentials
+    );
+
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}
+
+static CurrentUserDto ToCurrentUserDto(UserEntity user) => new()
+{
+    Id = user.Id.ToString(),
+    Email = user.Email,
+    DisplayName = user.DisplayName,
+    IsAuthenticated = true
+};
