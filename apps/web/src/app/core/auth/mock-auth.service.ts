@@ -54,6 +54,14 @@ export class MockAuthService extends AuthService {
     this.localStorageService.removeItem(this.authStorageKey);
   }
 
+  public restoreSession(): Promise<CurrentUser | null> {
+    return Promise.resolve(this.getCurrentUser());
+  }
+
+  public override getAccessToken(): string | null {
+    return null;
+  }
+
   private unsureMockUserExists(): void {
     if (this.getCurrentUser()) {
       return;

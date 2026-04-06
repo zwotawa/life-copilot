@@ -1,20 +1,20 @@
 import { Injectable } from '@angular/core';
-import { MockAuthService } from '../auth/mock-auth.service';
 import { CurrentUser } from '../models/auth.model';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserContextService {
 
-  constructor(private mockAuthService: MockAuthService) { }
+  constructor(private authService: AuthService) { }
 
   public getCurrentUserId(): string {
-    return this.mockAuthService.getCurrentUser()?.id || 'local-demo-user';
+    return this.authService.getCurrentUser()?.id || 'local-demo-user';
   }
 
   public getCurrentUser(): CurrentUser {
-    const user = this.mockAuthService.getCurrentUser();
+    const user = this.authService.getCurrentUser();
 
     if (user) {
       return user;
@@ -29,7 +29,7 @@ export class UserContextService {
   }
 
   public isAuthenticated(): boolean {
-    return this.mockAuthService.isAuthenticated();
+    return this.authService.isAuthenticated();
   } 
 
 }
