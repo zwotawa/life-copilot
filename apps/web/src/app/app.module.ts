@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -43,6 +43,13 @@ import { WeeklyReviewRepository } from './core/repositories/weekly-review.reposi
 import { LocalWeeklyReviewService } from './core/services/local-weekly-review.service';
 import { DailyCompletionHistoryRepository } from './core/repositories/daily-completion-history.repository';
 import { LocalDailyCompletionHistoryService } from './core/services/local/local-daily-completion-history.service';
+import { ApiAuthService } from './core/auth/api-auth.service';
+
+export function initializeAuth(authService: AuthService): () => Promise<void> {
+  return async () => {
+    await authService.restoreSession();
+  };
+}
 
 @NgModule({
   declarations: [
@@ -81,12 +88,18 @@ import { LocalDailyCompletionHistoryService } from './core/services/local/local-
   ],
   providers: [
     JobService, 
-    {provide: AuthService, useClass: MockAuthService},
+    {provide: AuthService, useClass: ApiAuthService},
     {provide: GoalRepository, useClass: LocalGoalRepository},
     {provide: InboxRepository, useClass: LocalInboxService},
     {provide: DailyRotationRepository, useClass: LocalDailyRotationRepository},
     {provide: WeeklyReviewRepository, useClass: LocalWeeklyReviewService},
-    {provide: DailyCompletionHistoryRepository, useClass: LocalDailyCompletionHistoryService}
+    {provide: DailyCompletionHistoryRepository, useClass: LocalDailyCompletionHistoryService},
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeAuth,
+      deps: [AuthService],
+      multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

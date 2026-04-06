@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
   import { MockAuthService } from '../../core/auth/mock-auth.service';
+import { AuthService } from 'src/app/core/auth/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -12,7 +13,7 @@ export class LoginComponent {
   public error = '';
 
   constructor(
-    private readonly mockAuthService: MockAuthService,
+    private readonly authService: AuthService,
     private readonly router: Router
   ) {}
 
@@ -20,7 +21,7 @@ export class LoginComponent {
     this.error = '';
 
     try {
-      await this.mockAuthService.signIn(this.email, this.password);
+      await this.authService.signIn(this.email, this.password);
       await this.router.navigate(['/']);
     } catch (error) {
       console.error(error);
