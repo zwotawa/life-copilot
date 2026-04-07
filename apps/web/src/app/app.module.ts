@@ -44,6 +44,8 @@ import { LocalWeeklyReviewService } from './core/services/local-weekly-review.se
 import { DailyCompletionHistoryRepository } from './core/repositories/daily-completion-history.repository';
 import { LocalDailyCompletionHistoryService } from './core/services/local/local-daily-completion-history.service';
 import { ApiAuthService } from './core/auth/api-auth.service';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AuthTokenInterceptor } from './core/auth/auth-token-interceptor.service';
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
   return async () => {
@@ -98,6 +100,11 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,
       deps: [AuthService],
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthTokenInterceptor,
       multi: true
     }
   ],
