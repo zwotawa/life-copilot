@@ -8,13 +8,45 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "LifeCopilot API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter: Bearer {your JWT token}"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 //Db
 builder.Services.AddDbContext<LifeCopilotDbContext>(opt => 
@@ -101,8 +133,9 @@ app.Use(async (context, next) =>
 
     var isMutation = HttpMethods.IsPost(method) || HttpMethods.IsPut(method) || HttpMethods.IsDelete(method) || HttpMethods.IsPatch(method);
     var isAuth = path.StartsWith("/api/auth", StringComparison.OrdinalIgnoreCase);
+    var isGoals = path.StartsWith("/api/goals", StringComparison.OrdinalIgnoreCase);
 
-    if (!isMutation || isSwagger || isHealth || isAuth)
+    if (!isMutation || isSwagger || isHealth || isAuth || isGoals)
     {
         await next();
         return;
@@ -327,6 +360,124 @@ app.MapGet("/api/auth/me", async (
     return Results.Ok(ToCurrentUserDto(user));
 }).RequireAuthorization();
 
+app.MapGet("/api/goals", async (
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var goals = await db.Goals
+        .Where(x => x.UserId == userId.Value)
+        .OrderByDescending(x => x.UpdatedAt)
+        .ToListAsync();
+
+    return Results.Ok(goals.Select(ToGoalDto));
+}).RequireAuthorization();
+
+app.MapGet("/api/goals/{id}", async (
+    string id,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (!Guid.TryParse(id, out var goalId))
+        return Results.BadRequest("Invalid goal id.");
+
+    var goal = await db.Goals.FirstOrDefaultAsync(x => x.Id == goalId && x.UserId == userId.Value);
+    if (goal is null)
+        return Results.NotFound();
+
+    return Results.Ok(ToGoalDto(goal));
+}).RequireAuthorization();
+
+app.MapPost("/api/goals", async (
+    SaveGoalRequest req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (string.IsNullOrWhiteSpace(req.Title))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["title"] = ["Title is required."]
+        });
+    }
+
+    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+    var goal = new GoalEntity
+    {
+        Id = Guid.NewGuid(),
+        UserId = userId.Value,
+        Title = req.Title.Trim(),
+        Description = req.Description?.Trim(),
+        Lane = req.Lane,
+        Type = req.Type,
+        Status = req.Status,
+        DueStyle = req.DueStyle,
+        TouchFrequency = req.TouchFrequency,
+        SessionSize = req.SessionSize,
+        EnergyLevel = req.EnergyLevel,
+        CreatedAt = now,
+        UpdatedAt = now
+    };
+
+    db.Goals.Add(goal);
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToGoalDto(goal));
+}).RequireAuthorization();
+
+app.MapPut("/api/goals/{id}", async (
+    string id,
+    SaveGoalRequest req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (!Guid.TryParse(id, out var goalId))
+        return Results.BadRequest("Invalid goal id.");
+
+    var goal = await db.Goals.FirstOrDefaultAsync(x => x.Id == goalId && x.UserId == userId.Value);
+    if (goal is null)
+        return Results.NotFound();
+
+    if (string.IsNullOrWhiteSpace(req.Title))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["title"] = ["Title is required."]
+        });
+    }
+
+    goal.Title = req.Title.Trim();
+    goal.Description = req.Description?.Trim();
+    goal.Lane = req.Lane;
+    goal.Type = req.Type;
+    goal.Status = req.Status;
+    goal.DueStyle = req.DueStyle;
+    goal.TouchFrequency = req.TouchFrequency;
+    goal.SessionSize = req.SessionSize;
+    goal.EnergyLevel = req.EnergyLevel;
+    goal.UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToGoalDto(goal));
+}).RequireAuthorization();
+
 app.Run();
 
 static Dictionary<string, string[]> ValidateCreation(CreateJobCardRequest req) 
@@ -399,3 +550,26 @@ static CurrentUserDto ToCurrentUserDto(UserEntity user) => new()
     DisplayName = user.DisplayName,
     IsAuthenticated = true
 };
+
+static GoalDto ToGoalDto(GoalEntity goal) => new()
+{
+    Id = goal.Id.ToString(),
+    Title = goal.Title,
+    Description = goal.Description,
+    Lane = goal.Lane,
+    Type = goal.Type,
+    Status = goal.Status,
+    DueStyle = goal.DueStyle,
+    TouchFrequency = goal.TouchFrequency,
+    SessionSize = goal.SessionSize,
+    EnergyLevel = goal.EnergyLevel,
+    CreatedAt = goal.CreatedAt,
+    UpdatedAt = goal.UpdatedAt,
+    LastTouchedAt = goal.LastTouchedAt
+};
+
+static Guid? GetCurrentUserId(ClaimsPrincipal principal)
+{
+    var raw = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+    return Guid.TryParse(raw, out var userId) ? userId : null;
+}
