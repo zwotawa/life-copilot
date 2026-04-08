@@ -62,6 +62,10 @@ export class MockAuthService extends AuthService {
     return null;
   }
 
+  public isSignedIn(): boolean {
+    return !!this.getCurrentUser();
+  }
+
   private unsureMockUserExists(): void {
     if (this.getCurrentUser()) {
       return;

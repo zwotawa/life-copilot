@@ -3,14 +3,14 @@
     Life Copilot
   </a>
 
-  <a routerLink="/daily" class="nav-link">Daily</a>
-  <a routerLink="/weekly" class="nav-link">Weekly</a>
-  <a routerLink="/inbox" class="nav-link">Inbox</a>
-  <a routerLink="/goals" class="nav-link">Goals</a>
+  <a *ngIf="isSignedIn" routerLink="/daily" class="nav-link">Daily</a>
+  <a *ngIf="isSignedIn" routerLink="/weekly" class="nav-link">Weekly</a>
+  <a *ngIf="isSignedIn" routerLink="/inbox" class="nav-link">Inbox</a>
+  <a *ngIf="isSignedIn" routerLink="/goals" class="nav-link">Goals</a>
 
   <span class="spacer"></span>
 
-  <button mat-button (click)="logout()">Log out</button>
+  <button *ngIf="isSignedIn" mat-button (click)="logout()">Log out</button>
 
 </mat-toolbar>
 

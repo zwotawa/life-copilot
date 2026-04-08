@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { MockAuthService } from './core/auth/mock-auth.service';
 import { AuthService } from './core/auth/auth.service';
 
 @Component({
@@ -20,5 +19,9 @@ export class AppComponent {
     await this.authService.signOut().then(
       () => this.router.navigate(['/login'])
     );
+  }
+
+  public get isSignedIn(): boolean {
+    return this.authService.isSignedIn();
   }
 }

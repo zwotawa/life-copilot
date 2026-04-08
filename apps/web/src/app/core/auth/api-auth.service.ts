@@ -76,4 +76,8 @@ export class ApiAuthService extends AuthService {
       return null;
     }
   }
+
+  public isSignedIn(): boolean {
+    return !!this.currentUser
+  }
 }

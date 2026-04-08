@@ -7,4 +7,5 @@ export abstract class AuthService {
   abstract signOut(): Promise<void>;
   abstract restoreSession(): Promise<CurrentUser | null>;
   abstract getAccessToken(): string | null;
+  abstract isSignedIn(): boolean;
 }
