@@ -12,7 +12,7 @@ import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-st
   styleUrls: ['./weekly-review-page.component.scss']
 })
 export class WeeklyReviewPageComponent implements OnInit {
-  public goals: Goal[] = [];
+  private goals: Goal[] = [];
   public review!: WeeklyReviewState;
   public weeklyInsights = this.weeklyInsightService.getLast7DaysInsights();
 
@@ -20,12 +20,18 @@ export class WeeklyReviewPageComponent implements OnInit {
     private goalStoreService: GoalStoreService,
     private weeklyReviewStoreService: WeeklyReviewStoreService,
     private goalSurfacingService: GoalSurfacingService,
-    private weeklyInsightService: WeeklyInsightService
+    private weeklyInsightService: WeeklyInsightService  
   ) {}
 
   ngOnInit(): void {
-    this.goals = this.goalStoreService.getGoals();
+    this.extractGoals();
     this.review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
+  }
+
+  private extractGoals(): void {
+    this.goalStoreService.getGoals().subscribe({
+      next: (goals) => this.goals = goals
+    })
   }
 
   public save(): void {

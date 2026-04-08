@@ -10,7 +10,7 @@ import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthTokenInterceptor implements HttpInterceptor {
-  private readonly apiBaseUrl = 'http://localhost:5125/api';
+  private readonly apiBaseUrl = '/api';
 
   constructor(private authService: AuthService) {}
 

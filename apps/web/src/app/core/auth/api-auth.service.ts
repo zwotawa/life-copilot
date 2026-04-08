@@ -15,7 +15,7 @@ interface AuthResponse {
 export class ApiAuthService extends AuthService {
   private currentUser: CurrentUser | null = null;
   private readonly accessTokenStorageKey = 'lifeCopilot.auth.accessToken';
-  private readonly apiBaseUrl = 'http://localhost:5125/api';
+  private readonly apiBaseUrl = '/api';
 
   constructor(private http: HttpClient) {
     super();

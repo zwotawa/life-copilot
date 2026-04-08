@@ -46,6 +46,7 @@ import { LocalDailyCompletionHistoryService } from './core/services/local/local-
 import { ApiAuthService } from './core/auth/api-auth.service';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthTokenInterceptor } from './core/auth/auth-token-interceptor.service';
+import { ApiGoalRepository } from './core/services/api-goal-repository.service';
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
   return async () => {
@@ -89,9 +90,8 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     MatCheckboxModule
   ],
   providers: [
-    JobService, 
     {provide: AuthService, useClass: ApiAuthService},
-    {provide: GoalRepository, useClass: LocalGoalRepository},
+    {provide: GoalRepository, useClass: ApiGoalRepository},
     {provide: InboxRepository, useClass: LocalInboxService},
     {provide: DailyRotationRepository, useClass: LocalDailyRotationRepository},
     {provide: WeeklyReviewRepository, useClass: LocalWeeklyReviewService},

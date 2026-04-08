@@ -39,8 +39,8 @@ public class LifeCopilotDbContext : DbContext
             .HasMaxLength(200);
 
         modelBuilder.Entity<GoalEntity>()
-            .Property(x => x.Description)
-            .HasMaxLength(4000);
+            .Property(x => x.WhyItMatters)
+            .HasMaxLength(2000);
 
         modelBuilder.Entity<GoalEntity>()
             .Property(x => x.Lane)
@@ -53,5 +53,45 @@ public class LifeCopilotDbContext : DbContext
         modelBuilder.Entity<GoalEntity>()
             .Property(x => x.Status)
             .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.Priority)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.DueStyle)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.MinimumTouchFrequency)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.CurrentMilestone)
+            .HasMaxLength(1000);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.NextTinyAction)
+            .HasMaxLength(1000);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.TypicalSessionSize)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.Energy)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.Resistance)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.Excitement)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.Notes)
+            .HasMaxLength(8000);
     }
 }

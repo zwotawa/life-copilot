@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Goal } from '../models/goal.model';
 import { GoalStoreService } from './goal-store.service';
 import { InboxStoreService } from './inbox-store.service';
+import { map, Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,29 +13,30 @@ export class GoalCreationWorkflowService {
     private readonly inboxStoreService: InboxStoreService
   ) {}
 
-  public createGoal(goalDraft: Goal, sourceInboxItemId?: string): Goal {
+  public createGoal(goalDraft: Goal, sourceInboxItemId?: string): Observable<Goal> {
     const now = new Date().toISOString();
 
     const newGoal: Goal = {
       ...goalDraft,
-      id: goalDraft.title.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now(),
+      id: '',
       createdAt: now,
       updatedAt: now
     };
 
-    this.goalStoreService.addGoal(newGoal);
-
-    if (sourceInboxItemId) {
-      this.inboxStoreService.markAsConverted(sourceInboxItemId, newGoal.id);
-    }
-
-    return newGoal;
+    return this.goalStoreService.addGoal(newGoal).pipe(
+      tap(() => {
+        if (sourceInboxItemId) {
+          this.inboxStoreService.markAsConverted(sourceInboxItemId, newGoal.id);
+        }
+      }),
+      map(() =>  newGoal)
+    );
   }
 
-  public updateGoal(goal: Goal): void {
+  public updateGoal(goal: Goal): Observable<Goal> {
     const now = new Date().toISOString();
 
-    this.goalStoreService.updateGoal({
+    return this.goalStoreService.updateGoal({
       ...goal,
       updatedAt: now
     });

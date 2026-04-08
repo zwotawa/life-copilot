@@ -415,21 +415,30 @@ app.MapPost("/api/goals", async (
     var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
     var goal = new GoalEntity
-    {
-        Id = Guid.NewGuid(),
-        UserId = userId.Value,
-        Title = req.Title.Trim(),
-        Description = req.Description?.Trim(),
-        Lane = req.Lane,
-        Type = req.Type,
-        Status = req.Status,
-        DueStyle = req.DueStyle,
-        TouchFrequency = req.TouchFrequency,
-        SessionSize = req.SessionSize,
-        EnergyLevel = req.EnergyLevel,
-        CreatedAt = now,
-        UpdatedAt = now
-    };
+{
+    Id = Guid.NewGuid(),
+    UserId = userId.Value,
+    Title = req.Title.Trim(),
+    WhyItMatters = req.WhyItMatters?.Trim(),
+    Lane = req.Lane,
+    Type = req.Type,
+    Status = req.Status,
+    Priority = req.Priority,
+    DueStyle = req.DueStyle,
+    RealDeadline = req.RealDeadline,
+    TargetDate = req.TargetDate,
+    MinimumTouchFrequency = req.MinimumTouchFrequency,
+    CurrentMilestone = req.CurrentMilestone?.Trim(),
+    NextTinyAction = req.NextTinyAction?.Trim(),
+    TypicalSessionSize = req.TypicalSessionSize,
+    Energy = req.Energy,
+    Resistance = req.Resistance,
+    Excitement = req.Excitement,
+    LastTouchedAt = req.LastTouchedAt,
+    Notes = req.Notes,
+    CreatedAt = string.IsNullOrWhiteSpace(req.CreatedAt) ? DateTime.UtcNow.ToString("O") : req.CreatedAt,
+    UpdatedAt = string.IsNullOrWhiteSpace(req.UpdatedAt) ? DateTime.UtcNow.ToString("O") : req.UpdatedAt
+};
 
     db.Goals.Add(goal);
     await db.SaveChangesAsync();
@@ -463,19 +472,53 @@ app.MapPut("/api/goals/{id}", async (
     }
 
     goal.Title = req.Title.Trim();
-    goal.Description = req.Description?.Trim();
+    goal.WhyItMatters = req.WhyItMatters?.Trim();
     goal.Lane = req.Lane;
     goal.Type = req.Type;
     goal.Status = req.Status;
+    goal.Priority = req.Priority;
     goal.DueStyle = req.DueStyle;
-    goal.TouchFrequency = req.TouchFrequency;
-    goal.SessionSize = req.SessionSize;
-    goal.EnergyLevel = req.EnergyLevel;
-    goal.UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    goal.RealDeadline = req.RealDeadline;
+    goal.TargetDate = req.TargetDate;
+    goal.MinimumTouchFrequency = req.MinimumTouchFrequency;
+    goal.CurrentMilestone = req.CurrentMilestone?.Trim();
+    goal.NextTinyAction = req.NextTinyAction?.Trim();
+    goal.TypicalSessionSize = req.TypicalSessionSize;
+    goal.Energy = req.Energy;
+    goal.Resistance = req.Resistance;
+    goal.Excitement = req.Excitement;
+    goal.LastTouchedAt = req.LastTouchedAt;
+    goal.Notes = req.Notes;
+    goal.CreatedAt = req.CreatedAt;
+    goal.UpdatedAt = string.IsNullOrWhiteSpace(req.UpdatedAt)
+        ? DateTime.UtcNow.ToString("O")
+        : req.UpdatedAt;
 
     await db.SaveChangesAsync();
 
     return Results.Ok(ToGoalDto(goal));
+}).RequireAuthorization();
+
+app.MapDelete("/api/goals/{id}", async (
+    string id,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (!Guid.TryParse(id, out var goalId))
+        return Results.BadRequest("Invalid goal id.");
+
+    var goal = await db.Goals.FirstOrDefaultAsync(x => x.Id == goalId && x.UserId == userId.Value);
+    if (goal is null)
+        return Results.NotFound();
+
+    db.Goals.Remove(goal);
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
 }).RequireAuthorization();
 
 app.Run();
@@ -555,17 +598,25 @@ static GoalDto ToGoalDto(GoalEntity goal) => new()
 {
     Id = goal.Id.ToString(),
     Title = goal.Title,
-    Description = goal.Description,
+    WhyItMatters = goal.WhyItMatters,
     Lane = goal.Lane,
     Type = goal.Type,
     Status = goal.Status,
+    Priority = goal.Priority,
     DueStyle = goal.DueStyle,
-    TouchFrequency = goal.TouchFrequency,
-    SessionSize = goal.SessionSize,
-    EnergyLevel = goal.EnergyLevel,
+    RealDeadline = goal.RealDeadline,
+    TargetDate = goal.TargetDate,
+    MinimumTouchFrequency = goal.MinimumTouchFrequency,
+    CurrentMilestone = goal.CurrentMilestone,
+    NextTinyAction = goal.NextTinyAction,
+    TypicalSessionSize = goal.TypicalSessionSize,
+    Energy = goal.Energy,
+    Resistance = goal.Resistance,
+    Excitement = goal.Excitement,
+    LastTouchedAt = goal.LastTouchedAt,
+    Notes = goal.Notes,
     CreatedAt = goal.CreatedAt,
-    UpdatedAt = goal.UpdatedAt,
-    LastTouchedAt = goal.LastTouchedAt
+    UpdatedAt = goal.UpdatedAt
 };
 
 static Guid? GetCurrentUserId(ClaimsPrincipal principal)

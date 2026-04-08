@@ -11,6 +11,7 @@ import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-st
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
 import { DashboardExecutionSnapshot } from 'src/app/core/models/dashboard-execution-snapshot.model';
 import { DashboardInsightService } from 'src/app/core/services/dashboard-insight.service';
+import { Observable } from 'rxjs';
 
 
 interface GoalFreshnessView {
@@ -26,7 +27,7 @@ interface GoalFreshnessView {
 export class DashboardPageComponent implements OnInit {
   public goals: Goal[] = [];
   public review!: WeeklyReviewState;
-  public dailyRotation: DailyRotationItem[] = [];
+  public dailyRotation$: Observable<DailyRotationItem[]> = new Observable();
 
   public activeInboxCount = 0;
   public newInboxCount = 0;
@@ -46,7 +47,7 @@ export class DashboardPageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.goals = this.goalStoreService.getGoals();
+    this.extractGoals();
     this.review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
     this.loadDailySelections();
     this.loadInboxSummary();
@@ -131,7 +132,7 @@ export class DashboardPageComponent implements OnInit {
   }
 
   public  loadDailySelections(): void {
-    this.dailyRotation = this.planningWorkflowService.getOrCreateDailyRotation();
+    this.dailyRotation$ = this.planningWorkflowService.getOrCreateDailyRotation();
   }
 
   public loadInboxSummary(): void {
@@ -235,5 +236,11 @@ export class DashboardPageComponent implements OnInit {
 
   private loadExecutionSnapshot(): void {
     this.executionSnapshot = this.dashboardInsightService.getExecutionSnapshot();
+  }
+
+  private extractGoals(): void {
+    this.goalStoreService.getGoals().subscribe({
+      next: (goals) => this.goals = goals
+    })
   }
 }

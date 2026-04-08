@@ -56,11 +56,15 @@ export class DailyRotationPageComponent implements OnInit {
   }
 
   public generateDailyRotation(): void {
-    this.rotationItems = this.planningWorkflowService.refreshTodayPlan();
+    this.planningWorkflowService.refreshTodayPlan().subscribe({
+      next: dailyRotationItems => this.rotationItems = dailyRotationItems
+    });
   }
 
   public toggleCompleted(item: DailyRotationItem): void {
-    this.rotationItems = this.planningWorkflowService.toggleRotationItemCompleted(item.id);
+    this.planningWorkflowService.toggleRotationItemCompleted(item.id).subscribe({
+      next: dailyRotationItems => this.rotationItems = dailyRotationItems
+    });
   }
 
   public getCategoryLabel(category: DailyRotationItem['category']): string {
@@ -102,11 +106,15 @@ export class DailyRotationPageComponent implements OnInit {
   }
 
   public replaceItem(item: DailyRotationItem): void {
-    this.rotationItems = this.planningWorkflowService.replaceRotationItem(item.id);
+    this.planningWorkflowService.replaceRotationItem(item.id).subscribe({
+      next: replacementItems => this.rotationItems = replacementItems
+    });
   }
 
   private loadDailySelections(): void {
-    this.rotationItems = this.planningWorkflowService.getOrCreateDailyRotation();
+    this.planningWorkflowService.getOrCreateDailyRotation().subscribe({
+      next: rotationItems => this.rotationItems = rotationItems
+    });
     this.activeCompletionDays = this.planningWorkflowService.getLastSevenDaysCompletions();
   }
 }

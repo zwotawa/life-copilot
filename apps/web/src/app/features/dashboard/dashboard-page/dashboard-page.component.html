@@ -158,7 +158,7 @@
         <div class="dashboard-rotation-list">
           <article
             class="dashboard-rotation-item"
-            *ngFor="let item of dailyRotation; trackBy: trackByRotationId"
+            *ngFor="let item of dailyRotation$ | async; trackBy: trackByRotationId"
           >
             <div class="dashboard-rotation-item__eyebrow">
               {{ getCategoryLabel(item.category) }}

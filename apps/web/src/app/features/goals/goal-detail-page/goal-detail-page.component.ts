@@ -26,7 +26,13 @@ export class GoalDetailPageComponent implements OnInit {
   }
 
   private loadGoalDetails(goalId: string): void {
-    this.goal = this.goalStoreService.getGoalById(goalId) || <Goal>{};
+    if(goalId === 'new') {
+      this.goal = <Goal>{};
+      return; 
+    }
+    this.goalStoreService.getGoalById(goalId).subscribe({
+      next: (goal) => this.goal = goal || <Goal>{}
+    })
   }
 
 }

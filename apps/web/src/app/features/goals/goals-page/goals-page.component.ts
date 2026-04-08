@@ -19,7 +19,13 @@ export class GoalsPageComponent implements OnInit {
 
   ngOnInit(): void {
     //this.goalStoreService.saveGoals(SEED_GOALS);
-    this.goals = this.goalStoreService.getGoals();
+    this.extractGoals();
+  }
+
+   private extractGoals(): void {
+    this.goalStoreService.getGoals().subscribe({
+      next: (goals) => this.goals = goals
+    })
   }
 
   get filteredGoals(): Goal[] {

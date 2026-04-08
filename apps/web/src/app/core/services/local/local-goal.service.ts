@@ -3,6 +3,7 @@ import { Injectable } from "@angular/core";
 import { StorageKeyService } from "./storage-key.service";
 import { LocalStorageService } from "./local-storage.service";
 import { GoalRepository } from "../../repositories/goal.repository";
+import { Observable, of } from "rxjs";
 
 const MAX_ITEMS = 200;
 
@@ -36,7 +37,27 @@ export class LocalGoalRepository extends GoalRepository {
     this.localStorageService.setItem(newKey, legacyValue);
   }
 
-  public getGoals(): Goal[] {
+  public getGoals(): Observable<Goal[]> {
+    this.migrateLegacyIfNeeded();
+
+    try {
+      const raw = this.localStorageService.getItem(this.storageKey);
+      if (!raw) return of([]);
+
+      const parsed = JSON.parse(raw) as Goal[];
+      return of(Array.isArray(parsed) ? parsed.slice(0, MAX_ITEMS) : []);
+    } catch (error) {
+      console.error("Error parsing goals from localStorage:", error);
+      return of([]);
+    }
+  }
+
+  public getGoalById(id: string): Observable<Goal | undefined> {
+    const goals = this.readGoals();
+    return of(goals.find(goal => goal.id === id));
+  }
+
+  private readGoals(): Goal[] {
     this.migrateLegacyIfNeeded();
 
     try {
@@ -51,10 +72,6 @@ export class LocalGoalRepository extends GoalRepository {
     }
   }
 
-  public getGoalById(id: string): Goal | undefined {
-    return this.getGoals().find(goal => goal.id === id);
-  }
-
   private saveGoals(goals: Goal[]): void {
     this.localStorageService.setItem(
       this.storageKey,
@@ -62,51 +79,58 @@ export class LocalGoalRepository extends GoalRepository {
     );
   }
 
-  public addGoal(goal: Goal): void {
-    const storedGoals = this.getGoals();
+  public addGoal(goal: Goal): Observable<Goal> {
+    const storedGoals = this.readGoals();
     const updatedGoals = [goal, ...storedGoals];
     this.saveGoals(updatedGoals);
+    return of(goal);
   }
 
-  public updateGoal(newGoal: Goal): void {
-    const storedGoals = this.getGoals();
+  public updateGoal(newGoal: Goal): Observable<Goal> {
+    const storedGoals = this.readGoals();
     const updatedGoals = storedGoals.map(goal =>
       goal.id === newGoal.id ? newGoal : goal
     );
     this.saveGoals(updatedGoals);
+    return of(newGoal);
   }
 
-  public archiveGoalById(idToArchive: string): void {
+  public archiveGoalById(idToArchive: string): Observable<Goal> {
     const archived: GoalStatus = 'archived';
-    const storedGoals = this.getGoals();
+    const storedGoals = this.readGoals();
+    let updatedGoal: Goal = <Goal>{};
     const updatedGoals = storedGoals.map(goal =>
       goal.id === idToArchive
-        ? { ...goal, status: archived }
+        ? updatedGoal = { ...goal, status: archived }
         : goal
     );
     this.saveGoals(updatedGoals);
+    return of(updatedGoal);
   }
 
-  public markGoalTouched(idToMark: string): void {
+  public markGoalTouched(idToMark: string): Observable<Goal> {
     const now = new Date().toISOString();
-    const storedGoals = this.getGoals();
+    const storedGoals = this.readGoals();
+    let updatedGoal: Goal = <Goal>{};
 
     const updatedGoals = storedGoals.map(goal =>
       goal.id === idToMark
-        ? {
+        ? updatedGoal = {
             ...goal,
             lastTouchedAt: now,
-            lastUpdatedAt: now
+            updatedAt: now
           }
         : goal
     );
 
     this.saveGoals(updatedGoals);
+    return of(updatedGoal);
   }
 
-  public deleteGoal(id: string): void {
-    const storedGoals = this.getGoals();
+  public deleteGoal(id: string): Observable<void> {
+    const storedGoals = this.readGoals();
     const updatedGoals = storedGoals.filter(goal => goal.id !== id);
     this.saveGoals(updatedGoals);
+    return of(void 0);
   }
 }

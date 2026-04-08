@@ -7,6 +7,7 @@ import { Goal } from '../models/goal.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { RotationEngineService } from './rotation-engine.service';
 import { DailyCompletionHistoryStoreService } from './daily-completion-history-store.service';
+import { map, Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -21,43 +22,50 @@ export class PlanningWorkflowService {
     private dailyCompletionHistoryStoreService: DailyCompletionHistoryStoreService
   ) { }
 
-  public getOrCreateDailyRotation(): DailyRotationItem[] {
+  public getOrCreateDailyRotation(): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
     const saved: DailyRotationItem[] = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
     if(saved.length > 0) {
-      return saved;
+      return of(saved);
     }
 
-    const todayPlan = this.resetTodayPlan();
-    this.saveDailyCompletionSummary(todayPlan);
+    return this.resetTodayPlan().pipe(
+      map((todayPlan: DailyRotationItem[]) => {
+        this.saveDailyCompletionSummary(todayPlan);
+        return todayPlan;
+      })
+    );
     
-    return todayPlan;
   }
 
 
 
-  private regenerateDailyRotation(): DailyRotationItem[] {
+  private regenerateDailyRotation(): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
-    const goals: Goal[] = this.goalStoreService.getGoals();
     const weeklyReview: WeeklyReviewState = this.weeklyReviewStoreService.getCurrentWeeklyReview();
 
-    const newRotationItems = this.dailyRotationStoreService.generateDailyRotationForDate(today, goals, weeklyReview);
-    this.saveDailyCompletionSummary(newRotationItems);
-    return newRotationItems;
+    return this.goalStoreService.getGoals().pipe(
+      map((goals: Goal[]) => {
+        const newRotationItems = this.dailyRotationStoreService.generateDailyRotationForDate(today, goals, weeklyReview);
+
+        this.saveDailyCompletionSummary(newRotationItems);
+        return newRotationItems;
+      })
+    );
   }
 
 
   //wrapper functions for wording clarity
-  public refreshTodayPlan(): DailyRotationItem[] {
+  public refreshTodayPlan(): Observable<DailyRotationItem[]> {
     return this.regenerateDailyRotationPreservingCompleted();
   }
 
-  private resetTodayPlan(): DailyRotationItem[] {
+  private resetTodayPlan(): Observable<DailyRotationItem[]> {
     return this.regenerateDailyRotation();
   }
 
-  private regenerateDailyRotationPreservingCompleted(): DailyRotationItem[] {
+  private regenerateDailyRotationPreservingCompleted(): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
     const currentItems = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
@@ -65,82 +73,102 @@ export class PlanningWorkflowService {
       return this.resetTodayPlan();
     }
 
-    const freshItems = this.buildFreshRotationCandidates();
+    return this.buildFreshRotationCandidates().pipe(
+      map((freshItems) => {
+        const usedGoalIds = new Set(
+          currentItems
+            .filter(item => item.completed && item.goalId)
+            .map(item => item.goalId as string)
+        );
 
-    const usedGoalIds = new Set(
-      currentItems
-        .filter(item => item.completed && item.goalId)
-        .map(item => item.goalId as string)
+        const updatedItems = currentItems.map(currentItem => {
+          if (currentItem.completed) {
+            return currentItem;
+          }
+
+          const replacement = this.pickReplacementForCategory(
+            currentItem,
+            freshItems,
+            usedGoalIds,
+            today
+          );
+
+          if (!replacement) {
+            return currentItem;
+          }
+
+          if (replacement.goalId) {
+            usedGoalIds.add(replacement.goalId);
+          }
+
+          return replacement;
+        });
+
+        this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
+        this.saveDailyCompletionSummary(updatedItems);
+        return updatedItems;
+      })
     );
 
-    const updatedItems = currentItems.map(currentItem => {
-      if (currentItem.completed) {
-        return currentItem;
-      }
-
-      const replacement = this.pickReplacementForCategory(
-        currentItem,
-        freshItems,
-        usedGoalIds,
-        today
-      );
-
-      if (!replacement) {
-        return currentItem;
-      }
-
-      if (replacement.goalId) {
-        usedGoalIds.add(replacement.goalId);
-      }
-
-      return replacement;
-    });
-
-    this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
-    this.saveDailyCompletionSummary(updatedItems);
-    return updatedItems;
+    
   }
 
-  public setRotationItemCompleted(
+  public setRotationItemCompletedOrUncompleted(
     itemId: string,
     completed: boolean
-  ): DailyRotationItem[] {
+  ): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
     const items = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
     const target = items.find(item => item.id === itemId);
     if (!target) {
-      return items;
+      return of(items);
     }
 
     const wasCompleted = target.completed;
 
-    const updatedItems = items.map(item =>
-      item.id === itemId
-        ? { ...item, completed }
-        : item
-    );
-
-    this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
-    this.saveDailyCompletionSummary(updatedItems);
-
     if (!wasCompleted && completed && target.goalId) {
-      this.goalStoreService.markGoalTouched(target.goalId);
-    }
+      return this.goalStoreService.markGoalTouched(target.goalId).pipe(
+        map(() => {
+          const updatedItems = items.map(item =>
+            item.id === itemId
+              ? { ...item, completed }
+              : item
+            );
+            this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
+            this.saveDailyCompletionSummary(updatedItems);
+            return updatedItems;
+        }));
+    } 
 
-    return updatedItems;
+    if(wasCompleted && !completed && target.goalId) {
+      return this.goalStoreService.markGoalTouched(target.goalId).pipe(
+        map(() => {
+          const updatedItems = items.map(item =>
+            item.id === itemId
+              ? { ...item, completed }
+              : item
+            );
+            this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
+            this.saveDailyCompletionSummary(updatedItems);
+            return updatedItems;
+        }));
+    } else {
+      return of(items);
+    }
+    
   }
 
-  public toggleRotationItemCompleted(itemId: string): DailyRotationItem[] {
+  public toggleRotationItemCompleted(itemId: string): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
     const items = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
     const target = items.find(item => item.id === itemId);
     if (!target) {
-      return items;
+      return of(items);
     }
 
-    return this.setRotationItemCompleted(itemId, !target.completed);
+    return this.setRotationItemCompletedOrUncompleted(itemId, !target.completed);
   }
 
   public getLastSevenDaysCompletions(): number {
@@ -158,35 +186,39 @@ export class PlanningWorkflowService {
     return new Date().toISOString().slice(0, 10);
   }
 
-   public replaceRotationItem(itemId: string): DailyRotationItem[] {
+   public replaceRotationItem(itemId: string): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
     const currentItems = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
     const itemToReplace = currentItems.find(item => item.id === itemId);
     if (!itemToReplace) {
-      return currentItems;
+      return of(currentItems);
     }
 
-    const freshItems = this.buildFreshRotationCandidates();
+    return this.buildFreshRotationCandidates().pipe(
+      map((freshItems) => {
+        const replacement = this.pickReplacementCandidate(
+          itemToReplace,
+          currentItems,
+          freshItems,
+          today
+        );
 
-    const replacement = this.pickReplacementCandidate(
-      itemToReplace,
-      currentItems,
-      freshItems,
-      today
+        if (!replacement) {
+          return currentItems;
+        }
+
+        const updatedItems = currentItems.map(item =>
+          item.id === itemId ? replacement : item
+        );
+
+        this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
+        this.saveDailyCompletionSummary(updatedItems);
+        return updatedItems;
+      })
     );
 
-    if (!replacement) {
-      return currentItems;
-    }
-
-    const updatedItems = currentItems.map(item =>
-      item.id === itemId ? replacement : item
-    );
-
-    this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
-    this.saveDailyCompletionSummary(updatedItems);
-    return updatedItems;
+    
   }
 
   private pickReplacementCandidate(
@@ -266,10 +298,13 @@ export class PlanningWorkflowService {
   };
 }
 
-private buildFreshRotationCandidates(): DailyRotationItem[] {
-  const goals = this.goalStoreService.getGoals();
+private buildFreshRotationCandidates(): Observable<DailyRotationItem[]> {
   const review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
-  return this.rotationEngineService.generateDailyRotation(goals, review);
+  return this.goalStoreService.getGoals().pipe(
+    map((goals: Goal[]) => {
+      return this.rotationEngineService.generateDailyRotation(goals, review);
+    })
+  );
 }
 
 private saveDailyCompletionSummary(items: DailyRotationItem[]): void {
