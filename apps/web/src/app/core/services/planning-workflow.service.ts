@@ -7,7 +7,8 @@ import { Goal } from '../models/goal.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { RotationEngineService } from './rotation-engine.service';
 import { DailyCompletionHistoryStoreService } from './daily-completion-history-store.service';
-import { map, Observable, of } from 'rxjs';
+import { map, Observable, of, switchMap } from 'rxjs';
+import { GoalProgressStoreService } from './goal-progress-store.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,8 @@ export class PlanningWorkflowService {
     private weeklyReviewStoreService: WeeklyReviewStoreService,
     private dailyRotationStoreService: DailyRotationStoreService,
     private rotationEngineService: RotationEngineService,
-    private dailyCompletionHistoryStoreService: DailyCompletionHistoryStoreService
+    private dailyCompletionHistoryStoreService: DailyCompletionHistoryStoreService,
+    private goalProgressStoreService: GoalProgressStoreService
   ) { }
 
   public getOrCreateDailyRotation(): Observable<DailyRotationItem[]> {
@@ -125,38 +127,52 @@ export class PlanningWorkflowService {
       return of(items);
     }
 
-    const wasCompleted = target.completed;
+    const updatedItems = items.map(item =>
+      item.id === itemId
+        ? { ...item, completed }
+        : item
+    );
 
-    if (!wasCompleted && completed && target.goalId) {
-      return this.goalStoreService.markGoalTouched(target.goalId).pipe(
-        map(() => {
-          const updatedItems = items.map(item =>
-            item.id === itemId
-              ? { ...item, completed }
-              : item
-            );
-            this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
-            this.saveDailyCompletionSummary(updatedItems);
-            return updatedItems;
-        }));
-    } 
+    const persistUpdatedItems = (): Observable<DailyRotationItem[]> => {
+      this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
+      this.saveDailyCompletionSummary(updatedItems);
+      return of(updatedItems);
+    };
 
-    if(wasCompleted && !completed && target.goalId) {
+    if (completed && target.goalId) {
       return this.goalStoreService.markGoalTouched(target.goalId).pipe(
-        map(() => {
-          const updatedItems = items.map(item =>
-            item.id === itemId
-              ? { ...item, completed }
-              : item
-            );
-            this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
-            this.saveDailyCompletionSummary(updatedItems);
-            return updatedItems;
-        }));
-    } else {
-      return of(items);
+        switchMap(() => {
+          if (!target.goalId) {
+            return persistUpdatedItems();
+          }
+
+          return this.goalProgressStoreService.addEvent({
+            id: `progress-${Date.now()}`,
+            goalId: target.goalId,
+            date: today,
+            createdAt: new Date().toISOString(),
+            type: 'daily_task_completed',
+            taskText: target.actionText,
+            source: 'daily_rotation',
+            sourceItemId: target.id
+          }).pipe(
+            switchMap(() => persistUpdatedItems())
+          )
+        })
+      );
     }
-    
+
+    return this.goalProgressStoreService.getEventBySourceItemId(target.id).pipe(
+      switchMap(existingEvent => {
+        if (!existingEvent) {
+          return persistUpdatedItems();
+        }
+
+        return this.goalProgressStoreService.deleteEvent(existingEvent.id).pipe(
+          switchMap(() => persistUpdatedItems())
+        )
+      })
+    )
   }
 
   public toggleRotationItemCompleted(itemId: string): Observable<DailyRotationItem[]> {

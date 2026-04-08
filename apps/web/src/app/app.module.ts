@@ -47,6 +47,8 @@ import { ApiAuthService } from './core/auth/api-auth.service';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthTokenInterceptor } from './core/auth/auth-token-interceptor.service';
 import { ApiGoalRepository } from './core/services/api-goal-repository.service';
+import { GoalProgressRepository } from './core/repositories/goal-progress.repository';
+import { LocalGoalProgressRepository } from './core/services/local/local-goal-progress-repository.service';
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
   return async () => {
@@ -96,6 +98,7 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     {provide: DailyRotationRepository, useClass: LocalDailyRotationRepository},
     {provide: WeeklyReviewRepository, useClass: LocalWeeklyReviewService},
     {provide: DailyCompletionHistoryRepository, useClass: LocalDailyCompletionHistoryService},
+    {provide: GoalProgressRepository, useClass: LocalGoalProgressRepository},
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,
