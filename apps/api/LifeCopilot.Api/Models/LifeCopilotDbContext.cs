@@ -10,6 +10,7 @@ public class LifeCopilotDbContext : DbContext
     public DbSet<JobCardEntity> JobCards => Set<JobCardEntity>();
     public DbSet<UserEntity> Users => Set<UserEntity>();
     public DbSet<GoalEntity> Goals => Set<GoalEntity>();
+    public DbSet<WeeklyReviewEntity> WeeklyReviews => Set<WeeklyReviewEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -91,6 +92,26 @@ public class LifeCopilotDbContext : DbContext
             .HasMaxLength(100);
 
         modelBuilder.Entity<GoalEntity>()
+            .Property(x => x.Notes)
+            .HasMaxLength(8000);
+
+        modelBuilder.Entity<WeeklyReviewEntity>()
+            .HasIndex(x => new { x.UserId, x.WeekStartDate })
+            .IsUnique();
+
+        modelBuilder.Entity<WeeklyReviewEntity>()
+            .Property(x => x.WeekStartDate)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<WeeklyReviewEntity>()
+            .Property(x => x.InfrastructureGoalId)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<WeeklyReviewEntity>()
+            .Property(x => x.CreativeGoalId)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<WeeklyReviewEntity>()
             .Property(x => x.Notes)
             .HasMaxLength(8000);
     }

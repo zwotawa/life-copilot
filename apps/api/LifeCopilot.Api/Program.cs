@@ -2,6 +2,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using LifeCopilot.Api.Data;
 using LifeCopilot.Api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -521,6 +522,125 @@ app.MapDelete("/api/goals/{id}", async (
     return Results.NoContent();
 }).RequireAuthorization();
 
+app.MapGet("/api/weekly-review/current", async (
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var weekStartDate = GetStartOfWeekIso(DateTime.UtcNow);
+
+    var existing = await db.WeeklyReviews
+        .FirstOrDefaultAsync(x => x.UserId == userId.Value && x.WeekStartDate == weekStartDate);
+
+    if (existing is null)
+    {
+        var now = DateTime.UtcNow.ToString("O");
+
+        existing = new WeeklyReviewEntity
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId.Value,
+            WeekStartDate = weekStartDate,
+            AnchorGoalIdsJson = "[]",
+            InfrastructureGoalId = null,
+            MaintenanceGoalIdsJson = "[]",
+            CreativeGoalId = null,
+            Notes = string.Empty,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        db.WeeklyReviews.Add(existing);
+        await db.SaveChangesAsync();
+    }
+
+    return Results.Ok(ToWeeklyReviewDto(existing));
+}).RequireAuthorization();
+
+app.MapPut("/api/weekly-review/current", async (
+    SaveWeeklyReviewRequest req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var weekStartDate = string.IsNullOrWhiteSpace(req.WeekStartDate)
+        ? GetStartOfWeekIso(DateTime.UtcNow)
+        : req.WeekStartDate;
+
+    var existing = await db.WeeklyReviews
+        .FirstOrDefaultAsync(x => x.UserId == userId.Value && x.WeekStartDate == weekStartDate);
+
+    if (existing is null)
+    {
+        existing = new WeeklyReviewEntity
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId.Value,
+            CreatedAt = string.IsNullOrWhiteSpace(req.CreatedAt) ? DateTime.UtcNow.ToString("O") : req.CreatedAt
+        };
+
+        db.WeeklyReviews.Add(existing);
+    }
+
+    existing.WeekStartDate = weekStartDate;
+    existing.AnchorGoalIdsJson = JsonSerializer.Serialize(req.AnchorGoalIds ?? []);
+    existing.InfrastructureGoalId = req.InfrastructureGoalId;
+    existing.MaintenanceGoalIdsJson = JsonSerializer.Serialize(req.MaintenanceGoalIds ?? []);
+    existing.CreativeGoalId = req.CreativeGoalId;
+    existing.Notes = req.Notes ?? string.Empty;
+    existing.UpdatedAt = DateTime.UtcNow.ToString("O");
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToWeeklyReviewDto(existing));
+}).RequireAuthorization();
+
+app.MapPost("/api/weekly-review/reset", async (
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var weekStartDate = GetStartOfWeekIso(DateTime.UtcNow);
+
+    var existing = await db.WeeklyReviews
+        .FirstOrDefaultAsync(x => x.UserId == userId.Value && x.WeekStartDate == weekStartDate);
+
+    var now = DateTime.UtcNow.ToString("O");
+
+    if (existing is null)
+    {
+        existing = new WeeklyReviewEntity
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId.Value,
+            CreatedAt = now
+        };
+
+        db.WeeklyReviews.Add(existing);
+    }
+
+    existing.WeekStartDate = weekStartDate;
+    existing.AnchorGoalIdsJson = "[]";
+    existing.InfrastructureGoalId = null;
+    existing.MaintenanceGoalIdsJson = "[]";
+    existing.CreativeGoalId = null;
+    existing.Notes = string.Empty;
+    existing.UpdatedAt = now;
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToWeeklyReviewDto(existing));
+}).RequireAuthorization();
+
 app.Run();
 
 static Dictionary<string, string[]> ValidateCreation(CreateJobCardRequest req) 
@@ -623,4 +743,27 @@ static Guid? GetCurrentUserId(ClaimsPrincipal principal)
 {
     var raw = principal.FindFirstValue(ClaimTypes.NameIdentifier);
     return Guid.TryParse(raw, out var userId) ? userId : null;
+}
+
+static WeeklyReviewDto ToWeeklyReviewDto(WeeklyReviewEntity entity) => new()
+{
+    Id = entity.Id.ToString(),
+    WeekStartDate = entity.WeekStartDate,
+    AnchorGoalIds = JsonSerializer.Deserialize<List<string>>(entity.AnchorGoalIdsJson) ?? [],
+    InfrastructureGoalId = entity.InfrastructureGoalId,
+    MaintenanceGoalIds = JsonSerializer.Deserialize<List<string>>(entity.MaintenanceGoalIdsJson) ?? [],
+    CreativeGoalId = entity.CreativeGoalId,
+    Notes = entity.Notes,
+    CreatedAt = entity.CreatedAt,
+    UpdatedAt = entity.UpdatedAt
+};
+
+static string GetStartOfWeekIso(DateTime date)
+{
+    var copy = date;
+    var day = (int)copy.DayOfWeek;
+    var diff = day == 0 ? -6 : 1 - day;
+    copy = copy.AddDays(diff);
+    var start = new DateTime(copy.Year, copy.Month, copy.Day, 0, 0, 0, DateTimeKind.Utc);
+    return start.ToString("O");
 }

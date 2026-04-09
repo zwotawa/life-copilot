@@ -7,7 +7,7 @@ import { Goal } from '../models/goal.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { RotationEngineService } from './rotation-engine.service';
 import { DailyCompletionHistoryStoreService } from './daily-completion-history-store.service';
-import { map, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { GoalProgressStoreService } from './goal-progress-store.service';
 
 @Injectable({
@@ -45,11 +45,17 @@ export class PlanningWorkflowService {
 
   private regenerateDailyRotation(): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
-    const weeklyReview: WeeklyReviewState = this.weeklyReviewStoreService.getCurrentWeeklyReview();
 
-    return this.goalStoreService.getGoals().pipe(
-      map((goals: Goal[]) => {
-        const newRotationItems = this.dailyRotationStoreService.generateDailyRotationForDate(today, goals, weeklyReview);
+    return combineLatest([
+      this.goalStoreService.getGoals(),
+      this.weeklyReviewStoreService.getCurrentWeeklyReview()
+    ]).pipe(
+      map(([goals, weeklyReview]) => {
+        const newRotationItems = this.dailyRotationStoreService.generateDailyRotationForDate(
+          today,
+          goals,
+          weeklyReview
+        );
 
         this.saveDailyCompletionSummary(newRotationItems);
         return newRotationItems;
@@ -315,9 +321,11 @@ export class PlanningWorkflowService {
 }
 
 private buildFreshRotationCandidates(): Observable<DailyRotationItem[]> {
-  const review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
-  return this.goalStoreService.getGoals().pipe(
-    map((goals: Goal[]) => {
+  return combineLatest([
+    this.goalStoreService.getGoals(),
+    this.weeklyReviewStoreService.getCurrentWeeklyReview()
+  ]).pipe(
+    map(([goals, review]) => {
       return this.rotationEngineService.generateDailyRotation(goals, review);
     })
   );

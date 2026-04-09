@@ -25,21 +25,28 @@ export class WeeklyReviewPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.extractGoals();
-    this.review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
+
+    this.weeklyReviewStoreService.getCurrentWeeklyReview().subscribe({
+      next: (review) => this.review = review
+    });
+  }
+
+  public save(): void {
+    this.weeklyReviewStoreService.saveWeeklyReview(this.review).subscribe({
+      next: (savedReview) => this.review = savedReview
+    });
+  }
+
+  public reset(): void {
+    this.weeklyReviewStoreService.resetWeeklyReview().subscribe({
+      next: (review) => this.review = review
+    });
   }
 
   private extractGoals(): void {
     this.goalStoreService.getGoals().subscribe({
       next: (goals) => this.goals = goals
     })
-  }
-
-  public save(): void {
-    this.weeklyReviewStoreService.saveWeeklyReview(this.review);
-  }
-
-  public reset(): void {
-    this.review = this.weeklyReviewStoreService.resetWeeklyReview();
   }
 
   public isAnchorSelected(goalId: string): boolean {

@@ -3,6 +3,7 @@ import { WeeklyReviewState } from '../models/weekly-review.model';
 import { StorageKeyService } from './local/storage-key.service';
 import { LocalStorageService } from './local/local-storage.service';
 import { WeeklyReviewRepository } from '../repositories/weekly-review.repository';
+import { Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -37,32 +38,32 @@ export class LocalWeeklyReviewService extends WeeklyReviewRepository {
         this.localStorageService.setItem(newKey, legacyValue);
         }
 
-  public getCurrentWeeklyReview(): WeeklyReviewState {
+  public getCurrentWeeklyReview(): Observable<WeeklyReviewState> {
     this.migrateLegacyIfNeeded();
     const stored = this.localStorageService.getItem(this.storageKey);
 
     if (stored) {
-      return JSON.parse(stored) as WeeklyReviewState;
+      return of(JSON.parse(stored) as WeeklyReviewState);
     }
 
     const review = this.createDefaultWeeklyReview();
     this.saveWeeklyReview(review);
-    return review;
+    return of(review);
   }
 
-  public saveWeeklyReview(review: WeeklyReviewState): void {
+  public saveWeeklyReview(review: WeeklyReviewState): Observable<WeeklyReviewState> {
     const updatedReview: WeeklyReviewState = {
       ...review,
       updatedAt: new Date().toISOString()
     };
 
     this.localStorageService.setItem(this.storageKey, JSON.stringify(updatedReview));
+    return of(updatedReview);
   }
 
-  public resetWeeklyReview(): WeeklyReviewState {
+  public resetWeeklyReview(): Observable<WeeklyReviewState> {
     const review = this.createDefaultWeeklyReview();
-    this.saveWeeklyReview(review);
-    return review;
+    return this.saveWeeklyReview(review);
   }
 
   private createDefaultWeeklyReview(): WeeklyReviewState {

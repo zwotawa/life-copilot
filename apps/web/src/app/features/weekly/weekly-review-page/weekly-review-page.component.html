@@ -8,6 +8,7 @@
       </p>
     </header>
 
+    <div *ngIf="review">
     <div class="weekly-insights">
       <h3>Execution Insights</h3>
 
@@ -215,6 +216,7 @@
       <button mat-raised-button color="primary" type="button" (click)="save()">
         Save Weekly Review
       </button>
+    </div>
     </div>
   </div>
 </div>

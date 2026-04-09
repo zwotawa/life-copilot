@@ -48,7 +48,11 @@ export class DashboardPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.extractGoals();
-    this.review = this.weeklyReviewStoreService.getCurrentWeeklyReview();
+
+    this.weeklyReviewStoreService.getCurrentWeeklyReview().subscribe({
+      next: (review) => this.review = review
+    });
+
     this.loadDailySelections();
     this.loadInboxSummary();
     this.loadExecutionSnapshot();
