@@ -9,6 +9,7 @@ import { DashboardPageComponent } from './features/dashboard/dashboard-page/dash
 import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginComponent } from './features/login/login.component';
+import { RegisterComponent } from './features/register/register.component';
 
 const routes: Routes = [{
   path:'',
@@ -21,9 +22,11 @@ const routes: Routes = [{
     { path: 'weekly', component: WeeklyReviewPageComponent },
     { path: 'daily', component: DailyRotationPageComponent },
     { path: 'inbox', component: InboxPageComponent }
+    
   ]
 },
-{ path: 'login', component: LoginComponent}];
+{ path: 'login', component: LoginComponent},
+{ path: 'register', component: RegisterComponent }];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

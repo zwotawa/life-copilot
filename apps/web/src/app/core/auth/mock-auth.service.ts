@@ -2,6 +2,10 @@ import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { CurrentUser } from '../models/auth.model';
 import { LocalStorageService } from '../services/local/local-storage.service';
+import { AuthResponse } from '../models/api/api-auth-response.model';
+import { Observable, of } from 'rxjs';
+import { RegisterRequest } from '../models/api/api-register-request.model';
+import { getuid } from 'process';
 
 @Injectable({
   providedIn: 'root'
@@ -64,6 +68,18 @@ export class MockAuthService extends AuthService {
 
   public isSignedIn(): boolean {
     return !!this.getCurrentUser();
+  }
+
+  public register(req: RegisterRequest): Observable<AuthResponse> {
+    return of({
+      user: {
+        id: getuid.toString(),
+        email: req.email,
+        displayName: req.displayName,
+        isAuthenticated: true
+      },
+      accessToken: this.getAccessToken()
+    })
   }
 
   private unsureMockUserExists(): void {

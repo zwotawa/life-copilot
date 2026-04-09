@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { CurrentUser } from '../models/auth.model';
+import { RegisterRequest } from '../models/api/api-register-request.model';
 
 interface AuthResponse {
   user: CurrentUser;
@@ -79,5 +80,9 @@ export class ApiAuthService extends AuthService {
 
   public isSignedIn(): boolean {
     return !!this.currentUser
+  }
+
+  public register(req: RegisterRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiBaseUrl}/auth/register`, req)
   }
 }
