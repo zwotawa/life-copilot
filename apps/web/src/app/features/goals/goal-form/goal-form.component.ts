@@ -40,12 +40,12 @@ export class GoalFormComponent implements OnInit {
   public onSubmit(goalForm: any): void {
     if (this.goal.id) {
       this.goalCreateWorkflowService.updateGoal(this.goal).subscribe({
-        next: () => this.router.navigate(['/goals'])
+        next: (savedGoal) => this.router.navigate(['/goals', savedGoal.id])
       });
       return;
     }
     this.goalCreateWorkflowService.createGoal(this.goal, this.navState?.inboxItemId).subscribe({
-      next: () => this.router.navigate(['/goals'])
+      next: (savedGoal) => this.router.navigate(['/goals', savedGoal.id])
     });
   }
 

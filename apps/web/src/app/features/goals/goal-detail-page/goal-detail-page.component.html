@@ -1,1 +1,43 @@
 <app-goal-form [goal]="goal"></app-goal-form>
+
+<section class="goal-progress" *ngIf="goal.id">
+  <div class="goal-progress__header">
+    <h3 class="goal-progress__title">Recent Progress</h3>
+    <div class="goal-progress__count" *ngIf="progressEvents.length">
+      {{ progressEvents.length }} event{{ progressEvents.length === 1 ? '' : 's' }}
+    </div>
+  </div>
+
+  <div *ngIf="!progressEvents.length" class="goal-progress__empty">
+    No progress recorded yet.
+  </div>
+
+  <div class="goal-progress__list" *ngIf="progressEvents.length">
+    <article *ngFor="let event of progressEvents" class="goal-progress__item">
+      <div class="goal-progress__meta-row">
+        <div
+            class="goal-progress__type"
+            [ngClass]="getEventTypeClass(event.type)"
+            >
+            {{ formatEventType(event.type) }}
+        </div>
+
+        <div class="goal-progress__timestamp">
+          {{ event.createdAt | date:'medium' }}
+        </div>
+      </div>
+
+      <div class="goal-progress__task" *ngIf="event.taskText">
+        {{ event.taskText }}
+      </div>
+
+      <div class="goal-progress__notes" *ngIf="event.notes">
+        {{ event.notes }}
+      </div>
+
+      <div class="goal-progress__source" *ngIf="event.source">
+        Source: {{ event.source }}
+      </div>
+    </article>
+  </div>
+</section>
