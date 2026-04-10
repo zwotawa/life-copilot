@@ -137,8 +137,9 @@ app.Use(async (context, next) =>
     var isAuth = path.StartsWith("/api/auth", StringComparison.OrdinalIgnoreCase);
     var isGoals = path.StartsWith("/api/goals", StringComparison.OrdinalIgnoreCase);
     var isInbox = path.StartsWith("/api/inbox", StringComparison.OrdinalIgnoreCase);
+    var isWeeklyReview = path.StartsWith("/api/weekly-review", StringComparison.OrdinalIgnoreCase);
 
-    if (!isMutation || isSwagger || isHealth || isAuth || isGoals || isInbox)
+    if (!isMutation || isSwagger || isHealth || isAuth || isGoals || isInbox || isWeeklyReview)
     {
         await next();
         return;
