@@ -178,6 +178,7 @@ app.MapGet("/debug/claims", (ClaimsPrincipal principal) =>
 app.MapGet("/debug/deploy-marker", () =>
 {
     return Results.Ok("DEPLOY_MARKER_2026_04_10_A");
+    
 });
 
 app.MapGet("/health", (IHostEnvironment env,IConfiguration config) =>
