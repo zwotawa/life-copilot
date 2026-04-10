@@ -51,6 +51,7 @@ import { GoalProgressRepository } from './core/repositories/goal-progress.reposi
 import { LocalGoalProgressRepository } from './core/services/local/local-goal-progress-repository.service';
 import { RegisterComponent } from './features/register/register.component';
 import { ApiWeeklyReviewRepository } from './core/services/api-weekly-review-repository.service';
+import { ApiInboxRepository } from './core/services/api-inbox-repository.service';
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
   return async () => {
@@ -97,7 +98,7 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
   providers: [
     {provide: AuthService, useClass: ApiAuthService},
     {provide: GoalRepository, useClass: ApiGoalRepository},
-    {provide: InboxRepository, useClass: LocalInboxService},
+    {provide: InboxRepository, useClass: ApiInboxRepository},
     {provide: DailyRotationRepository, useClass: LocalDailyRotationRepository},
     {provide: WeeklyReviewRepository, useClass: ApiWeeklyReviewRepository},
     {provide: DailyCompletionHistoryRepository, useClass: LocalDailyCompletionHistoryService},

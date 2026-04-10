@@ -2,8 +2,6 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Goal } from 'src/app/core/models/goal.model';
 import { GoalCreationWorkflowService } from 'src/app/core/services/goal-creation-workflow.service';
-import { GoalStoreService } from 'src/app/core/services/goal-store.service';
-import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
 
 @Component({
   selector: 'app-goal-form',
@@ -21,9 +19,7 @@ export class GoalFormComponent implements OnInit {
   } | undefined;
 
   constructor(
-    private goalStoreService: GoalStoreService,
     private router: Router,
-    private inboxService: InboxStoreService,
     private goalCreateWorkflowService: GoalCreationWorkflowService
   ) { }
 

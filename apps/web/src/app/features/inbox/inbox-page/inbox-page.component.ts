@@ -23,23 +23,34 @@ export class InboxPageComponent implements OnInit {
   }
 
   public loadEntries(): void {
-    this.entries = this.inboxService.getEntries();
+    this.inboxService.getEntries().subscribe({
+      next: entries => this.entries = entries
+    });
   }
 
   public addEntry(): void {
-    this.inboxService.addEntry(this.newEntryText);
-    this.newEntryText = '';
-    this.loadEntries();
+    this.inboxService.addEntry(this.newEntryText).subscribe({
+      next: () => {
+        this.newEntryText = '';
+        this.loadEntries();
+      }
+    });
+    
+    
   }
 
   public updateStatus(entry: InboxEntry, status: InboxEntryStatus): void {
-    this.inboxService.updateStatus(entry.id, status);
-    this.loadEntries();
+    this.inboxService.updateStatus(entry.id, status).subscribe({
+      next: () => this.loadEntries()
+    });
+
   }
 
   public deleteEntry(entry: InboxEntry): void {
-    this.inboxService.deleteEntry(entry.id);
-    this.loadEntries();
+    this.inboxService.deleteEntry(entry.id).subscribe({
+      next: () => this.loadEntries()
+
+    });
   }
 
   public get filteredEntries(): InboxEntry[] {

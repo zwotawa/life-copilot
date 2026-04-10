@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Goal } from '../models/goal.model';
 import { GoalStoreService } from './goal-store.service';
 import { InboxStoreService } from './inbox-store.service';
-import { map, Observable, tap } from 'rxjs';
+import { map, Observable, of, switchMap, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -24,12 +24,14 @@ export class GoalCreationWorkflowService {
     };
 
     return this.goalStoreService.addGoal(newGoal).pipe(
-      tap(() => {
+      switchMap(addedGoal => {
         if (sourceInboxItemId) {
-          this.inboxStoreService.markAsConverted(sourceInboxItemId, newGoal.id);
+          return this.inboxStoreService.markAsConverted(sourceInboxItemId, addedGoal.id).pipe(
+            map(() => addedGoal)
+          )
         }
-      }),
-      map(() =>  newGoal)
+        return of(addedGoal);
+      })
     );
   }
 

@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { from, Observable, of, throwError } from "rxjs";
+import { Observable, of, throwError } from "rxjs";
 import { catchError, map, switchMap } from "rxjs/operators";
 import { Goal } from "./../models/goal.model";
 import { GoalRepository } from "./../repositories/goal.repository";

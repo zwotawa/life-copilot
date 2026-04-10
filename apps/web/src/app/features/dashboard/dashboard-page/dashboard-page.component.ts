@@ -59,6 +59,7 @@ export class DashboardPageComponent implements OnInit {
   }
 
   public get activeGoals(): Goal[] {
+    if(!this.goals) return [];
     return this.goals.filter(goal => goal.status === 'active');
   }
 
@@ -79,20 +80,22 @@ export class DashboardPageComponent implements OnInit {
   }
 
   public get selectedAnchorGoals(): Goal[] {
+    if(!this.review) return [];
     return this.activeGoals.filter(goal => this.review.anchorGoalIds.includes(goal.id));
   }
 
   public get selectedMaintenanceGoals(): Goal[] {
+    if(!this.review) return [];
     return this.activeGoals.filter(goal => this.review.maintenanceGoalIds.includes(goal.id));
   }
 
   public get selectedInfrastructureGoal(): Goal | null {
-    if (!this.review.infrastructureGoalId) return null;
+    if (!this.review) return null;
     return this.activeGoals.find(goal => goal.id === this.review.infrastructureGoalId) ?? null;
   }
 
   public get selectedCreativeGoal(): Goal | null {
-    if (!this.review.creativeGoalId) return null;
+    if (!this.review) return null;
     return this.activeGoals.find(goal => goal.id === this.review.creativeGoalId) ?? null;
   }
 
@@ -140,18 +143,24 @@ export class DashboardPageComponent implements OnInit {
   }
 
   public loadInboxSummary(): void {
-    const allInboxEntries = this.inboxService.getEntries();
-    const activeEntries = allInboxEntries.filter(entry => entry.status !== 'archived' && entry.status !== 'deferred');
+    this.inboxService.getEntries().subscribe({
+      next: (inboxEntries) => {
+        const allInboxEntries = inboxEntries;
 
-    this.activeInboxCount = activeEntries.length;
-    this.newInboxCount = activeEntries.filter(entry => entry.status === 'new').length;
-    this.clarifiedInboxCount = activeEntries.filter(entry => entry.status === 'clarified').length;
-    this.deferredInboxCount = activeEntries.filter(entry => entry.status === 'deferred').length;
+        const activeEntries = allInboxEntries.filter(entry => entry.status !== 'archived' && entry.status !== 'deferred');
 
-    this.recentInboxEntries = activeEntries
-      .slice()
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-      .slice(0, 3);
+        this.activeInboxCount = activeEntries.length;
+        this.newInboxCount = activeEntries.filter(entry => entry.status === 'new').length;
+        this.clarifiedInboxCount = activeEntries.filter(entry => entry.status === 'clarified').length;
+        this.deferredInboxCount = activeEntries.filter(entry => entry.status === 'deferred').length;
+
+        this.recentInboxEntries = activeEntries
+          .slice()
+          .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+          .slice(0, 3);
+      }
+    });
+    
   }
 
   trackByInboxId(index: number, entry: InboxEntry): string {

@@ -11,6 +11,7 @@ public class LifeCopilotDbContext : DbContext
     public DbSet<UserEntity> Users => Set<UserEntity>();
     public DbSet<GoalEntity> Goals => Set<GoalEntity>();
     public DbSet<WeeklyReviewEntity> WeeklyReviews => Set<WeeklyReviewEntity>();
+    public DbSet<InboxEntryEntity> InboxEntries => Set<InboxEntryEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -112,6 +113,28 @@ public class LifeCopilotDbContext : DbContext
             .HasMaxLength(100);
 
         modelBuilder.Entity<WeeklyReviewEntity>()
+            .Property(x => x.Notes)
+            .HasMaxLength(8000);
+
+        modelBuilder.Entity<InboxEntryEntity>()
+            .HasIndex(x => new { x.UserId, x.Status });
+
+        modelBuilder.Entity<InboxEntryEntity>()
+            .HasIndex(x => new { x.UserId, x.UpdatedAt });
+
+        modelBuilder.Entity<InboxEntryEntity>()
+            .Property(x => x.Text)
+            .HasMaxLength(4000);
+
+        modelBuilder.Entity<InboxEntryEntity>()
+            .Property(x => x.Status)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<InboxEntryEntity>()
+            .Property(x => x.LinkedGoalId)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<InboxEntryEntity>()
             .Property(x => x.Notes)
             .HasMaxLength(8000);
     }

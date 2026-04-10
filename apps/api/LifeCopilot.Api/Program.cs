@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.VisualBasic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -135,8 +136,9 @@ app.Use(async (context, next) =>
     var isMutation = HttpMethods.IsPost(method) || HttpMethods.IsPut(method) || HttpMethods.IsDelete(method) || HttpMethods.IsPatch(method);
     var isAuth = path.StartsWith("/api/auth", StringComparison.OrdinalIgnoreCase);
     var isGoals = path.StartsWith("/api/goals", StringComparison.OrdinalIgnoreCase);
+    var isInbox = path.StartsWith("/api/inbox", StringComparison.OrdinalIgnoreCase);
 
-    if (!isMutation || isSwagger || isHealth || isAuth || isGoals)
+    if (!isMutation || isSwagger || isHealth || isAuth || isGoals || isInbox)
     {
         await next();
         return;
@@ -641,6 +643,198 @@ app.MapPost("/api/weekly-review/reset", async (
     return Results.Ok(ToWeeklyReviewDto(existing));
 }).RequireAuthorization();
 
+app.MapGet("/api/inbox", async (
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db
+) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var inboxEntries = await db.InboxEntries
+        .Where(x => x.UserId == userId.Value)
+        .OrderByDescending(x => x.UpdatedAt)
+        .ToListAsync();
+
+    return Results.Ok(inboxEntries.Select(ToInboxEntryDto));    
+}).RequireAuthorization();
+
+app.MapPost("/api/inbox", async (
+    CreateInboxEntryRequest req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db
+) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var text  = req.Text?.Trim() ?? string.Empty;
+    if (string.IsNullOrWhiteSpace(text))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+           ["text"] = ["text is required."] 
+        });
+    }
+
+    var now = DateTime.UtcNow.ToString("O");
+
+    var entry = new InboxEntryEntity
+    {
+        Id = Guid.NewGuid(),
+        UserId = userId.Value,
+        Text = text,
+        Status = "new",
+        Notes = string.Empty,
+        LinkedGoalId = null,
+        CapturedAt = now,
+        UpdatedAt = now,
+        CompletedAt = null  
+    };
+
+    db.InboxEntries.Add(entry);
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToInboxEntryDto(entry));
+}).RequireAuthorization();
+
+app.MapPut("/api/inbox/{id}", async (
+    string id,
+    UpdateInboxEntryRequest req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db
+
+) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (!Guid.TryParse(id, out var entryId))
+        return Results.BadRequest("Invalid inbox entry id.");
+
+    var existing = await db.InboxEntries
+        .FirstOrDefaultAsync(x => x.Id == entryId && x.UserId == userId.Value);
+
+    if (existing is null)
+        return Results.NotFound();
+
+    var text = req.Text?.Trim() ?? string.Empty;
+    if (string.IsNullOrWhiteSpace(text))
+    {
+        return Results.ValidationProblem( new Dictionary<string, string[]>
+        {
+            ["text"] = ["Text is required."]
+        });
+    }
+
+    existing.Text = text;
+    existing.Status = req.Status;
+    existing.Notes = req.Notes;
+    existing.LinkedGoalId = req.LinkedGoalId;
+    existing.CapturedAt = req.CapturedAt;
+    existing.CompletedAt = req.CompletedAt;
+    existing.UpdatedAt = DateTime.UtcNow.ToString("O");
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToInboxEntryDto(existing));
+}).RequireAuthorization();
+
+app.MapPatch("/api/inbox/{id}/status", async (
+    string id,
+    UpdateInboxStatusRequest req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db
+) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (!Guid.TryParse(id, out var entryId))
+        return Results.BadRequest("Invalid inbox entry id.");
+
+    var existing = await db.InboxEntries
+        .FirstOrDefaultAsync(x => x.Id == entryId && x.UserId == userId.Value);
+
+    if (existing is null)
+        return Results.NotFound();
+
+    existing.Status = req.Status;
+    existing.UpdatedAt = DateTime.UtcNow.ToString("O");
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToInboxEntryDto(existing));
+}).RequireAuthorization();
+
+app.MapPatch("/api/inbox/{id}/convert", async (
+    string id,
+    ConvertInboxEntryRequest req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db
+) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (!Guid.TryParse(id, out var entryId))
+        return Results.BadRequest("Invalid inbox entry id.");
+
+    var existing = await db.InboxEntries
+        .FirstOrDefaultAsync(x => x.Id == entryId && x.UserId == userId.Value);
+
+    if (existing is null)
+        return Results.NotFound();
+
+    if (string.IsNullOrWhiteSpace(req.GoalId))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["goaId"] = ["GoalId is required."]
+        });
+    }
+
+    existing.LinkedGoalId = req.GoalId;
+    existing.Status = "archived";
+    existing.UpdatedAt = DateTime.UtcNow.ToString("O");
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToInboxEntryDto(existing));
+}).RequireAuthorization();
+
+app.MapDelete("/api/inbox/{id}", async (
+    string id,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db
+) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (!Guid.TryParse(id, out var entryId))
+        return Results.BadRequest("Invalid inbox entry id.");
+
+    var existing = await db.InboxEntries
+        .FirstOrDefaultAsync(x => x.Id == entryId && x.UserId == userId.Value);
+
+    if (existing is null)
+        return Results.NotFound();
+
+    db.InboxEntries.Remove(existing);
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+}).RequireAuthorization();
+
 app.Run();
 
 static Dictionary<string, string[]> ValidateCreation(CreateJobCardRequest req) 
@@ -767,3 +961,15 @@ static string GetStartOfWeekIso(DateTime date)
     var start = new DateTime(copy.Year, copy.Month, copy.Day, 0, 0, 0, DateTimeKind.Utc);
     return start.ToString("O");
 }
+
+static InboxEntryDto ToInboxEntryDto(InboxEntryEntity entity) => new()
+{
+    Id = entity.Id.ToString(),
+    Text = entity.Text,
+    Status = entity.Status,
+    Notes = entity.Notes,
+    LinkedGoalId = entity.LinkedGoalId,
+    CapturedAt = entity.CapturedAt,
+    UpdatedAt = entity.UpdatedAt,
+    CompletedAt = entity.CompletedAt
+};
