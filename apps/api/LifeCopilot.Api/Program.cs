@@ -145,6 +145,12 @@ app.Use(async (context, next) =>
         return;
     }
 
+    if (context.User?.Identity?.IsAuthenticated == true)
+    {
+        await next();
+        return;
+    }
+
     if (string.IsNullOrWhiteSpace(apiKey))
     {
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
