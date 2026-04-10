@@ -1,12 +1,16 @@
 {
   "rewrites": [
     {
-      "source": "/api/jobs",
-      "destination": "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net/api/jobs"
+      "source": "/api/(.*)",
+      "destination": "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net/api/$1"
     },
     {
-      "source": "/api/jobs/(.*)",
-      "destination": "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net/api/jobs/$1"
+      "source": "/health",
+      "destination": "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net/health"
+    },
+    {
+      "source": "/health/db",
+      "destination": "https://life-copilot-api-crh4h3dddmcxfdb0.canadacentral-01.azurewebsites.net/health/db"
     }
   ]
 }
