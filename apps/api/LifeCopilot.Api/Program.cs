@@ -154,7 +154,7 @@ app.Use(async (context, next) =>
     if (string.IsNullOrWhiteSpace(apiKey))
     {
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-        await context.Response.WriteAsync("API_KEY is not configured");
+        await context.Response.WriteAsync("MIDDLEWARE_API_KEY_NOT_CONFIGURED");
         return;
     }
 
@@ -164,7 +164,7 @@ app.Use(async (context, next) =>
         !string.Equals(provided.ToString().Trim(), expected, StringComparison.Ordinal))
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        await context.Response.WriteAsync("Missing or invalid API key");
+        await context.Response.WriteAsync("MIDDLEWARE_API_KEY_BLOCK");
         return;
     }
 
