@@ -176,6 +176,11 @@ app.MapGet("/debug/claims", (ClaimsPrincipal principal) =>
     return Results.Ok(principal.Claims.Select(c => new { c.Type, c.Value }));
 }).RequireAuthorization();
 
+app.MapGet("/debug/deploy-marker", () =>
+{
+    return Results.Ok("DEPLOY_MARKER_2026_04_10_A");
+});
+
 app.MapGet("/health", (IHostEnvironment env,IConfiguration config) =>
 {
     var sha = config["GIT_SHA"] ?? "unknown";
