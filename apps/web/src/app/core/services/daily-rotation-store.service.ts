@@ -20,14 +20,13 @@ export class DailyRotationStoreService {
     date: string,
     goals: Goal[],
     weeklyReview: WeeklyReviewState
-  ): DailyRotationItem[] {
+  ): Observable<DailyRotationItem[]> {
     const items = this.rotationEngineService.generateDailyRotation(goals, weeklyReview)
       .map(item => ({
         ...item,
         date
       }));
-    this.dailyRotationRepository.saveRotationForDate(date, items);
-    return items;
+    return this.dailyRotationRepository.saveRotationForDate(date, items);
   }
 
   public loadRotationItemsForDate(date: string): Observable<DailyRotationItem[]> {

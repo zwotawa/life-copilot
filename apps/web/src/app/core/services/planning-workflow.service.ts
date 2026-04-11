@@ -53,15 +53,14 @@ export class PlanningWorkflowService {
       this.goalStoreService.getGoals(),
       this.weeklyReviewStoreService.getCurrentWeeklyReview()
     ]).pipe(
-      map(([goals, weeklyReview]) => {
-        const newRotationItems = this.dailyRotationStoreService.generateDailyRotationForDate(
+      switchMap(([goals, weeklyReview]) => {
+        return this.dailyRotationStoreService.generateDailyRotationForDate(
           today,
           goals,
           weeklyReview
+        ).pipe(
+          tap(newRotationItems => this.saveDailyCompletionSummary(newRotationItems))
         );
-
-        this.saveDailyCompletionSummary(newRotationItems);
-        return newRotationItems;
       })
     );
   }
