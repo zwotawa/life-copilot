@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { JobComponent } from './pages/job/job.component';
 import { GoalsPageComponent } from './features/goals/goals-page/goals-page.component';
 import { GoalDetailPageComponent } from './features/goals/goal-detail-page/goal-detail-page.component';
 import { WeeklyReviewPageComponent } from './features/weekly/weekly-review-page/weekly-review-page.component';
@@ -16,7 +15,6 @@ const routes: Routes = [{
   canActivate: [AuthGuard],
   children: [
     { path: '', component: DashboardPageComponent },
-    { path: 'job', component: JobComponent },
     { path: 'goals', component: GoalsPageComponent },
     { path: 'goals/:id', component: GoalDetailPageComponent },
     { path: 'weekly', component: WeeklyReviewPageComponent },

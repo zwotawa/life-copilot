@@ -1,5 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { RegisterRequest } from 'src/app/core/models/api/api-register-request.model';
 
@@ -15,14 +17,23 @@ export class RegisterComponent implements OnInit {
     private router: Router
   ) { }
     registerRequest: RegisterRequest = <RegisterRequest>{};
-    error: string = '';
+    error = '';
+    loading = false;
 
   ngOnInit(): void {
   }
 
   public register(): void {
+    this.loading = true;
     this.authService.register(this.registerRequest).subscribe({
-      next: () => this.router.navigate(['/login'])
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/login']);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.loading = false;
+        this.error = error.error?.title;
+      }
     });
   }
 

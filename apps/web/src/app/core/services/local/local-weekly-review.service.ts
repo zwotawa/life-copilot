@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { WeeklyReviewState } from '../models/weekly-review.model';
-import { StorageKeyService } from './local/storage-key.service';
-import { LocalStorageService } from './local/local-storage.service';
-import { WeeklyReviewRepository } from '../repositories/weekly-review.repository';
+import { WeeklyReviewState } from '../../models/weekly-review.model';
+import { StorageKeyService } from './storage-key.service';
+import { LocalStorageService } from './local-storage.service';
+import { WeeklyReviewRepository } from '../../repositories/weekly-review.repository';
 import { Observable, of } from 'rxjs';
 
 @Injectable({

@@ -1,16 +1,4 @@
 {
-  "/api/jobs-proxy": {
-    "target": "http://localhost:5125",
-    "secure": false,
-    "changeOrigin": true,
-    "logLevel": "debug",
-    "pathRewrite": {
-      "^/api/jobs-proxy": "/api/jobs"
-    },
-    "headers": {
-      "X-API-Key": "LOCAL_DEV_KEY_CHANGE_ME"
-    }
-  },
   "/api": {
     "target": "http://localhost:5125",
     "secure": false,
