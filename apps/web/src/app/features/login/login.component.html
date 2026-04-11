@@ -14,7 +14,10 @@
   <div *ngIf="error" class="error-text">{{ error }}</div>
 
   <button mat-raised-button color="primary" (click)="login()">
-    Sign in
+    <span class="spinner">
+      <span>Sign In</span>
+      <mat-spinner *ngIf="loading" class="button-spinner" diameter="25" color="warn"></mat-spinner>
+    </span>
   </button>
 
   <a routerLink="/register">Register</a>

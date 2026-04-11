@@ -31,6 +31,7 @@ export class RegisterComponent implements OnInit {
         this.router.navigate(['/login']);
       },
       error: (error: HttpErrorResponse) => {
+        console.error(error);
         this.loading = false;
         this.error = error.error?.title;
       }
