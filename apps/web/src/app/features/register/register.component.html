@@ -18,10 +18,10 @@
 
   <div *ngIf="error" class="error-text">{{ error }}</div>
 
-  <button mat-raised-button color="secondary" (click)="register()">
+  <button mat-raised-button color="primary" (click)="register()">
     <span class="spinner">
       <span>Register</span>
-      <mat-spinner *ngIf="loading" class="button-spinner" diameter="25"></mat-spinner>
+      <mat-spinner *ngIf="loading" class="button-spinner" diameter="25" color="warn"></mat-spinner>
     </span>
   </button>
 
