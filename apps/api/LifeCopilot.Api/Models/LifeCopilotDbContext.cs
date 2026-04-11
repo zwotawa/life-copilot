@@ -14,6 +14,7 @@ public class LifeCopilotDbContext : DbContext
     public DbSet<InboxEntryEntity> InboxEntries => Set<InboxEntryEntity>();
     public DbSet<DailyRotationEntity> DailyRotations => Set<DailyRotationEntity>();
     public DbSet<DailyCompletionSummaryEntity> DailyCompletionSummaries => Set<DailyCompletionSummaryEntity>();
+    public DbSet<GoalProgressEventEntity> GoalProgressEvents => Set<GoalProgressEventEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -163,5 +164,43 @@ public class LifeCopilotDbContext : DbContext
         modelBuilder.Entity<DailyCompletionSummaryEntity>()
             .Property(x => x.UpdatedAt)
             .HasMaxLength(100);
+        
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .HasIndex(x => new { x.UserId, x.GoalId });
+
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .HasIndex(x => new { x.UserId, x.SourceItemId });
+
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .Property(x => x.GoalId)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .Property(x => x.Date)
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .Property(x => x.CreatedAt)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .Property(x => x.Type)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .Property(x => x.Source)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .Property(x => x.SourceItemId)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .Property(x => x.TaskText)
+            .HasMaxLength(2000);
+
+        modelBuilder.Entity<GoalProgressEventEntity>()
+            .Property(x => x.Notes)
+            .HasMaxLength(8000);
     }
 }

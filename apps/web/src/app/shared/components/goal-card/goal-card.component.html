@@ -60,7 +60,7 @@
 
   <div class="goal-card__footer" *ngIf="goal.lastTouchedAt || goal.notes">
     <div class="goal-card__last-touched" *ngIf="goal.lastTouchedAt">
-      Last touched: {{ goal.lastTouchedAt }}
+      Last touched: {{ goal.lastTouchedAt | date}}
     </div>
 
     <div class="goal-card__notes" *ngIf="goal.notes">

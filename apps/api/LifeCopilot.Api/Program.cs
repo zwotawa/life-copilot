@@ -137,8 +137,10 @@ app.Use(async (context, next) =>
     var isGoals = path.StartsWith("/api/goals", StringComparison.OrdinalIgnoreCase);
     var isInbox = path.StartsWith("/api/inbox", StringComparison.OrdinalIgnoreCase);
     var isWeeklyReview = path.StartsWith("/api/weekly-review", StringComparison.OrdinalIgnoreCase);
+    var isCompletionHistory = path.StartsWith("/api/completion-history", StringComparison.OrdinalIgnoreCase);
+    var isGoalProgress = path.StartsWith("/api/goal-progress", StringComparison.OrdinalIgnoreCase);
 
-    if (!isMutation || isSwagger || isHealth || isAuth || isGoals || isInbox || isWeeklyReview)
+    if (!isMutation || isSwagger || isHealth || isAuth || isGoals || isInbox || isWeeklyReview || isCompletionHistory || isGoalProgress)
     {
         await next();
         return;
@@ -168,17 +170,6 @@ app.Use(async (context, next) =>
     }
 
     await next();
-});
-
-app.MapGet("/debug/claims", (ClaimsPrincipal principal) =>
-{
-    return Results.Ok(principal.Claims.Select(c => new { c.Type, c.Value }));
-}).RequireAuthorization();
-
-app.MapGet("/debug/deploy-marker", () =>
-{
-    return Results.Ok("DEPLOY_MARKER_2026_04_10_A");
-    
 });
 
 app.MapGet("/health", (IHostEnvironment env,IConfiguration config) =>
@@ -982,6 +973,104 @@ app.MapPut("/api/completion-history/{date}", async (
     return Results.Ok(ToDailyCompletionSummaryDto(existing));
 }).RequireAuthorization();
 
+app.MapGet("/api/goal-progress/goal/{goalId}", async (
+    string goalId,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var events = await db.GoalProgressEvents
+        .Where(x => x.UserId == userId.Value && x.GoalId == goalId)
+        .OrderByDescending(x => x.CreatedAt)
+        .ToListAsync();
+
+    return Results.Ok(events.Select(ToGoalProgressEventDto));
+}).RequireAuthorization();
+
+app.MapGet("/api/goal-progress/source-item/{sourceItemId}", async (
+    string sourceItemId,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var existing = await db.GoalProgressEvents
+        .FirstOrDefaultAsync(x => x.UserId == userId.Value && x.SourceItemId == sourceItemId);
+
+    if (existing is null)
+        return Results.NotFound();
+
+    return Results.Ok(ToGoalProgressEventDto(existing));
+}).RequireAuthorization();
+
+app.MapPost("/api/goal-progress", async (
+    GoalProgressEventDto req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (string.IsNullOrWhiteSpace(req.GoalId))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["goalId"] = ["GoalId is required."]
+        });
+    }
+
+    var entity = new GoalProgressEventEntity
+    {
+        Id = Guid.NewGuid(),
+        UserId = userId.Value,
+        GoalId = req.GoalId,
+        Date = req.Date,
+        CreatedAt = string.IsNullOrWhiteSpace(req.CreatedAt)
+            ? DateTime.UtcNow.ToString("O")
+            : req.CreatedAt,
+        Type = req.Type,
+        TaskText = req.TaskText,
+        Notes = req.Notes,
+        Source = req.Source,
+        SourceItemId = req.SourceItemId
+    };
+
+    db.GoalProgressEvents.Add(entity);
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToGoalProgressEventDto(entity));
+}).RequireAuthorization();
+
+app.MapDelete("/api/goal-progress/{id}", async (
+    string id,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (!Guid.TryParse(id, out var eventId))
+        return Results.BadRequest("Invalid goal progress event id.");
+
+    var existing = await db.GoalProgressEvents
+        .FirstOrDefaultAsync(x => x.Id == eventId && x.UserId == userId.Value);
+
+    if (existing is null)
+        return Results.NotFound();
+
+    db.GoalProgressEvents.Remove(existing);
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+}).RequireAuthorization();
+
 app.Run();
 
 static Dictionary<string, string[]> ValidateCreation(CreateJobCardRequest req) 
@@ -1128,4 +1217,17 @@ static DailyCompletionSummaryDto ToDailyCompletionSummaryDto(DailyCompletionSumm
     TotalCount = entity.TotalCount,
     CompletionPercent = entity.CompletionPercent,
     FullyCompleted = entity.FullyCompleted
+};
+
+static GoalProgressEventDto ToGoalProgressEventDto(GoalProgressEventEntity entity) => new()
+{
+    Id = entity.Id.ToString(),
+    GoalId = entity.GoalId,
+    Date = entity.Date,
+    CreatedAt = entity.CreatedAt,
+    Type = entity.Type,
+    TaskText = entity.TaskText,
+    Notes = entity.Notes,
+    Source = entity.Source,
+    SourceItemId = entity.SourceItemId
 };

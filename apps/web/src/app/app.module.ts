@@ -54,6 +54,7 @@ import { ApiWeeklyReviewRepository } from './core/services/api-weekly-review-rep
 import { ApiInboxRepository } from './core/services/api-inbox-repository.service';
 import { ApiDailyRotationRepository } from './core/services/api-daily-rotation-repository.service';
 import { ApiDailyCompletionHistoryRepository } from './core/services/api-daily-completion-history-repository.service';
+import { ApiGoalProgressRepository } from './core/services/api-goal-progress-repository.service';
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
   return async () => {
@@ -104,7 +105,7 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     {provide: DailyRotationRepository, useClass: ApiDailyRotationRepository},
     {provide: WeeklyReviewRepository, useClass: ApiWeeklyReviewRepository},
     {provide: DailyCompletionHistoryRepository, useClass: ApiDailyCompletionHistoryRepository},
-    {provide: GoalProgressRepository, useClass: LocalGoalProgressRepository},
+    {provide: GoalProgressRepository, useClass: ApiGoalProgressRepository},
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,
