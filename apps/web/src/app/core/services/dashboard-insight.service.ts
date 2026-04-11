@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { DailyRotationStoreService } from './daily-rotation-store.service';
 import { WeeklyInsightService } from './weekly-insights.service';
 import { DashboardExecutionSnapshot } from '../models/dashboard-execution-snapshot.model';
-import { map, Observable } from 'rxjs';
+import { combineLatest, map, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -15,10 +15,11 @@ export class DashboardInsightService {
 
   public getExecutionSnapshot(): Observable<DashboardExecutionSnapshot> {
     const todayKey = this.getTodayKey();
-    return this.dailyRotationStoreService.loadRotationItemsForDate(todayKey).pipe(
-      map((todaysItems) => {
-        const weeklyInsights = this.weeklyInsightService.getLast7DaysInsights();
-
+    return combineLatest([
+      this.dailyRotationStoreService.loadRotationItemsForDate(todayKey),
+      this.weeklyInsightService.getLast7DaysInsights()
+    ]).pipe(
+      map(([todaysItems, weeklyInsights]) => {
         const todayCompletedCount = todaysItems.filter(item => item.completed).length;
         const todayTotalCount = todaysItems.length;
         const todayCompletionPercent =
@@ -35,7 +36,7 @@ export class DashboardInsightService {
           fullyCompletedDaysLast7: weeklyInsights.fullyCompletedDays
         };
       })
-    );
+    )
   }
 
   private getTodayKey(): string {

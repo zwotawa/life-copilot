@@ -35,9 +35,10 @@ export class PlanningWorkflowService {
         }
 
         return this.resetTodayPlan().pipe(
-          map((todayPlan: DailyRotationItem[]) => {
-            this.saveDailyCompletionSummary(todayPlan);
-            return todayPlan;
+          switchMap((todayPlan: DailyRotationItem[]) => {
+            return this.saveDailyCompletionSummary(todayPlan).pipe(
+              map(() => todayPlan)
+            );
           })
         );
       })
@@ -59,7 +60,9 @@ export class PlanningWorkflowService {
           goals,
           weeklyReview
         ).pipe(
-          tap(newRotationItems => this.saveDailyCompletionSummary(newRotationItems))
+          switchMap(newRotationItems => this.saveDailyCompletionSummary(newRotationItems).pipe(
+            map(() => newRotationItems)
+          ))
         );
       })
     );
@@ -117,7 +120,9 @@ export class PlanningWorkflowService {
         });
 
         return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
-          tap((latestRotation) => this.saveDailyCompletionSummary(latestRotation))
+          switchMap((latestRotation) => this.saveDailyCompletionSummary(latestRotation).pipe(
+            map(() => latestRotation)
+          ))
         );
       })
     );
@@ -144,7 +149,9 @@ export class PlanningWorkflowService {
         //persisting the item change doesn't require any feedback from the further services
         const persistUpdatedItems = (): Observable<DailyRotationItem[]> => {
           return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
-            tap(latestRotation => this.saveDailyCompletionSummary(latestRotation) )
+            switchMap(latestRotation => this.saveDailyCompletionSummary(latestRotation).pipe(
+              map(() => latestRotation)
+            ) )
           );
         };
 
@@ -201,15 +208,19 @@ export class PlanningWorkflowService {
     );
   }
 
-  public getLastSevenDaysCompletions(): number {
-    const completionHistory = this.dailyCompletionHistoryStoreService.getSummaries();
-    let daysWithCompletions = 0;
+  public getLastSevenDaysCompletions(): Observable<number> {
+    return this.dailyCompletionHistoryStoreService.getSummaries().pipe(
+      map(completionHistory => {
+        let daysWithCompletions = 0;
 
-    completionHistory.map(summary => {
-      if(this.isWithinPast7Days(summary.date) && summary.completionPercent > 0) daysWithCompletions += 1;
-    })
+        completionHistory.map(summary => {
+          if(this.isWithinPast7Days(summary.date) && summary.completionPercent > 0) daysWithCompletions += 1;
+        })
 
-    return daysWithCompletions;
+        return daysWithCompletions;
+      })
+    );
+    
   }
 
   private getTodayKey(): string {
@@ -245,7 +256,9 @@ export class PlanningWorkflowService {
         );
 
         return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
-          tap(latestRotation => this.saveDailyCompletionSummary(latestRotation))
+          switchMap(latestRotation => this.saveDailyCompletionSummary(latestRotation).pipe(
+            map(() => latestRotation)
+          ))
         );
       })
     )
@@ -339,13 +352,13 @@ private buildFreshRotationCandidates(): Observable<DailyRotationItem[]> {
   );
 }
 
-private saveDailyCompletionSummary(items: DailyRotationItem[]): void {
+private saveDailyCompletionSummary(items: DailyRotationItem[]): Observable<void> {
   const totalCount = items.length;
   const completedCount = items.filter(item => item.completed).length;
   const completionPercent =
     totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
 
-  this.dailyCompletionHistoryStoreService.saveSummary({
+  return this.dailyCompletionHistoryStoreService.saveSummary({
     date: this.getTodayKey(),
     completedCount,
     totalCount,

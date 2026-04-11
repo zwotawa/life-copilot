@@ -13,6 +13,7 @@ public class LifeCopilotDbContext : DbContext
     public DbSet<WeeklyReviewEntity> WeeklyReviews => Set<WeeklyReviewEntity>();
     public DbSet<InboxEntryEntity> InboxEntries => Set<InboxEntryEntity>();
     public DbSet<DailyRotationEntity> DailyRotations => Set<DailyRotationEntity>();
+    public DbSet<DailyCompletionSummaryEntity> DailyCompletionSummaries => Set<DailyCompletionSummaryEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -150,5 +151,17 @@ public class LifeCopilotDbContext : DbContext
         modelBuilder.Entity<DailyRotationEntity>()
             .Property(x => x.ItemsJson)
             .HasColumnType("text");
+
+        modelBuilder.Entity<DailyCompletionSummaryEntity>()
+            .HasIndex(x => new { x.UserId, x.Date })
+            .IsUnique();
+
+        modelBuilder.Entity<DailyCompletionSummaryEntity>()
+            .Property(x => x.Date)
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<DailyCompletionSummaryEntity>()
+            .Property(x => x.UpdatedAt)
+            .HasMaxLength(100);
     }
 }

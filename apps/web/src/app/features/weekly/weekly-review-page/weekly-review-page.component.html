@@ -12,12 +12,12 @@
     <div class="weekly-insights">
       <h3>Execution Insights</h3>
 
-      <p>Active days: {{ weeklyInsights.activeDays }}/7</p>
-      <p>Average completion: {{ weeklyInsights.averageCompletionPercent }}%</p>
-      <p>Fully completed days: {{ weeklyInsights.fullyCompletedDays }}</p>
+      <p>Active days: {{ weeklyInsights?.activeDays }}/7</p>
+      <p>Average completion: {{ weeklyInsights?.averageCompletionPercent }}%</p>
+      <p>Fully completed days: {{ weeklyInsights?.fullyCompletedDays }}</p>
 
-      <p *ngIf="weeklyInsights.bestDay">
-        Best day: {{ weeklyInsights.bestDay.date }} ({{ weeklyInsights.bestDay.completionPercent }}%)
+      <p *ngIf="weeklyInsights?.bestDay">
+        Best day: {{ weeklyInsights?.bestDay?.date }} ({{ weeklyInsights?.bestDay?.completionPercent }}%)
       </p>
     </div>
 

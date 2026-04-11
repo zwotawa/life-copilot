@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Goal } from 'src/app/core/models/goal.model';
+import { WeeklyExecutionInsights } from 'src/app/core/models/weekly-execution-insights.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
@@ -14,7 +15,7 @@ import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-st
 export class WeeklyReviewPageComponent implements OnInit {
   private goals: Goal[] = [];
   public review!: WeeklyReviewState;
-  public weeklyInsights = this.weeklyInsightService.getLast7DaysInsights();
+  public weeklyInsights?: WeeklyExecutionInsights | null = null;
 
   constructor(
     private goalStoreService: GoalStoreService,
@@ -28,6 +29,10 @@ export class WeeklyReviewPageComponent implements OnInit {
 
     this.weeklyReviewStoreService.getCurrentWeeklyReview().subscribe({
       next: (review) => this.review = review
+    });
+
+    this.weeklyInsightService.getLast7DaysInsights().subscribe({
+      next: weeklyinsights => this.weeklyInsights = weeklyinsights
     });
   }
 

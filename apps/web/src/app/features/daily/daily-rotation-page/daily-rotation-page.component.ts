@@ -115,6 +115,8 @@ export class DailyRotationPageComponent implements OnInit {
     this.planningWorkflowService.getOrCreateDailyRotation().subscribe({
       next: rotationItems => this.rotationItems = rotationItems
     });
-    this.activeCompletionDays = this.planningWorkflowService.getLastSevenDaysCompletions();
+    this.planningWorkflowService.getLastSevenDaysCompletions().subscribe({
+      next: completions => this.activeCompletionDays = completions
+    });
   }
 }

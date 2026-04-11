@@ -53,6 +53,7 @@ import { RegisterComponent } from './features/register/register.component';
 import { ApiWeeklyReviewRepository } from './core/services/api-weekly-review-repository.service';
 import { ApiInboxRepository } from './core/services/api-inbox-repository.service';
 import { ApiDailyRotationRepository } from './core/services/api-daily-rotation-repository.service';
+import { ApiDailyCompletionHistoryRepository } from './core/services/api-daily-completion-history-repository.service';
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
   return async () => {
@@ -102,7 +103,7 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     {provide: InboxRepository, useClass: ApiInboxRepository},
     {provide: DailyRotationRepository, useClass: ApiDailyRotationRepository},
     {provide: WeeklyReviewRepository, useClass: ApiWeeklyReviewRepository},
-    {provide: DailyCompletionHistoryRepository, useClass: LocalDailyCompletionHistoryService},
+    {provide: DailyCompletionHistoryRepository, useClass: ApiDailyCompletionHistoryRepository},
     {provide: GoalProgressRepository, useClass: LocalGoalProgressRepository},
     {
       provide: APP_INITIALIZER,

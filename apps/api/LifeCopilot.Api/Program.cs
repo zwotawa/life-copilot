@@ -927,6 +927,61 @@ app.MapDelete("/api/daily-rotation/{date}", async (
     return Results.NoContent();
 }).RequireAuthorization();
 
+app.MapGet("/api/completion-history", async (
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var summaries = await db.DailyCompletionSummaries
+        .Where(x => x.UserId == userId.Value)
+        .OrderByDescending(x => x.Date)
+        .ToListAsync();
+
+    return Results.Ok(summaries.Select(ToDailyCompletionSummaryDto));
+}).RequireAuthorization();
+
+app.MapPut("/api/completion-history/{date}", async (
+    string date,
+    DailyCompletionSummaryDto req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    if (string.IsNullOrWhiteSpace(date))
+        return Results.BadRequest("Date is required.");
+
+    var existing = await db.DailyCompletionSummaries
+        .FirstOrDefaultAsync(x => x.UserId == userId.Value && x.Date == date);
+
+    if (existing is null)
+    {
+        existing = new DailyCompletionSummaryEntity
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId.Value,
+            Date = date
+        };
+
+        db.DailyCompletionSummaries.Add(existing);
+    }
+
+    existing.CompletedCount = req.CompletedCount;
+    existing.TotalCount = req.TotalCount;
+    existing.CompletionPercent = req.CompletionPercent;
+    existing.FullyCompleted = req.FullyCompleted;
+    existing.UpdatedAt = DateTime.UtcNow.ToString("O");
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(ToDailyCompletionSummaryDto(existing));
+}).RequireAuthorization();
+
 app.Run();
 
 static Dictionary<string, string[]> ValidateCreation(CreateJobCardRequest req) 
@@ -1064,4 +1119,13 @@ static InboxEntryDto ToInboxEntryDto(InboxEntryEntity entity) => new()
     CapturedAt = entity.CapturedAt,
     UpdatedAt = entity.UpdatedAt,
     CompletedAt = entity.CompletedAt
+};
+
+static DailyCompletionSummaryDto ToDailyCompletionSummaryDto(DailyCompletionSummaryEntity entity) => new()
+{
+    Date = entity.Date,
+    CompletedCount = entity.CompletedCount,
+    TotalCount = entity.TotalCount,
+    CompletionPercent = entity.CompletionPercent,
+    FullyCompleted = entity.FullyCompleted
 };

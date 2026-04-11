@@ -3,6 +3,7 @@ import { DailyCompletionHistoryRepository } from '../../repositories/daily-compl
 import { DailyCompletionSummary } from '../../models/daily-completion.model';
 import { StorageKeyService } from './storage-key.service';
 import { LocalStorageService } from './local-storage.service';
+import { map, Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -16,44 +17,48 @@ export class LocalDailyCompletionHistoryService extends DailyCompletionHistoryRe
     super();
    }
 
-   public saveSummary(dailyCompletionSummary: DailyCompletionSummary): void {
-    const currentSummaries = this.getSummaries();
-    const existingIndex = currentSummaries.findIndex(
-      summary => summary.date === dailyCompletionSummary.date
+   public saveSummary(dailyCompletionSummary: DailyCompletionSummary): Observable<void> {
+    return this.getSummaries().pipe(
+      map(currentSummaries => {
+        const existingIndex = currentSummaries.findIndex(
+          summary => summary.date === dailyCompletionSummary.date
+        );
+
+        let updatedSummaries: DailyCompletionSummary[];
+
+        if (existingIndex >= 0) {
+          updatedSummaries = currentSummaries.map(summary =>
+            summary.date === dailyCompletionSummary.date
+              ? dailyCompletionSummary
+              : summary
+          );
+        } else {
+          updatedSummaries = [...currentSummaries, dailyCompletionSummary];
+        }
+
+        updatedSummaries.sort((a, b) => a.date.localeCompare(b.date));
+        this.saveSummaries(updatedSummaries);
+        return void 0;
+      })
     );
-
-    let updatedSummaries: DailyCompletionSummary[];
-
-    if (existingIndex >= 0) {
-      updatedSummaries = currentSummaries.map(summary =>
-        summary.date === dailyCompletionSummary.date
-          ? dailyCompletionSummary
-          : summary
-      );
-    } else {
-      updatedSummaries = [...currentSummaries, dailyCompletionSummary];
-    }
-
-    updatedSummaries.sort((a, b) => a.date.localeCompare(b.date));
-    this.saveSummaries(updatedSummaries);
   }
 
    private saveSummaries(dailyCompletionSummaries: DailyCompletionSummary[]): void {
       this.localStorageService.setItem(this.storageKey, JSON.stringify(dailyCompletionSummaries));
    }
 
-   public getSummaries(): DailyCompletionSummary[] {
+   public getSummaries(): Observable<DailyCompletionSummary[]> {
     this.migrateLegacyIfNeeded();
 
     const stored = this.localStorageService.getItem(this.storageKey);
-    if (!stored) return [];
+    if (!stored) return of([]);
 
     try {
       const parsed = JSON.parse(stored) as DailyCompletionSummary[];
-      return Array.isArray(parsed) ? parsed : [];
+      return of(Array.isArray(parsed) ? parsed : []);
     } catch (error) {
       console.error('Error parsing completion history from localStorage:', error);
-      return [];
+      return of([]);
     }
   }
 
