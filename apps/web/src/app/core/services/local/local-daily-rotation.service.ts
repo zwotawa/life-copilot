@@ -3,6 +3,7 @@ import { DailyRotationRepository } from "../../repositories/daily-rotation.repos
 import { LocalStorageService } from "./local-storage.service";
 import { StorageKeyService } from "./storage-key.service";
 import { DailyRotationItem } from "../../models/daily-rotation.model";
+import { Observable, of } from "rxjs";
 
 type DailyRotationMap = Record<string, DailyRotationItem[]>;
 
@@ -36,22 +37,24 @@ export class LocalDailyRotationRepository extends DailyRotationRepository {
         this.localStorageService.setItem(newKey, legacyValue);
     }
 
-    public saveRotationForDate(date: string, items: DailyRotationItem[]): void {
+    public saveRotationForDate(date: string, items: DailyRotationItem[]): Observable<DailyRotationItem[]> {
         const map = this.readRotationMap();
         map[date] = items;
         this.saveRotationMap(map);
+        return of(items);
     }
 
-    public getRotationForDate(date: string): DailyRotationItem[] {
+    public getRotationForDate(date: string): Observable<DailyRotationItem[]> {
         const map = this.readRotationMap();
         const items = map[date];
-        return Array.isArray(items) ? items : [];
+        return of(Array.isArray(items) ? items : []);
     }
 
-    public clearRotationForDate(date: string): void {
+    public clearRotationForDate(date: string): Observable<void> {
         const map = this.readRotationMap();
         delete map[date];
         this.saveRotationMap(map);
+        return of(void 0);
     }
 
     private readRotationMap(): DailyRotationMap {

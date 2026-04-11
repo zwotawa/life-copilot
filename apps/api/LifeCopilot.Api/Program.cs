@@ -847,6 +847,86 @@ app.MapDelete("/api/inbox/{id}", async (
     return Results.NoContent();
 }).RequireAuthorization();
 
+app.MapGet("/api/daily-rotation/{date}", async (
+    string date,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var existing = await db.DailyRotations
+        .FirstOrDefaultAsync(x => x.UserId == userId.Value && x.Date == date);
+
+    if (existing is null)
+    {
+        return Results.Ok(new List<DailyRotationItemDto>());
+    }
+
+    var items = JsonSerializer.Deserialize<List<DailyRotationItemDto>>(existing.ItemsJson) ?? [];
+    return Results.Ok(items);
+}).RequireAuthorization();
+
+app.MapPut("/api/daily-rotation/{date}", async (
+    string date,
+    SaveDailyRotationRequest req,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var now = DateTime.UtcNow.ToString("O");
+
+    var existing = await db.DailyRotations
+        .FirstOrDefaultAsync(x => x.UserId == userId.Value && x.Date == date);
+
+    if (existing is null)
+    {
+        existing = new DailyRotationEntity
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId.Value,
+            Date = date,
+            CreatedAt = now
+        };
+
+        db.DailyRotations.Add(existing);
+    }
+
+    existing.Date = date;
+    existing.ItemsJson = JsonSerializer.Serialize(req.Items ?? []);
+    existing.UpdatedAt = now;
+
+    await db.SaveChangesAsync();
+
+    var items = JsonSerializer.Deserialize<List<DailyRotationItemDto>>(existing.ItemsJson) ?? [];
+    return Results.Ok(items);
+}).RequireAuthorization();
+
+app.MapDelete("/api/daily-rotation/{date}", async (
+    string date,
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var existing = await db.DailyRotations
+        .FirstOrDefaultAsync(x => x.UserId == userId.Value && x.Date == date);
+
+    if (existing is null)
+        return Results.NoContent();
+
+    db.DailyRotations.Remove(existing);
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+}).RequireAuthorization();
+
 app.Run();
 
 static Dictionary<string, string[]> ValidateCreation(CreateJobCardRequest req) 

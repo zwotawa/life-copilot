@@ -4,6 +4,7 @@ import { DailyRotationRepository } from '../repositories/daily-rotation.reposito
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { Goal } from '../models/goal.model';
 import { DailyRotationItem } from '../models/daily-rotation.model';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -29,15 +30,15 @@ export class DailyRotationStoreService {
     return items;
   }
 
-  public loadRotationItemsForDate(date: string): DailyRotationItem[] {
+  public loadRotationItemsForDate(date: string): Observable<DailyRotationItem[]> {
     return this.dailyRotationRepository.getRotationForDate(date);
   }
 
-  public saveRotationItemsForDate(date: string, items: DailyRotationItem[]): void {
-    this.dailyRotationRepository.saveRotationForDate(date, items);
+  public saveRotationItemsForDate(date: string, items: DailyRotationItem[]): Observable<DailyRotationItem[]> {
+    return this.dailyRotationRepository.saveRotationForDate(date, items);
   }
 
-  public clearRotationItemsForDate(date: string): void {
-    this.dailyRotationRepository.clearRotationForDate(date);
+  public clearRotationItemsForDate(date: string): Observable<void> {
+    return this.dailyRotationRepository.clearRotationForDate(date);
   }
 }

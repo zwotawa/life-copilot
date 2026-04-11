@@ -7,7 +7,7 @@ import { Goal } from '../models/goal.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { RotationEngineService } from './rotation-engine.service';
 import { DailyCompletionHistoryStoreService } from './daily-completion-history-store.service';
-import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, map, Observable, of, switchMap, tap } from 'rxjs';
 import { GoalProgressStoreService } from './goal-progress-store.service';
 
 @Injectable({
@@ -26,19 +26,22 @@ export class PlanningWorkflowService {
 
   public getOrCreateDailyRotation(): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
-    const saved: DailyRotationItem[] = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
-    if(saved.length > 0) {
-      return of(saved);
-    }
+    return this.dailyRotationStoreService.loadRotationItemsForDate(today).pipe(
+      switchMap(todayRotation => {
+        
+        if(todayRotation.length > 0) {
+          return of(todayRotation);
+        }
 
-    return this.resetTodayPlan().pipe(
-      map((todayPlan: DailyRotationItem[]) => {
-        this.saveDailyCompletionSummary(todayPlan);
-        return todayPlan;
+        return this.resetTodayPlan().pipe(
+          map((todayPlan: DailyRotationItem[]) => {
+            this.saveDailyCompletionSummary(todayPlan);
+            return todayPlan;
+          })
+        );
       })
     );
-    
   }
 
 
@@ -75,14 +78,16 @@ export class PlanningWorkflowService {
 
   private regenerateDailyRotationPreservingCompleted(): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
-    const currentItems = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
-    if (currentItems.length === 0) {
-      return this.resetTodayPlan();
-    }
+    return combineLatest([
+      this.dailyRotationStoreService.loadRotationItemsForDate(today),
+      this.buildFreshRotationCandidates()
+    ]).pipe(
+      switchMap(([currentItems, freshItems]) => {
+        if (currentItems.length === 0) {
+          return this.resetTodayPlan();
+        }
 
-    return this.buildFreshRotationCandidates().pipe(
-      map((freshItems) => {
         const usedGoalIds = new Set(
           currentItems
             .filter(item => item.completed && item.goalId)
@@ -112,13 +117,11 @@ export class PlanningWorkflowService {
           return replacement;
         });
 
-        this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
-        this.saveDailyCompletionSummary(updatedItems);
-        return updatedItems;
+        return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
+          tap((latestRotation) => this.saveDailyCompletionSummary(latestRotation))
+        );
       })
     );
-
-    
   }
 
   public setRotationItemCompletedOrUncompleted(
@@ -126,71 +129,77 @@ export class PlanningWorkflowService {
     completed: boolean
   ): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
-    const items = this.dailyRotationStoreService.loadRotationItemsForDate(today);
-
-    const target = items.find(item => item.id === itemId);
-    if (!target) {
-      return of(items);
-    }
-
-    const updatedItems = items.map(item =>
-      item.id === itemId
-        ? { ...item, completed }
-        : item
-    );
-
-    const persistUpdatedItems = (): Observable<DailyRotationItem[]> => {
-      this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
-      this.saveDailyCompletionSummary(updatedItems);
-      return of(updatedItems);
-    };
-
-    if (completed && target.goalId) {
-      return this.goalStoreService.markGoalTouched(target.goalId).pipe(
-        switchMap(() => {
-          if (!target.goalId) {
-            return persistUpdatedItems();
-          }
-
-          return this.goalProgressStoreService.addEvent({
-            id: `progress-${Date.now()}`,
-            goalId: target.goalId,
-            date: today,
-            createdAt: new Date().toISOString(),
-            type: 'daily_task_completed',
-            taskText: target.actionText,
-            source: 'daily_rotation',
-            sourceItemId: target.id
-          }).pipe(
-            switchMap(() => persistUpdatedItems())
-          )
-        })
-      );
-    }
-
-    return this.goalProgressStoreService.getEventBySourceItemId(target.id).pipe(
-      switchMap(existingEvent => {
-        if (!existingEvent) {
-          return persistUpdatedItems();
+    return this.dailyRotationStoreService.loadRotationItemsForDate(today).pipe(
+      switchMap(items => {
+        const target = items.find(item => item.id === itemId);
+        if (!target) {
+          return of(items);
         }
 
-        return this.goalProgressStoreService.deleteEvent(existingEvent.id).pipe(
-          switchMap(() => persistUpdatedItems())
+        const updatedItems = items.map(item =>
+          item.id === itemId
+            ? { ...item, completed }
+            : item
+        );
+
+        //persisting the item change doesn't require any feedback from the further services
+        const persistUpdatedItems = (): Observable<DailyRotationItem[]> => {
+          return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
+            tap(latestRotation => this.saveDailyCompletionSummary(latestRotation) )
+          );
+        };
+
+        //if completed mark it the goal touch and save progress event
+        if (completed && target.goalId) {
+          return this.goalStoreService.markGoalTouched(target.goalId).pipe(
+            switchMap(() => {
+              if (!target.goalId) {
+                return persistUpdatedItems();
+              }
+
+              return this.goalProgressStoreService.addEvent({
+                id: `progress-${Date.now()}`,
+                goalId: target.goalId,
+                date: today,
+                createdAt: new Date().toISOString(),
+                type: 'daily_task_completed',
+                taskText: target.actionText,
+                source: 'daily_rotation',
+                sourceItemId: target.id
+              }).pipe(
+                switchMap(() => persistUpdatedItems())
+              )
+            })
+          );
+        }
+
+         //if unmarking the goal complete find the progress event and reverse it by deletion
+        return this.goalProgressStoreService.getEventBySourceItemId(target.id).pipe(
+          switchMap(existingEvent => {
+            if (!existingEvent) {
+              return persistUpdatedItems();
+            }
+
+            return this.goalProgressStoreService.deleteEvent(existingEvent.id).pipe(
+              switchMap(() => persistUpdatedItems())
+            )
+          })
         )
       })
-    )
+    );
   }
 
   public toggleRotationItemCompleted(itemId: string): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
-    const items = this.dailyRotationStoreService.loadRotationItemsForDate(today);
-
-    const target = items.find(item => item.id === itemId);
-    if (!target) {
-      return of(items);
-    }
-
-    return this.setRotationItemCompletedOrUncompleted(itemId, !target.completed);
+    return this.dailyRotationStoreService.loadRotationItemsForDate(today).pipe(
+      switchMap(items => {
+        const target = items.find(item => item.id === itemId);
+        if (!target) {
+          return of(items);
+        }
+        return this.setRotationItemCompletedOrUncompleted(itemId, !target.completed);
+      })
+    );
   }
 
   public getLastSevenDaysCompletions(): number {
@@ -210,15 +219,17 @@ export class PlanningWorkflowService {
 
    public replaceRotationItem(itemId: string): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
-    const currentItems = this.dailyRotationStoreService.loadRotationItemsForDate(today);
 
-    const itemToReplace = currentItems.find(item => item.id === itemId);
-    if (!itemToReplace) {
-      return of(currentItems);
-    }
+    return combineLatest([
+      this.dailyRotationStoreService.loadRotationItemsForDate(today),
+      this.buildFreshRotationCandidates()
+    ]).pipe(
+      switchMap(([currentItems, freshItems]) => {
+        const itemToReplace = currentItems.find(item => item.id === itemId);
+        if (!itemToReplace) {
+          return of(currentItems);
+        }
 
-    return this.buildFreshRotationCandidates().pipe(
-      map((freshItems) => {
         const replacement = this.pickReplacementCandidate(
           itemToReplace,
           currentItems,
@@ -227,20 +238,18 @@ export class PlanningWorkflowService {
         );
 
         if (!replacement) {
-          return currentItems;
+          return of(currentItems);
         }
 
         const updatedItems = currentItems.map(item =>
           item.id === itemId ? replacement : item
         );
 
-        this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems);
-        this.saveDailyCompletionSummary(updatedItems);
-        return updatedItems;
+        return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
+          tap(latestRotation => this.saveDailyCompletionSummary(latestRotation))
+        );
       })
-    );
-
-    
+    )
   }
 
   private pickReplacementCandidate(

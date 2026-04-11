@@ -6,7 +6,6 @@ import { InboxEntry } from 'src/app/core/models/inbox-entry.model';
 import { GoalFreshnessInfo, GoalFreshnessService } from 'src/app/core/services/goal-freshness.service';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
-import { DailyRotationStoreService } from 'src/app/core/services/daily-rotation-store.service';
 import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
 import { DashboardExecutionSnapshot } from 'src/app/core/models/dashboard-execution-snapshot.model';
@@ -248,7 +247,9 @@ export class DashboardPageComponent implements OnInit {
   }
 
   private loadExecutionSnapshot(): void {
-    this.executionSnapshot = this.dashboardInsightService.getExecutionSnapshot();
+    this.dashboardInsightService.getExecutionSnapshot().subscribe({
+      next: executionSnapshot => this.executionSnapshot = executionSnapshot
+    });
   }
 
   private extractGoals(): void {

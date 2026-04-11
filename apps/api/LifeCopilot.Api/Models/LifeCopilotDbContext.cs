@@ -12,6 +12,7 @@ public class LifeCopilotDbContext : DbContext
     public DbSet<GoalEntity> Goals => Set<GoalEntity>();
     public DbSet<WeeklyReviewEntity> WeeklyReviews => Set<WeeklyReviewEntity>();
     public DbSet<InboxEntryEntity> InboxEntries => Set<InboxEntryEntity>();
+    public DbSet<DailyRotationEntity> DailyRotations => Set<DailyRotationEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -137,5 +138,17 @@ public class LifeCopilotDbContext : DbContext
         modelBuilder.Entity<InboxEntryEntity>()
             .Property(x => x.Notes)
             .HasMaxLength(8000);
+
+        modelBuilder.Entity<DailyRotationEntity>()
+            .HasIndex(x => new { x.UserId, x.Date })
+            .IsUnique();
+
+        modelBuilder.Entity<DailyRotationEntity>()
+            .Property(x => x.Date)
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<DailyRotationEntity>()
+            .Property(x => x.ItemsJson)
+            .HasColumnType("text");
     }
 }
