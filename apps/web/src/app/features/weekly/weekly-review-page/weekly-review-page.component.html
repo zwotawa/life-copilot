@@ -1,4 +1,4 @@
-<div class="weekly-page">
+<div class="weekly-page" *ngIf="vm$ | async as vm">
   <div class="weekly-page__container">
     <header class="weekly-page__header">
       <p class="weekly-page__eyebrow">Weekly Review</p>
@@ -8,215 +8,256 @@
       </p>
     </header>
 
-    <div *ngIf="review">
-    <div class="weekly-insights">
-      <h3>Execution Insights</h3>
+    <mat-progress-bar *ngIf="vm.pageLoading" mode="indeterminate"></mat-progress-bar>
 
-      <p>Active days: {{ weeklyInsights?.activeDays }}/7</p>
-      <p>Average completion: {{ weeklyInsights?.averageCompletionPercent }}%</p>
-      <p>Fully completed days: {{ weeklyInsights?.fullyCompletedDays }}</p>
-
-      <p *ngIf="weeklyInsights?.bestDay">
-        Best day: {{ weeklyInsights?.bestDay?.date }} ({{ weeklyInsights?.bestDay?.completionPercent }}%)
-      </p>
+    <div class="weekly-page__errors" *ngIf="vm.pageErrorMessages.length > 0">
+      <div class="weekly-error" *ngFor="let error of vm.pageErrorMessages">
+        {{ error }}
+      </div>
     </div>
 
-    <section class="weekly-summary">
-      <div class="weekly-summary__section">
-        <div class="weekly-summary__label">Anchor goals</div>
-        <div class="weekly-summary__chips">
-          <span class="weekly-chip" *ngFor="let goal of selectedAnchorGoals">
-            {{ goal.title }}
-            
-          </span>
-          <span class="weekly-summary__empty" *ngIf="selectedAnchorGoals.length === 0">
-            None selected
-          </span>
-        </div>
+    <ng-container *ngIf="vm.review as review; else weeklyReviewFallback">
+      <div class="weekly-insights" *ngIf="!vm.insightsState.loading && !vm.insightsState.error">
+        <h3>Execution Insights</h3>
+
+        <p>Active days: {{ vm.weeklyInsights?.activeDays ?? 0 }}/7</p>
+        <p>Average completion: {{ vm.weeklyInsights?.averageCompletionPercent ?? 0 }}%</p>
+        <p>Fully completed days: {{ vm.weeklyInsights?.fullyCompletedDays ?? 0 }}</p>
+
+        <p *ngIf="vm.weeklyInsights?.bestDay">
+          Best day: {{ vm.weeklyInsights?.bestDay?.date }}
+          ({{ vm.weeklyInsights?.bestDay?.completionPercent }}%)
+        </p>
       </div>
 
-      <div class="weekly-summary__section">
-        <div class="weekly-summary__label">Infrastructure</div>
-        <div class="weekly-summary__chips">
-          <span class="weekly-chip" *ngIf="selectedInfrastructureGoal">
-            {{ selectedInfrastructureGoal.title }}
-          </span>
-          <span class="weekly-summary__empty" *ngIf="!selectedInfrastructureGoal">
-            None selected
-          </span>
+      <section class="weekly-summary">
+        <div class="weekly-summary__section">
+          <div class="weekly-summary__label">Anchor goals</div>
+          <div class="weekly-summary__chips">
+            <span class="weekly-chip" *ngFor="let goal of vm.selectedAnchorGoals">
+              {{ goal.title }}
+            </span>
+            <span class="weekly-summary__empty" *ngIf="vm.selectedAnchorGoals.length === 0">
+              None selected
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div class="weekly-summary__section">
-        <div class="weekly-summary__label">Maintenance</div>
-        <div class="weekly-summary__chips">
-          <span class="weekly-chip" *ngFor="let goal of selectedMaintenanceGoals">
-            {{ goal.title }}
-          </span>
-          <span class="weekly-summary__empty" *ngIf="selectedMaintenanceGoals.length === 0">
-            None selected
-          </span>
+        <div class="weekly-summary__section">
+          <div class="weekly-summary__label">Infrastructure</div>
+          <div class="weekly-summary__chips">
+            <span class="weekly-chip" *ngIf="vm.selectedInfrastructureGoal">
+              {{ vm.selectedInfrastructureGoal.title }}
+            </span>
+            <span class="weekly-summary__empty" *ngIf="!vm.selectedInfrastructureGoal">
+              None selected
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div class="weekly-summary__section">
-        <div class="weekly-summary__label">Creative</div>
-        <div class="weekly-summary__chips">
-          <span class="weekly-chip" *ngIf="selectedCreativeGoal">
-            {{ selectedCreativeGoal.title }}
-          </span>
-          <span class="weekly-summary__empty" *ngIf="!selectedCreativeGoal">
-            None selected
-          </span>
+        <div class="weekly-summary__section">
+          <div class="weekly-summary__label">Maintenance</div>
+          <div class="weekly-summary__chips">
+            <span class="weekly-chip" *ngFor="let goal of vm.selectedMaintenanceGoals">
+              {{ goal.title }}
+            </span>
+            <span class="weekly-summary__empty" *ngIf="vm.selectedMaintenanceGoals.length === 0">
+              None selected
+            </span>
+          </div>
         </div>
-      </div>
-    </section>
 
-    <section class="weekly-section">
-      <div class="weekly-section__header">
-        <h2>Anchor goals</h2>
-        <p>
+        <div class="weekly-summary__section">
+          <div class="weekly-summary__label">Creative</div>
+          <div class="weekly-summary__chips">
+            <span class="weekly-chip" *ngIf="vm.selectedCreativeGoal">
+              {{ vm.selectedCreativeGoal.title }}
+            </span>
+            <span class="weekly-summary__empty" *ngIf="!vm.selectedCreativeGoal">
+              None selected
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="weekly-section">
+        <div class="weekly-section__header">
+          <h2>Anchor goals</h2>
+          <p>
             Choose up to 2 goals that deserve the most focus this week.
             <strong>({{ review.anchorGoalIds.length }}/2 selected)</strong>
-        </p>
-      </div>
+          </p>
+        </div>
 
-
-
-      <div class="weekly-goal-list">
-        <label
-          class="weekly-goal-option"
-          [class.weekly-goal-option--disabled]="isAnchorDisabled(goal.id)"
-          *ngFor="let goal of anchorCandidates; trackBy: trackByGoalId"
-        >
-          <input
-            type="checkbox"
-            [checked]="isAnchorSelected(goal.id)"
-            [disabled]="isAnchorDisabled(goal.id)"
-            (change)="toggleAnchor(goal.id)"
-          />
-          <div class="weekly-goal-option__body">
-            <div class="weekly-goal-option__title">{{ goal.title }}</div>
-            <div class="weekly-goal-option__meta">
-              {{ goal.lane }} · {{ goal.type }}
-            </div>
-            <div class="goal-hint">
-              Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
-            </div>
-            <div class="goal-hint goal-hint--secondary">
-              {{ getFreshnessLabel(goal) }}
-              <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
-                · {{ cadenceHint }}
-              </ng-container>
-            </div>
-          </div>
-        </label>
-      </div>
-    </section>
-
-    <section class="weekly-section">
-      <div class="weekly-section__header">
-        <h2>Infrastructure / admin goal</h2>
-        <p>Choose 1 practical goal that keeps life moving.</p>
-      </div>
-
-      <mat-form-field appearance="outline" class="weekly-page__full">
-        <mat-label>Infrastructure goal</mat-label>
-        <mat-select [(ngModel)]="review.infrastructureGoalId" name="infrastructureGoalId">
-          <mat-option [value]="null">None selected</mat-option>
-          <mat-option
-            *ngFor="let goal of infrastructureCandidates; trackBy: trackByGoalId"
-            [value]="goal.id"
+        <div class="weekly-goal-list">
+          <label
+            class="weekly-goal-option"
+            [class.weekly-goal-option--disabled]="isAnchorDisabled(goal.id) || isSaving || isResetting"
+            *ngFor="let goal of vm.anchorCandidates; trackBy: trackByGoalId"
           >
-            {{ goal.title }} — Score: {{ getSurfacingScore(goal) }} · {{ getFreshnessLabel(goal) }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </section>
+            <input
+              type="checkbox"
+              [checked]="isAnchorSelected(goal.id)"
+              [disabled]="isAnchorDisabled(goal.id) || isSaving || isResetting"
+              (change)="toggleAnchor(goal.id)"
+            />
+            <div class="weekly-goal-option__body">
+              <div class="weekly-goal-option__title">{{ goal.title }}</div>
+              <div class="weekly-goal-option__meta">
+                {{ goal.lane }} · {{ goal.type }}
+              </div>
+              <div class="goal-hint">
+                Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
+              </div>
+              <div class="goal-hint goal-hint--secondary">
+                {{ getFreshnessLabel(goal) }}
+                <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
+                  · {{ cadenceHint }}
+                </ng-container>
+              </div>
+            </div>
+          </label>
+        </div>
+      </section>
 
-    <section class="weekly-section">
-      <div class="weekly-section__header">
-        <h2>Maintenance goals</h2>
-        <p>
+      <section class="weekly-section">
+        <div class="weekly-section__header">
+          <h2>Infrastructure / admin goal</h2>
+          <p>Choose 1 practical goal that keeps life moving.</p>
+        </div>
+
+        <mat-form-field appearance="outline" class="weekly-page__full">
+          <mat-label>Infrastructure goal</mat-label>
+          <mat-select
+            [ngModel]="review.infrastructureGoalId"
+            (ngModelChange)="updateInfrastructureGoal($event)"
+            name="infrastructureGoalId"
+            [disabled]="isSaving || isResetting"
+          >
+            <mat-option [value]="null">None selected</mat-option>
+            <mat-option
+              *ngFor="let goal of vm.infrastructureCandidates; trackBy: trackByGoalId"
+              [value]="goal.id"
+            >
+              {{ goal.title }} — Score: {{ getSurfacingScore(goal) }} · {{ getFreshnessLabel(goal) }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </section>
+
+      <section class="weekly-section">
+        <div class="weekly-section__header">
+          <h2>Maintenance goals</h2>
+          <p>
             Choose up to 5 goals that just need light touches this week.
             <strong>({{ review.maintenanceGoalIds.length }}/5 selected)</strong>
-        </p>
-      </div>
+          </p>
+        </div>
 
-      <div class="weekly-goal-list">
-        <label
-          class="weekly-goal-option"
-          [class.weekly-goal-option--disabled]="isMaintenanceDisabled(goal.id)"
-          *ngFor="let goal of maintenanceCandidates; trackBy: trackByGoalId"
-        >
-          <input
-            type="checkbox"
-            [checked]="isMaintenanceSelected(goal.id)"
-            [disabled]="isMaintenanceDisabled(goal.id)"
-            (change)="toggleMaintenance(goal.id)"
-          />
-          <div class="weekly-goal-option__body">
-            <div class="weekly-goal-option__title">{{ goal.title }}</div>
-            <div class="weekly-goal-option__meta">
-              {{ goal.minimumTouchFrequency }} · {{ goal.type }}
-            </div>
-            <div class="goal-hint">
-              Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
-            </div>
-            <div class="goal-hint goal-hint--secondary">
-              {{ getFreshnessLabel(goal) }}
-              <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
-                · {{ cadenceHint }}
-              </ng-container>
-            </div>
-          </div>
-        </label>
-      </div>
-    </section>
-
-    <section class="weekly-section">
-      <div class="weekly-section__header">
-        <h2>Creative goal</h2>
-        <p>Optional, but useful to keep energy in the system.</p>
-      </div>
-
-      <mat-form-field appearance="outline" class="weekly-page__full">
-        <mat-label>Creative goal</mat-label>
-        <mat-select [(ngModel)]="review.creativeGoalId" name="creativeGoalId">
-          <mat-option [value]="null">None selected</mat-option>
-          <mat-option
-            *ngFor="let goal of creativeCandidates; trackBy: trackByGoalId"
-            [value]="goal.id"
+        <div class="weekly-goal-list">
+          <label
+            class="weekly-goal-option"
+            [class.weekly-goal-option--disabled]="isMaintenanceDisabled(goal.id) || isSaving || isResetting"
+            *ngFor="let goal of vm.maintenanceCandidates; trackBy: trackByGoalId"
           >
-            {{ goal.title }} — Score: {{ getSurfacingScore(goal) }} · {{ getFreshnessLabel(goal) }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </section>
+            <input
+              type="checkbox"
+              [checked]="isMaintenanceSelected(goal.id)"
+              [disabled]="isMaintenanceDisabled(goal.id) || isSaving || isResetting"
+              (change)="toggleMaintenance(goal.id)"
+            />
+            <div class="weekly-goal-option__body">
+              <div class="weekly-goal-option__title">{{ goal.title }}</div>
+              <div class="weekly-goal-option__meta">
+                {{ goal.minimumTouchFrequency }} · {{ goal.type }}
+              </div>
+              <div class="goal-hint">
+                Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
+              </div>
+              <div class="goal-hint goal-hint--secondary">
+                {{ getFreshnessLabel(goal) }}
+                <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
+                  · {{ cadenceHint }}
+                </ng-container>
+              </div>
+            </div>
+          </label>
+        </div>
+      </section>
 
-    <section class="weekly-section">
-      <div class="weekly-section__header">
-        <h2>Notes</h2>
-        <p>What would make this week feel meaningfully better?</p>
+      <section class="weekly-section">
+        <div class="weekly-section__header">
+          <h2>Creative goal</h2>
+          <p>Optional, but useful to keep energy in the system.</p>
+        </div>
+
+        <mat-form-field appearance="outline" class="weekly-page__full">
+          <mat-label>Creative goal</mat-label>
+          <mat-select
+            [ngModel]="review.creativeGoalId"
+            (ngModelChange)="updateCreativeGoal($event)"
+            name="creativeGoalId"
+            [disabled]="isSaving || isResetting"
+          >
+            <mat-option [value]="null">None selected</mat-option>
+            <mat-option
+              *ngFor="let goal of vm.creativeCandidates; trackBy: trackByGoalId"
+              [value]="goal.id"
+            >
+              {{ goal.title }} — Score: {{ getSurfacingScore(goal) }} · {{ getFreshnessLabel(goal) }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </section>
+
+      <section class="weekly-section">
+        <div class="weekly-section__header">
+          <h2>Notes</h2>
+          <p>What would make this week feel meaningfully better?</p>
+        </div>
+
+        <mat-form-field appearance="outline" class="weekly-page__full">
+          <mat-label>Weekly notes</mat-label>
+          <textarea
+            matInput
+            rows="4"
+            [ngModel]="review.notes"
+            (ngModelChange)="updateNotes($event)"
+            name="notes"
+            [disabled]="isSaving || isResetting"
+          ></textarea>
+        </mat-form-field>
+      </section>
+
+      <div class="weekly-page__actions">
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="reset()"
+          [disabled]="vm.pageLoading || isSaving || isResetting"
+        >
+          {{ isResetting ? 'Resetting...' : 'Reset' }}
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="save()"
+          [disabled]="vm.pageLoading || isSaving || isResetting || !review"
+        >
+          {{ isSaving ? 'Saving...' : 'Save Weekly Review' }}
+        </button>
       </div>
+    </ng-container>
 
-      <mat-form-field appearance="outline" class="weekly-page__full">
-        <mat-label>Weekly notes</mat-label>
-        <textarea
-          matInput
-          rows="4"
-          [(ngModel)]="review.notes"
-          name="notes"
-        ></textarea>
-      </mat-form-field>
-    </section>
-
-    <div class="weekly-page__actions">
-      <button mat-stroked-button type="button" (click)="reset()">Reset</button>
-      <button mat-raised-button color="primary" type="button" (click)="save()">
-        Save Weekly Review
-      </button>
-    </div>
-    </div>
+    <ng-template #weeklyReviewFallback>
+      <div class="weekly-empty" *ngIf="vm.reviewState.loading">
+        Loading weekly review...
+      </div>
+      <div class="weekly-error" *ngIf="vm.reviewState.error">
+        {{ vm.reviewState.error }}
+      </div>
+    </ng-template>
   </div>
 </div>

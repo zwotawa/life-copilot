@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { Observable, combineLatest, of } from 'rxjs';
+import { catchError, finalize, map, shareReplay, startWith } from 'rxjs/operators';
+
 import { Goal } from 'src/app/core/models/goal.model';
 import { WeeklyExecutionInsights } from 'src/app/core/models/weekly-execution-insights.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
@@ -7,162 +10,392 @@ import { GoalSurfacingService } from 'src/app/core/services/goal-surfacing.servi
 import { WeeklyInsightService } from 'src/app/core/services/weekly-insights.service';
 import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
 
+interface Loadable<T> {
+  loading: boolean;
+  data: T | null;
+  error: string | null;
+}
+
+interface WeeklyReviewViewModel {
+  goalsState: Loadable<Goal[]>;
+  reviewState: Loadable<WeeklyReviewState>;
+  insightsState: Loadable<WeeklyExecutionInsights | null>;
+
+  goals: Goal[];
+  review: WeeklyReviewState | null;
+  weeklyInsights: WeeklyExecutionInsights | null;
+
+  activeGoals: Goal[];
+  anchorCandidates: Goal[];
+  maintenanceCandidates: Goal[];
+  infrastructureCandidates: Goal[];
+  creativeCandidates: Goal[];
+
+  selectedAnchorGoals: Goal[];
+  selectedMaintenanceGoals: Goal[];
+  selectedInfrastructureGoal: Goal | null;
+  selectedCreativeGoal: Goal | null;
+
+  pageLoading: boolean;
+  pageErrorMessages: string[];
+}
+
 @Component({
   selector: 'app-weekly-review-page',
   templateUrl: './weekly-review-page.component.html',
   styleUrls: ['./weekly-review-page.component.scss']
 })
-export class WeeklyReviewPageComponent implements OnInit {
-  private goals: Goal[] = [];
-  public review!: WeeklyReviewState;
-  public weeklyInsights?: WeeklyExecutionInsights | null = null;
+export class WeeklyReviewPageComponent {
+  private readonly initialGoalsState$: Observable<Loadable<Goal[]>> =
+    this.goalStoreService.getGoals().pipe(
+      map(goals => ({
+        loading: false,
+        data: goals,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load goals.'
+        })
+      ),
+      shareReplay(1)
+    );
+
+  private readonly initialReviewState$: Observable<Loadable<WeeklyReviewState>> =
+    this.weeklyReviewStoreService.getCurrentWeeklyReview().pipe(
+      map(review => ({
+        loading: false,
+        data: review,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load weekly review.'
+        })
+      ),
+      shareReplay(1)
+    );
+
+  private readonly initialInsightsState$: Observable<Loadable<WeeklyExecutionInsights | null>> =
+    this.weeklyInsightService.getLast7DaysInsights().pipe(
+      map(weeklyInsights => ({
+        loading: false,
+        data: weeklyInsights,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load weekly execution insights.'
+        })
+      ),
+      shareReplay(1)
+    );
+
+  public reviewDraft: WeeklyReviewState | null = null;
+
+  public isSaving = false;
+  public saveError: string | null = null;
+
+  public isResetting = false;
+  public resetError: string | null = null;
+
+  public readonly vm$: Observable<WeeklyReviewViewModel> = combineLatest([
+    this.initialGoalsState$,
+    this.initialReviewState$,
+    this.initialInsightsState$
+  ]).pipe(
+    map(([goalsState, reviewState, insightsState]) => {
+      const goals = goalsState.data ?? [];
+      const review = this.reviewDraft ?? reviewState.data ?? null;
+      const weeklyInsights = insightsState.data ?? null;
+      const activeGoals = goals.filter(goal => goal.status === 'active');
+
+      const anchorCandidates = review
+        ? this.goalSurfacingService.sortGoalsBySurfacing(
+            activeGoals.filter(goal => goal.type !== 'maintain'),
+            review
+          )
+        : [];
+
+      const maintenanceCandidates = review
+        ? this.goalSurfacingService.sortGoalsBySurfacing(
+            activeGoals.filter(goal => goal.type === 'maintain'),
+            review
+          )
+        : [];
+
+      const infrastructureCandidates = review
+        ? this.goalSurfacingService.sortGoalsBySurfacing(
+            activeGoals.filter(goal =>
+              goal.type === 'maintain' ||
+              [
+                'life_systems',
+                'money_admin',
+                'home_environment',
+                'community_tools',
+                'mobility_transportation'
+              ].includes(goal.lane)
+            ),
+            review
+          )
+        : [];
+
+      const creativeCandidates = review
+        ? this.goalSurfacingService.sortGoalsBySurfacing(
+            activeGoals.filter(goal =>
+              goal.type === 'exploration' ||
+              goal.lane === 'creative_experiments'
+            ),
+            review
+          )
+        : [];
+
+      const selectedAnchorGoals = review
+        ? goals.filter(goal => review.anchorGoalIds.includes(goal.id))
+        : [];
+
+      const selectedMaintenanceGoals = review
+        ? goals.filter(goal => review.maintenanceGoalIds.includes(goal.id))
+        : [];
+
+      const selectedInfrastructureGoal = review?.infrastructureGoalId
+        ? goals.find(goal => goal.id === review.infrastructureGoalId) ?? null
+        : null;
+
+      const selectedCreativeGoal = review?.creativeGoalId
+        ? goals.find(goal => goal.id === review.creativeGoalId) ?? null
+        : null;
+
+      const pageErrorMessages = [
+        goalsState.error,
+        reviewState.error,
+        insightsState.error,
+        this.saveError,
+        this.resetError
+      ].filter((message): message is string => !!message);
+
+      return {
+        goalsState,
+        reviewState,
+        insightsState,
+
+        goals,
+        review,
+        weeklyInsights,
+
+        activeGoals,
+        anchorCandidates,
+        maintenanceCandidates,
+        infrastructureCandidates,
+        creativeCandidates,
+
+        selectedAnchorGoals,
+        selectedMaintenanceGoals,
+        selectedInfrastructureGoal,
+        selectedCreativeGoal,
+
+        pageLoading:
+          goalsState.loading ||
+          reviewState.loading ||
+          insightsState.loading,
+
+        pageErrorMessages
+      };
+    }),
+    shareReplay(1)
+  );
 
   constructor(
-    private goalStoreService: GoalStoreService,
-    private weeklyReviewStoreService: WeeklyReviewStoreService,
-    private goalSurfacingService: GoalSurfacingService,
-    private weeklyInsightService: WeeklyInsightService  
-  ) {}
-
-  ngOnInit(): void {
-    this.extractGoals();
-
-    this.weeklyReviewStoreService.getCurrentWeeklyReview().subscribe({
-      next: (review) => this.review = review
-    });
-
-    this.weeklyInsightService.getLast7DaysInsights().subscribe({
-      next: weeklyinsights => this.weeklyInsights = weeklyinsights
-    });
+    private readonly goalStoreService: GoalStoreService,
+    private readonly weeklyReviewStoreService: WeeklyReviewStoreService,
+    private readonly goalSurfacingService: GoalSurfacingService,
+    private readonly weeklyInsightService: WeeklyInsightService
+  ) {
+    this.loadInitialReviewDraft();
   }
 
   public save(): void {
-    this.weeklyReviewStoreService.saveWeeklyReview(this.review).subscribe({
-      next: (savedReview) => this.review = savedReview
+    if (!this.reviewDraft || this.isSaving) {
+      return;
+    }
+
+    this.isSaving = true;
+    this.saveError = null;
+
+    this.weeklyReviewStoreService.saveWeeklyReview(this.reviewDraft).pipe(
+      finalize(() => {
+        this.isSaving = false;
+      })
+    ).subscribe({
+      next: savedReview => {
+        this.reviewDraft = this.cloneReview(savedReview);
+      },
+      error: () => {
+        this.saveError = 'Could not save weekly review.';
+      }
     });
   }
 
   public reset(): void {
-    this.weeklyReviewStoreService.resetWeeklyReview().subscribe({
-      next: (review) => this.review = review
-    });
-  }
-
-  private extractGoals(): void {
-    this.goalStoreService.getGoals().subscribe({
-      next: (goals) => this.goals = goals
-    })
-  }
-
-  public isAnchorSelected(goalId: string): boolean {
-    return this.review.anchorGoalIds.includes(goalId);
-  }
-
-  public toggleAnchor(goalId: string): void {
-    if (this.isAnchorSelected(goalId)) {
-      this.review.anchorGoalIds = this.review.anchorGoalIds.filter(id => id !== goalId);
+    if (this.isResetting) {
       return;
     }
 
-    if (this.review.anchorGoalIds.length < 2) {
-      this.review.anchorGoalIds = [...this.review.anchorGoalIds, goalId];
+    this.isResetting = true;
+    this.resetError = null;
+
+    this.weeklyReviewStoreService.resetWeeklyReview().pipe(
+      finalize(() => {
+        this.isResetting = false;
+      })
+    ).subscribe({
+      next: review => {
+        this.reviewDraft = this.cloneReview(review);
+      },
+      error: () => {
+        this.resetError = 'Could not reset weekly review.';
+      }
+    });
+  }
+
+  public isAnchorSelected(goalId: string): boolean {
+    return !!this.reviewDraft?.anchorGoalIds.includes(goalId);
+  }
+
+  public toggleAnchor(goalId: string): void {
+    if (!this.reviewDraft) {
+      return;
+    }
+
+    if (this.isAnchorSelected(goalId)) {
+      this.reviewDraft = {
+        ...this.reviewDraft,
+        anchorGoalIds: this.reviewDraft.anchorGoalIds.filter(id => id !== goalId)
+      };
+      return;
+    }
+
+    if (this.reviewDraft.anchorGoalIds.length < 2) {
+      this.reviewDraft = {
+        ...this.reviewDraft,
+        anchorGoalIds: [...this.reviewDraft.anchorGoalIds, goalId]
+      };
     }
   }
 
   public isMaintenanceSelected(goalId: string): boolean {
-    return this.review.maintenanceGoalIds.includes(goalId);
+    return !!this.reviewDraft?.maintenanceGoalIds.includes(goalId);
   }
 
   public toggleMaintenance(goalId: string): void {
-    if (this.isMaintenanceSelected(goalId)) {
-      this.review.maintenanceGoalIds = this.review.maintenanceGoalIds.filter(id => id !== goalId);
+    if (!this.reviewDraft) {
       return;
     }
 
-    if (this.review.maintenanceGoalIds.length < 5) {
-      this.review.maintenanceGoalIds = [...this.review.maintenanceGoalIds, goalId];
+    if (this.isMaintenanceSelected(goalId)) {
+      this.reviewDraft = {
+        ...this.reviewDraft,
+        maintenanceGoalIds: this.reviewDraft.maintenanceGoalIds.filter(id => id !== goalId)
+      };
+      return;
     }
+
+    if (this.reviewDraft.maintenanceGoalIds.length < 5) {
+      this.reviewDraft = {
+        ...this.reviewDraft,
+        maintenanceGoalIds: [...this.reviewDraft.maintenanceGoalIds, goalId]
+      };
+    }
+  }
+
+  public updateInfrastructureGoal(goalId: string | null): void {
+    if (!this.reviewDraft) {
+      return;
+    }
+
+    this.reviewDraft = {
+      ...this.reviewDraft,
+      infrastructureGoalId: goalId
+    };
+  }
+
+  public updateCreativeGoal(goalId: string | null): void {
+    if (!this.reviewDraft) {
+      return;
+    }
+
+    this.reviewDraft = {
+      ...this.reviewDraft,
+      creativeGoalId: goalId
+    };
+  }
+
+  public updateNotes(notes: string): void {
+    if (!this.reviewDraft) {
+      return;
+    }
+
+    this.reviewDraft = {
+      ...this.reviewDraft,
+      notes
+    };
   }
 
   public trackByGoalId(index: number, goal: Goal): string {
     return goal.id;
   }
 
-  public get activeGoals(): Goal[] {
-    return this.goals.filter(goal => goal.status === 'active');
-  }
-
-public get anchorCandidates(): Goal[] {
-  const candidates = this.activeGoals.filter(goal => goal.type !== 'maintain');
-  return this.goalSurfacingService.sortGoalsBySurfacing(candidates, this.review);
-}
-
-public get maintenanceCandidates(): Goal[] {
-  const candidates = this.activeGoals.filter(goal => goal.type === 'maintain');
-  return this.goalSurfacingService.sortGoalsBySurfacing(candidates, this.review);
-}
-
-public get infrastructureCandidates(): Goal[] {
-  const candidates = this.activeGoals.filter(goal =>
-    goal.type === 'maintain' ||
-    [
-      'life_systems',
-      'money_admin',
-      'home_environment',
-      'community_tools',
-      'mobility_transportation'
-    ].includes(goal.lane)
-  );
-
-  return this.goalSurfacingService.sortGoalsBySurfacing(candidates, this.review);
-}
-
-public get creativeCandidates(): Goal[] {
-  const candidates = this.activeGoals.filter(goal =>
-    goal.type === 'exploration' ||
-    goal.lane === 'creative_experiments'
-  );
-
-  return this.goalSurfacingService.sortGoalsBySurfacing(candidates, this.review);
-}
-
-  public getGoalTitle(goalId: string | null | undefined): string {
-    if (!goalId) return '';
-    return this.goals.find(goal => goal.id === goalId)?.title ?? '';
-  }
-
-  public get selectedAnchorGoals(): Goal[] {
-    return this.goals.filter(goal => this.review.anchorGoalIds.includes(goal.id));
-  }
-
-  public get selectedMaintenanceGoals(): Goal[] {
-    return this.goals.filter(goal => this.review.maintenanceGoalIds.includes(goal.id));
-  }
-
-  public get selectedInfrastructureGoal(): Goal | null {
-    if (!this.review.infrastructureGoalId) return null;
-    return this.goals.find(goal => goal.id === this.review.infrastructureGoalId) ?? null;
-  }
-
-  public get selectedCreativeGoal(): Goal | null {
-    if (!this.review.creativeGoalId) return null;
-    return this.goals.find(goal => goal.id === this.review.creativeGoalId) ?? null;
-  }
-
   public isAnchorDisabled(goalId: string): boolean {
-  return !this.isAnchorSelected(goalId) && this.review.anchorGoalIds.length >= 2;
+    if (!this.reviewDraft) {
+      return true;
+    }
+
+    return !this.isAnchorSelected(goalId) && this.reviewDraft.anchorGoalIds.length >= 2;
   }
 
   public isMaintenanceDisabled(goalId: string): boolean {
-    return !this.isMaintenanceSelected(goalId) && this.review.maintenanceGoalIds.length >= 5;
+    if (!this.reviewDraft) {
+      return true;
+    }
+
+    return !this.isMaintenanceSelected(goalId) && this.reviewDraft.maintenanceGoalIds.length >= 5;
   }
 
   public getSurfacingScore(goal: Goal): number {
-    return this.goalSurfacingService.getSurfacingScore(goal, this.review);
+    if (!this.reviewDraft) {
+      return 0;
+    }
+
+    return this.goalSurfacingService.getSurfacingScore(goal, this.reviewDraft);
   }
 
   public getSuggestedCategory(goal: Goal): string | null {
-    return this.goalSurfacingService.getSuggestedDailyCategory(goal, this.review);
+    if (!this.reviewDraft) {
+      return null;
+    }
+
+    return this.goalSurfacingService.getSuggestedDailyCategory(goal, this.reviewDraft);
   }
 
   public getFreshnessLabel(goal: Goal): string {
@@ -220,5 +453,23 @@ public get creativeCandidates(): Goal[] {
       default:
         return null;
     }
+  }
+
+  private loadInitialReviewDraft(): void {
+    this.initialReviewState$.subscribe({
+      next: state => {
+        if (state.data && !this.reviewDraft) {
+          this.reviewDraft = this.cloneReview(state.data);
+        }
+      }
+    });
+  }
+
+  private cloneReview(review: WeeklyReviewState): WeeklyReviewState {
+    return {
+      ...review,
+      anchorGoalIds: [...review.anchorGoalIds],
+      maintenanceGoalIds: [...review.maintenanceGoalIds]
+    };
   }
 }
