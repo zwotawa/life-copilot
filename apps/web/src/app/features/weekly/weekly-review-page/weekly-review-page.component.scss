@@ -215,3 +215,17 @@ mat-form-field {
   padding: 1rem 0;
   opacity: 0.8;
 }
+
+.weekly-page__status {
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+.weekly-page__status-unsaved {
+  color: #b26a00;
+  font-weight: 600;
+}
+
+.weekly-page__status-saved {
+  opacity: 0.75;
+}

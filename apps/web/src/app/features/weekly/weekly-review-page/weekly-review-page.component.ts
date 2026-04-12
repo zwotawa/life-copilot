@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Observable, combineLatest, of } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, finalize, map, shareReplay, startWith } from 'rxjs/operators';
 
 import { Goal } from 'src/app/core/models/goal.model';
@@ -36,6 +36,8 @@ interface WeeklyReviewViewModel {
   selectedInfrastructureGoal: Goal | null;
   selectedCreativeGoal: Goal | null;
 
+  hasUnsavedChanges: boolean;
+
   pageLoading: boolean;
   pageErrorMessages: string[];
 }
@@ -46,6 +48,11 @@ interface WeeklyReviewViewModel {
   styleUrls: ['./weekly-review-page.component.scss']
 })
 export class WeeklyReviewPageComponent {
+  private readonly reviewDraftSubject = new BehaviorSubject<WeeklyReviewState | null>(null);
+  public readonly reviewDraft$ = this.reviewDraftSubject.asObservable();
+
+  private lastSavedReview: WeeklyReviewState | null = null;
+
   private readonly initialGoalsState$: Observable<Loadable<Goal[]>> =
     this.goalStoreService.getGoals().pipe(
       map(goals => ({
@@ -112,8 +119,6 @@ export class WeeklyReviewPageComponent {
       shareReplay(1)
     );
 
-  public reviewDraft: WeeklyReviewState | null = null;
-
   public isSaving = false;
   public saveError: string | null = null;
 
@@ -123,11 +128,12 @@ export class WeeklyReviewPageComponent {
   public readonly vm$: Observable<WeeklyReviewViewModel> = combineLatest([
     this.initialGoalsState$,
     this.initialReviewState$,
-    this.initialInsightsState$
+    this.initialInsightsState$,
+    this.reviewDraft$
   ]).pipe(
-    map(([goalsState, reviewState, insightsState]) => {
+    map(([goalsState, reviewState, insightsState, reviewDraft]) => {
       const goals = goalsState.data ?? [];
-      const review = this.reviewDraft ?? reviewState.data ?? null;
+      const review = reviewDraft ?? reviewState.data ?? null;
       const weeklyInsights = insightsState.data ?? null;
       const activeGoals = goals.filter(goal => goal.status === 'active');
 
@@ -215,6 +221,8 @@ export class WeeklyReviewPageComponent {
         selectedInfrastructureGoal,
         selectedCreativeGoal,
 
+        hasUnsavedChanges: this.computeHasUnsavedChanges(review),
+
         pageLoading:
           goalsState.loading ||
           reviewState.loading ||
@@ -236,20 +244,24 @@ export class WeeklyReviewPageComponent {
   }
 
   public save(): void {
-    if (!this.reviewDraft || this.isSaving) {
+    const reviewDraft = this.reviewDraftSubject.value;
+
+    if (!reviewDraft || this.isSaving || !this.computeHasUnsavedChanges(reviewDraft)) {
       return;
     }
 
     this.isSaving = true;
     this.saveError = null;
 
-    this.weeklyReviewStoreService.saveWeeklyReview(this.reviewDraft).pipe(
+    this.weeklyReviewStoreService.saveWeeklyReview(reviewDraft).pipe(
       finalize(() => {
         this.isSaving = false;
       })
     ).subscribe({
       next: savedReview => {
-        this.reviewDraft = this.cloneReview(savedReview);
+        const clonedReview = this.cloneReview(savedReview);
+        this.lastSavedReview = this.cloneReview(clonedReview);
+        this.reviewDraftSubject.next(clonedReview);
       },
       error: () => {
         this.saveError = 'Could not save weekly review.';
@@ -271,7 +283,9 @@ export class WeeklyReviewPageComponent {
       })
     ).subscribe({
       next: review => {
-        this.reviewDraft = this.cloneReview(review);
+        const clonedReview = this.cloneReview(review);
+        this.lastSavedReview = this.cloneReview(clonedReview);
+        this.reviewDraftSubject.next(clonedReview);
       },
       error: () => {
         this.resetError = 'Could not reset weekly review.';
@@ -279,87 +293,104 @@ export class WeeklyReviewPageComponent {
     });
   }
 
+  public revertChanges(): void {
+    if (!this.lastSavedReview || this.isSaving || this.isResetting) {
+      return;
+    }
+
+    this.reviewDraftSubject.next(this.cloneReview(this.lastSavedReview));
+    this.saveError = null;
+    this.resetError = null;
+  }
+
   public isAnchorSelected(goalId: string): boolean {
-    return !!this.reviewDraft?.anchorGoalIds.includes(goalId);
+    const reviewDraft = this.reviewDraftSubject.value;
+    return !!reviewDraft?.anchorGoalIds.includes(goalId);
   }
 
   public toggleAnchor(goalId: string): void {
-    if (!this.reviewDraft) {
+    const reviewDraft = this.reviewDraftSubject.value;
+    if (!reviewDraft) {
       return;
     }
 
     if (this.isAnchorSelected(goalId)) {
-      this.reviewDraft = {
-        ...this.reviewDraft,
-        anchorGoalIds: this.reviewDraft.anchorGoalIds.filter(id => id !== goalId)
-      };
+      this.reviewDraftSubject.next({
+        ...reviewDraft,
+        anchorGoalIds: reviewDraft.anchorGoalIds.filter(id => id !== goalId)
+      });
       return;
     }
 
-    if (this.reviewDraft.anchorGoalIds.length < 2) {
-      this.reviewDraft = {
-        ...this.reviewDraft,
-        anchorGoalIds: [...this.reviewDraft.anchorGoalIds, goalId]
-      };
+    if (reviewDraft.anchorGoalIds.length < 2) {
+      this.reviewDraftSubject.next({
+        ...reviewDraft,
+        anchorGoalIds: [...reviewDraft.anchorGoalIds, goalId]
+      });
     }
   }
 
   public isMaintenanceSelected(goalId: string): boolean {
-    return !!this.reviewDraft?.maintenanceGoalIds.includes(goalId);
+    const reviewDraft = this.reviewDraftSubject.value;
+    return !!reviewDraft?.maintenanceGoalIds.includes(goalId);
   }
 
   public toggleMaintenance(goalId: string): void {
-    if (!this.reviewDraft) {
+    const reviewDraft = this.reviewDraftSubject.value;
+    if (!reviewDraft) {
       return;
     }
 
     if (this.isMaintenanceSelected(goalId)) {
-      this.reviewDraft = {
-        ...this.reviewDraft,
-        maintenanceGoalIds: this.reviewDraft.maintenanceGoalIds.filter(id => id !== goalId)
-      };
+      this.reviewDraftSubject.next({
+        ...reviewDraft,
+        maintenanceGoalIds: reviewDraft.maintenanceGoalIds.filter(id => id !== goalId)
+      });
       return;
     }
 
-    if (this.reviewDraft.maintenanceGoalIds.length < 5) {
-      this.reviewDraft = {
-        ...this.reviewDraft,
-        maintenanceGoalIds: [...this.reviewDraft.maintenanceGoalIds, goalId]
-      };
+    if (reviewDraft.maintenanceGoalIds.length < 5) {
+      this.reviewDraftSubject.next({
+        ...reviewDraft,
+        maintenanceGoalIds: [...reviewDraft.maintenanceGoalIds, goalId]
+      });
     }
   }
 
   public updateInfrastructureGoal(goalId: string | null): void {
-    if (!this.reviewDraft) {
+    const reviewDraft = this.reviewDraftSubject.value;
+    if (!reviewDraft) {
       return;
     }
 
-    this.reviewDraft = {
-      ...this.reviewDraft,
+    this.reviewDraftSubject.next({
+      ...reviewDraft,
       infrastructureGoalId: goalId
-    };
+    });
   }
 
   public updateCreativeGoal(goalId: string | null): void {
-    if (!this.reviewDraft) {
+    const reviewDraft = this.reviewDraftSubject.value;
+    if (!reviewDraft) {
       return;
     }
 
-    this.reviewDraft = {
-      ...this.reviewDraft,
+    this.reviewDraftSubject.next({
+      ...reviewDraft,
       creativeGoalId: goalId
-    };
+    });
   }
 
   public updateNotes(notes: string): void {
-    if (!this.reviewDraft) {
+    const reviewDraft = this.reviewDraftSubject.value;
+    if (!reviewDraft) {
       return;
     }
 
-    this.reviewDraft = {
-      ...this.reviewDraft,
+    this.reviewDraftSubject.next({
+      ...reviewDraft,
       notes
-    };
+    });
   }
 
   public trackByGoalId(index: number, goal: Goal): string {
@@ -367,35 +398,39 @@ export class WeeklyReviewPageComponent {
   }
 
   public isAnchorDisabled(goalId: string): boolean {
-    if (!this.reviewDraft) {
+    const reviewDraft = this.reviewDraftSubject.value;
+    if (!reviewDraft) {
       return true;
     }
 
-    return !this.isAnchorSelected(goalId) && this.reviewDraft.anchorGoalIds.length >= 2;
+    return !this.isAnchorSelected(goalId) && reviewDraft.anchorGoalIds.length >= 2;
   }
 
   public isMaintenanceDisabled(goalId: string): boolean {
-    if (!this.reviewDraft) {
+    const reviewDraft = this.reviewDraftSubject.value;
+    if (!reviewDraft) {
       return true;
     }
 
-    return !this.isMaintenanceSelected(goalId) && this.reviewDraft.maintenanceGoalIds.length >= 5;
+    return !this.isMaintenanceSelected(goalId) && reviewDraft.maintenanceGoalIds.length >= 5;
   }
 
   public getSurfacingScore(goal: Goal): number {
-    if (!this.reviewDraft) {
+    const reviewDraft = this.reviewDraftSubject.value;
+    if (!reviewDraft) {
       return 0;
     }
 
-    return this.goalSurfacingService.getSurfacingScore(goal, this.reviewDraft);
+    return this.goalSurfacingService.getSurfacingScore(goal, reviewDraft);
   }
 
   public getSuggestedCategory(goal: Goal): string | null {
-    if (!this.reviewDraft) {
+    const reviewDraft = this.reviewDraftSubject.value;
+    if (!reviewDraft) {
       return null;
     }
 
-    return this.goalSurfacingService.getSuggestedDailyCategory(goal, this.reviewDraft);
+    return this.goalSurfacingService.getSuggestedDailyCategory(goal, reviewDraft);
   }
 
   public getFreshnessLabel(goal: Goal): string {
@@ -458,11 +493,21 @@ export class WeeklyReviewPageComponent {
   private loadInitialReviewDraft(): void {
     this.initialReviewState$.subscribe({
       next: state => {
-        if (state.data && !this.reviewDraft) {
-          this.reviewDraft = this.cloneReview(state.data);
+        if (state.data && !this.reviewDraftSubject.value) {
+          const clonedReview = this.cloneReview(state.data);
+          this.lastSavedReview = this.cloneReview(clonedReview);
+          this.reviewDraftSubject.next(clonedReview);
         }
       }
     });
+  }
+
+  private computeHasUnsavedChanges(review: WeeklyReviewState | null): boolean {
+    if (!review || !this.lastSavedReview) {
+      return false;
+    }
+
+    return !this.areReviewsEqual(review, this.lastSavedReview);
   }
 
   private cloneReview(review: WeeklyReviewState): WeeklyReviewState {
@@ -471,5 +516,23 @@ export class WeeklyReviewPageComponent {
       anchorGoalIds: [...review.anchorGoalIds],
       maintenanceGoalIds: [...review.maintenanceGoalIds]
     };
+  }
+
+  private areReviewsEqual(a: WeeklyReviewState, b: WeeklyReviewState): boolean {
+    return (
+      a.infrastructureGoalId === b.infrastructureGoalId &&
+      a.creativeGoalId === b.creativeGoalId &&
+      (a.notes ?? '') === (b.notes ?? '') &&
+      this.areStringArraysEqual(a.anchorGoalIds, b.anchorGoalIds) &&
+      this.areStringArraysEqual(a.maintenanceGoalIds, b.maintenanceGoalIds)
+    );
+  }
+
+  private areStringArraysEqual(a: string[], b: string[]): boolean {
+    if (a.length !== b.length) {
+      return false;
+    }
+
+    return a.every((value, index) => value === b[index]);
   }
 }

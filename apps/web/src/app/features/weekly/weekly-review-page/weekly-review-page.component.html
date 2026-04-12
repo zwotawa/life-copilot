@@ -229,7 +229,26 @@
         </mat-form-field>
       </section>
 
+      <div class="weekly-page__status">
+        <span class="weekly-page__status-unsaved" *ngIf="vm.hasUnsavedChanges">
+          Unsaved changes
+        </span>
+
+        <span class="weekly-page__status-saved" *ngIf="!vm.hasUnsavedChanges && !isSaving">
+          Saved
+        </span>
+      </div>
+
       <div class="weekly-page__actions">
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="revertChanges()"
+          [disabled]="isSaving || isResetting || !vm.hasUnsavedChanges"
+        >
+          Revert Changes
+        </button>
+
         <button
           mat-stroked-button
           type="button"
@@ -244,7 +263,7 @@
           color="primary"
           type="button"
           (click)="save()"
-          [disabled]="vm.pageLoading || isSaving || isResetting || !review"
+          [disabled]="vm.pageLoading || isSaving || isResetting || !review || !vm.hasUnsavedChanges"
         >
           {{ isSaving ? 'Saving...' : 'Save Weekly Review' }}
         </button>
