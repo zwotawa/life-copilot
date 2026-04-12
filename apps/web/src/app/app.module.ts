@@ -44,6 +44,7 @@ import { ApiDailyRotationRepository } from './core/services/api-daily-rotation-r
 import { ApiDailyCompletionHistoryRepository } from './core/services/api-daily-completion-history-repository.service';
 import { ApiGoalProgressRepository } from './core/services/api-goal-progress-repository.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
   return async () => {
@@ -82,7 +83,8 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     HttpClientModule,
     MatSelectModule,
     MatCheckboxModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatProgressBarModule
   ],
   providers: [
     {provide: AuthService, useClass: ApiAuthService},

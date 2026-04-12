@@ -1,4 +1,4 @@
-<div class="dashboard-page">
+<div class="dashboard-page" *ngIf="vm$ | async as vm">
   <div class="dashboard-page__container">
     <header class="dashboard-page__header">
       <p class="dashboard-page__eyebrow">Life Copilot</p>
@@ -8,145 +8,172 @@
       </p>
     </header>
 
+    <mat-progress-bar *ngIf="vm.pageLoading" mode="indeterminate"></mat-progress-bar>
+
+    <div class="dashboard-page__errors" *ngIf="vm.pageErrorMessages.length > 0">
+      <div class="dashboard-error" *ngFor="let error of vm.pageErrorMessages">
+        {{ error }}
+      </div>
+    </div>
+
     <section class="dashboard-stats">
       <article class="dashboard-stat-card">
         <div class="dashboard-stat-card__label">Active goals</div>
-        <div class="dashboard-stat-card__value">{{ activeGoalCount }}</div>
+        <div class="dashboard-stat-card__value">{{ vm.activeGoalCount }}</div>
       </article>
 
       <article class="dashboard-stat-card">
         <div class="dashboard-stat-card__label">Projects</div>
-        <div class="dashboard-stat-card__value">{{ projectGoalCount }}</div>
+        <div class="dashboard-stat-card__value">{{ vm.projectGoalCount }}</div>
       </article>
 
       <article class="dashboard-stat-card">
         <div class="dashboard-stat-card__label">Maintenance</div>
-        <div class="dashboard-stat-card__value">{{ maintainGoalCount }}</div>
+        <div class="dashboard-stat-card__value">{{ vm.maintainGoalCount }}</div>
       </article>
 
       <article class="dashboard-stat-card">
         <div class="dashboard-stat-card__label">Exploration</div>
-        <div class="dashboard-stat-card__value">{{ explorationGoalCount }}</div>
+        <div class="dashboard-stat-card__value">{{ vm.explorationGoalCount }}</div>
       </article>
 
       <article class="dashboard-stat-card">
         <div class="dashboard-stat-card__label">Over rhythm</div>
-        <div class="dashboard-stat-card__value">{{ overRhythmGoalCount }}</div>
+        <div class="dashboard-stat-card__value">{{ vm.overRhythmGoalCount }}</div>
         <div class="dashboard-stat-card__subvalue">
-          {{ untouchedGoalCount }} no touch · {{ staleGoalCount }} stale
+          {{ vm.untouchedGoalCount }} no touch · {{ vm.staleGoalCount }} stale
         </div>
       </article>
     </section>
 
-    
-
     <div class="dashboard-grid">
-      <div class="dashboard-card" *ngIf="executionSnapshot">
-  <div class="dashboard-card__header">
-    <h3>Execution Snapshot</h3>
-  </div>
+      <div class="dashboard-card">
+        <div class="dashboard-card__header">
+          <h3>Execution Snapshot</h3>
+        </div>
 
-  <div class="dashboard-card__body">
-    <p>
-      <strong>Today:</strong>
-      {{ executionSnapshot.todayCompletedCount }}/{{ executionSnapshot.todayTotalCount }}
-      complete ({{ executionSnapshot.todayCompletionPercent }}%)
-    </p>
+        <div class="dashboard-card__body" *ngIf="vm.executionSnapshot as executionSnapshot; else executionSnapshotFallback">
+          <p>
+            <strong>Today:</strong>
+            {{ executionSnapshot.todayCompletedCount }}/{{ executionSnapshot.todayTotalCount }}
+            complete ({{ executionSnapshot.todayCompletionPercent }}%)
+          </p>
 
-    <p>
-      <strong>Active days (last 7):</strong>
-      {{ executionSnapshot.activeDaysLast7 }}/7
-    </p>
+          <p>
+            <strong>Active days (last 7):</strong>
+            {{ executionSnapshot.activeDaysLast7 }}/7
+          </p>
 
-    <p>
-      <strong>Average completion:</strong>
-      {{ executionSnapshot.averageCompletionPercentLast7 }}%
-    </p>
+          <p>
+            <strong>Average completion:</strong>
+            {{ executionSnapshot.averageCompletionPercentLast7 }}%
+          </p>
 
-    <p>
-      <strong>Fully completed days:</strong>
-      {{ executionSnapshot.fullyCompletedDaysLast7 }}
-    </p>
+          <p>
+            <strong>Fully completed days:</strong>
+            {{ executionSnapshot.fullyCompletedDaysLast7 }}
+          </p>
 
-    <div class="dashboard-card__actions">
-      <a routerLink="/daily">Open Today’s Plan</a>
-      <a routerLink="/weekly">Open Weekly Review</a>
-    </div>
-  </div>
-</div>
+          <div class="dashboard-card__actions">
+            <a routerLink="/daily">Open Today’s Plan</a>
+            <a routerLink="/weekly">Open Weekly Review</a>
+          </div>
+        </div>
+
+        <ng-template #executionSnapshotFallback>
+          <div class="dashboard-empty" *ngIf="vm.executionSnapshotState.loading">
+            Loading execution snapshot...
+          </div>
+          <div class="dashboard-error" *ngIf="vm.executionSnapshotState.error">
+            {{ vm.executionSnapshotState.error }}
+          </div>
+        </ng-template>
+      </div>
+
       <section class="dashboard-card">
         <div class="dashboard-card__header">
           <h2>Weekly focus</h2>
           <a routerLink="/weekly" class="dashboard-card__link">Open Weekly</a>
         </div>
 
-        <div class="dashboard-card__section">
-          <div class="dashboard-card__label">Anchor goals</div>
-          <div class="dashboard-chip-list">
-            <div
-              class="dashboard-chip dashboard-chip--stacked"
-              *ngFor="let item of selectedAnchorGoalViews; trackBy: trackByGoalViewId"
-              [ngClass]="'dashboard-chip--' + item.freshness.tone"
-            >
-              <div class="dashboard-chip__title">{{ item.goal.title }}</div>
-              <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
+        <ng-container *ngIf="vm.review; else weeklyFocusFallback">
+          <div class="dashboard-card__section">
+            <div class="dashboard-card__label">Anchor goals</div>
+            <div class="dashboard-chip-list">
+              <div
+                class="dashboard-chip dashboard-chip--stacked"
+                *ngFor="let item of vm.selectedAnchorGoalViews; trackBy: trackByGoalViewId"
+                [ngClass]="'dashboard-chip--' + item.freshness.tone"
+              >
+                <div class="dashboard-chip__title">{{ item.goal.title }}</div>
+                <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
+              </div>
+              <span class="dashboard-empty" *ngIf="vm.selectedAnchorGoalViews.length === 0">
+                None selected
+              </span>
             </div>
-            <span class="dashboard-empty" *ngIf="selectedAnchorGoalViews.length === 0">
-              None selected
-            </span>
           </div>
-        </div>
 
-        <div class="dashboard-card__section">
-          <div class="dashboard-card__label">Infrastructure</div>
-          <div class="dashboard-chip-list">
-            <div
-              class="dashboard-chip dashboard-chip--stacked"
-              *ngIf="selectedInfrastructureGoalView as item"
-              [ngClass]="'dashboard-chip--' + item.freshness.tone"
-            >
-              <div class="dashboard-chip__title">{{ item.goal.title }}</div>
-              <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
+          <div class="dashboard-card__section">
+            <div class="dashboard-card__label">Infrastructure</div>
+            <div class="dashboard-chip-list">
+              <div
+                class="dashboard-chip dashboard-chip--stacked"
+                *ngIf="vm.selectedInfrastructureGoalView as item"
+                [ngClass]="'dashboard-chip--' + item.freshness.tone"
+              >
+                <div class="dashboard-chip__title">{{ item.goal.title }}</div>
+                <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
+              </div>
+              <span class="dashboard-empty" *ngIf="!vm.selectedInfrastructureGoalView">
+                None selected
+              </span>
             </div>
-            <span class="dashboard-empty" *ngIf="!selectedInfrastructureGoalView">
-              None selected
-            </span>
           </div>
-        </div>
 
-        <div class="dashboard-card__section">
-          <div class="dashboard-card__label">Maintenance</div>
-          <div class="dashboard-chip-list">
-            <div
-              class="dashboard-chip dashboard-chip--stacked"
-              *ngFor="let item of selectedMaintenanceGoalViews; trackBy: trackByGoalViewId"
-              [ngClass]="'dashboard-chip--' + item.freshness.tone"
-            >
-              <div class="dashboard-chip__title">{{ item.goal.title }}</div>
-              <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
+          <div class="dashboard-card__section">
+            <div class="dashboard-card__label">Maintenance</div>
+            <div class="dashboard-chip-list">
+              <div
+                class="dashboard-chip dashboard-chip--stacked"
+                *ngFor="let item of vm.selectedMaintenanceGoalViews; trackBy: trackByGoalViewId"
+                [ngClass]="'dashboard-chip--' + item.freshness.tone"
+              >
+                <div class="dashboard-chip__title">{{ item.goal.title }}</div>
+                <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
+              </div>
+              <span class="dashboard-empty" *ngIf="vm.selectedMaintenanceGoalViews.length === 0">
+                None selected
+              </span>
             </div>
-            <span class="dashboard-empty" *ngIf="selectedMaintenanceGoalViews.length === 0">
-              None selected
-            </span>
           </div>
-        </div>
 
-        <div class="dashboard-card__section">
-          <div class="dashboard-card__label">Creative</div>
-          <div class="dashboard-chip-list">
-            <div
-              class="dashboard-chip dashboard-chip--stacked"
-              *ngIf="selectedCreativeGoalView as item"
-              [ngClass]="'dashboard-chip--' + item.freshness.tone"
-            >
-              <div class="dashboard-chip__title">{{ item.goal.title }}</div>
-              <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
+          <div class="dashboard-card__section">
+            <div class="dashboard-card__label">Creative</div>
+            <div class="dashboard-chip-list">
+              <div
+                class="dashboard-chip dashboard-chip--stacked"
+                *ngIf="vm.selectedCreativeGoalView as item"
+                [ngClass]="'dashboard-chip--' + item.freshness.tone"
+              >
+                <div class="dashboard-chip__title">{{ item.goal.title }}</div>
+                <div class="dashboard-chip__meta">{{ item.freshness.label }}</div>
+              </div>
+              <span class="dashboard-empty" *ngIf="!vm.selectedCreativeGoalView">
+                None selected
+              </span>
             </div>
-            <span class="dashboard-empty" *ngIf="!selectedCreativeGoalView">
-              None selected
-            </span>
           </div>
-        </div>
+        </ng-container>
+
+        <ng-template #weeklyFocusFallback>
+          <div class="dashboard-empty" *ngIf="vm.reviewState.loading">
+            Loading weekly focus...
+          </div>
+          <div class="dashboard-error" *ngIf="vm.reviewState.error">
+            {{ vm.reviewState.error }}
+          </div>
+        </ng-template>
       </section>
 
       <section class="dashboard-card">
@@ -155,29 +182,44 @@
           <a routerLink="/daily" class="dashboard-card__link">Open Daily</a>
         </div>
 
-        <div class="dashboard-rotation-list">
-          <article
-            class="dashboard-rotation-item"
-            *ngFor="let item of dailyRotation$ | async; trackBy: trackByRotationId"
-          >
-            <div class="dashboard-rotation-item__eyebrow">
-              {{ getCategoryLabel(item.category) }}
-            </div>
-            <div class="dashboard-rotation-item__title">
-              {{ item.goalTitle }}
-            </div>
-            <div
-              class="dashboard-rotation-item__meta"
-              [ngClass]="getGoalClass(item.goalId)"
-              *ngIf="findGoalById(item.goalId) as goal"
+        <ng-container *ngIf="vm.dailyRotationItems as rotationItems; else dailyRotationFallback">
+          <div class="dashboard-rotation-list" *ngIf="rotationItems.length > 0; else noRotationItems">
+            <article
+              class="dashboard-rotation-item"
+              *ngFor="let item of rotationItems; trackBy: trackByRotationId"
             >
-              {{ getGoalFreshnessLabel(goal) }}
-            </div>
-            <div class="dashboard-rotation-item__action">
-              {{ item.actionText }}
-            </div>
-          </article>
-        </div>
+              <div class="dashboard-rotation-item__eyebrow">
+                {{ getCategoryLabel(item.category) }}
+              </div>
+              <div class="dashboard-rotation-item__title">
+                {{ item.goalTitle }}
+              </div>
+              <div
+                class="dashboard-rotation-item__meta"
+                [ngClass]="getGoalClass(item.goalId, vm.goals)"
+                *ngIf="findGoalById(item.goalId, vm.goals) as goal"
+              >
+                {{ getGoalFreshnessLabel(goal) }}
+              </div>
+              <div class="dashboard-rotation-item__action">
+                {{ item.actionText }}
+              </div>
+            </article>
+          </div>
+        </ng-container>
+
+        <ng-template #dailyRotationFallback>
+          <div class="dashboard-empty" *ngIf="vm.dailyRotationState.loading">
+            Loading today’s menu...
+          </div>
+          <div class="dashboard-error" *ngIf="vm.dailyRotationState.error">
+            {{ vm.dailyRotationState.error }}
+          </div>
+        </ng-template>
+
+        <ng-template #noRotationItems>
+          <div class="dashboard-empty">No items planned for today yet.</div>
+        </ng-template>
       </section>
 
       <section class="dashboard-card">
@@ -186,92 +228,118 @@
           <a routerLink="/goals" class="dashboard-card__link">Open Goals</a>
         </div>
 
-        <div class="dashboard-card__section">
-          <div class="dashboard-card__label">Missing milestone</div>
-          <ul class="dashboard-list" *ngIf="goalsMissingMilestoneViews.length > 0; else noMissingMilestone">
-            <li *ngFor="let item of goalsMissingMilestoneViews; trackBy: trackByGoalViewId">
-              <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
-              <div class="dashboard-list-item__meta"
-                  [ngClass]="'dashboard-list-item__meta--' + item.freshness.tone">
-                {{ item.freshness.label }}
-              </div>
-            </li>
-          </ul>
-          <ng-template #noMissingMilestone>
-            <div class="dashboard-empty">Nothing here right now.</div>
-          </ng-template>
-        </div>
+        <ng-container *ngIf="vm.goalsState.data !== null; else goalsFallback">
+          <div class="dashboard-card__section">
+            <div class="dashboard-card__label">Missing milestone</div>
+            <ul class="dashboard-list" *ngIf="vm.goalsMissingMilestoneViews.length > 0; else noMissingMilestone">
+              <li *ngFor="let item of vm.goalsMissingMilestoneViews; trackBy: trackByGoalViewId">
+                <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
+                <div
+                  class="dashboard-list-item__meta"
+                  [ngClass]="'dashboard-list-item__meta--' + item.freshness.tone"
+                >
+                  {{ item.freshness.label }}
+                </div>
+              </li>
+            </ul>
+            <ng-template #noMissingMilestone>
+              <div class="dashboard-empty">Nothing here right now.</div>
+            </ng-template>
+          </div>
 
-        <div class="dashboard-card__section">
-          <div class="dashboard-card__label">Missing next action</div>
-          <ul class="dashboard-list" *ngIf="goalsMissingNextActionViews.length > 0; else noMissingAction">
-            <li *ngFor="let item of goalsMissingNextActionViews; trackBy: trackByGoalViewId">
-              <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
-              <div class="dashboard-list-item__meta"
-                  [ngClass]="'dashboard-list-item__meta--' + item.freshness.tone">
-                {{ item.freshness.label }}
-              </div>
-            </li>
-          </ul>
-          <ng-template #noMissingAction>
-            <div class="dashboard-empty">Nothing here right now.</div>
-          </ng-template>
-        </div>
+          <div class="dashboard-card__section">
+            <div class="dashboard-card__label">Missing next action</div>
+            <ul class="dashboard-list" *ngIf="vm.goalsMissingNextActionViews.length > 0; else noMissingAction">
+              <li *ngFor="let item of vm.goalsMissingNextActionViews; trackBy: trackByGoalViewId">
+                <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
+                <div
+                  class="dashboard-list-item__meta"
+                  [ngClass]="'dashboard-list-item__meta--' + item.freshness.tone"
+                >
+                  {{ item.freshness.label }}
+                </div>
+              </li>
+            </ul>
+            <ng-template #noMissingAction>
+              <div class="dashboard-empty">Nothing here right now.</div>
+            </ng-template>
+          </div>
 
-        <div class="dashboard-card__section">
-          <div class="dashboard-card__label">Date-based goals</div>
-          <ul class="dashboard-list" *ngIf="deadlineGoalViews.length > 0; else noDateGoals">
-            <li *ngFor="let item of deadlineGoalViews; trackBy: trackByGoalViewId">
-              <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
-              <div class="dashboard-list-item__meta"
-                  [ngClass]="'dashboard-list-item__meta--' + item.freshness.tone">
-                {{ item.freshness.label }}
-              </div>
-            </li>
-          </ul>
-          <ng-template #noDateGoals>
-            <div class="dashboard-empty">No date-based goals found.</div>
-          </ng-template>
-        </div>
+          <div class="dashboard-card__section">
+            <div class="dashboard-card__label">Date-based goals</div>
+            <ul class="dashboard-list" *ngIf="vm.deadlineGoalViews.length > 0; else noDateGoals">
+              <li *ngFor="let item of vm.deadlineGoalViews; trackBy: trackByGoalViewId">
+                <div class="dashboard-list-item__title">{{ item.goal.title }}</div>
+                <div
+                  class="dashboard-list-item__meta"
+                  [ngClass]="'dashboard-list-item__meta--' + item.freshness.tone"
+                >
+                  {{ item.freshness.label }}
+                </div>
+              </li>
+            </ul>
+            <ng-template #noDateGoals>
+              <div class="dashboard-empty">No date-based goals found.</div>
+            </ng-template>
+          </div>
+        </ng-container>
+
+        <ng-template #goalsFallback>
+          <div class="dashboard-empty" *ngIf="vm.goalsState.loading">
+            Loading goals...
+          </div>
+          <div class="dashboard-error" *ngIf="vm.goalsState.error">
+            {{ vm.goalsState.error }}
+          </div>
+        </ng-template>
       </section>
 
       <section class="dashboard-card">
-  <div class="dashboard-card__header">
-    <h2>Inbox</h2>
-    <a routerLink="/inbox" class="dashboard-card__link">Open Inbox</a>
-  </div>
+        <div class="dashboard-card__header">
+          <h2>Inbox</h2>
+          <a routerLink="/inbox" class="dashboard-card__link">Open Inbox</a>
+        </div>
 
-  <div class="dashboard-card__section">
-    <div class="dashboard-card__label">Active entries</div>
-    <div class="dashboard-stat-inline">{{ activeInboxCount }}</div>
-  </div>
+        <ng-container *ngIf="vm.inboxSummary as inbox; else inboxFallback">
+          <div class="dashboard-card__section">
+            <div class="dashboard-card__label">Active entries</div>
+            <div class="dashboard-stat-inline">{{ inbox.activeInboxCount }}</div>
+          </div>
 
-  <div class="dashboard-card__section">
-    <div class="dashboard-card__label">Status breakdown</div>
-    <div class="dashboard-chip-list">
-      <span class="dashboard-chip">New: {{ newInboxCount }}</span>
-      <span class="dashboard-chip">Clarified: {{ clarifiedInboxCount }}</span>
-      <span class="dashboard-chip" *ngIf="deferredInboxCount > 0">
-        Deferred: {{ deferredInboxCount }}
-      </span>
-    </div>
-  </div>
+          <div class="dashboard-card__section">
+            <div class="dashboard-card__label">Status breakdown</div>
+            <div class="dashboard-chip-list">
+              <span class="dashboard-chip">New: {{ inbox.newInboxCount }}</span>
+              <span class="dashboard-chip">Clarified: {{ inbox.clarifiedInboxCount }}</span>
+              <span class="dashboard-chip" *ngIf="inbox.deferredInboxCount > 0">
+                Deferred: {{ inbox.deferredInboxCount }}
+              </span>
+            </div>
+          </div>
 
-  <div class="dashboard-card__section" *ngIf="recentInboxEntries.length > 0">
-    <div class="dashboard-card__label">Recent captures</div>
-    <ul class="dashboard-list">
-      <li *ngFor="let entry of recentInboxEntries; trackBy: trackByInboxId">
-        {{ entry.text }}
-      </li>
-    </ul>
-  </div>
+          <div class="dashboard-card__section" *ngIf="inbox.recentInboxEntries.length > 0">
+            <div class="dashboard-card__label">Recent captures</div>
+            <ul class="dashboard-list">
+              <li *ngFor="let entry of inbox.recentInboxEntries; trackBy: trackByInboxId">
+                {{ entry.text }}
+              </li>
+            </ul>
+          </div>
 
-  <div class="dashboard-card__section" *ngIf="activeInboxCount === 0">
-    <div class="dashboard-empty">Inbox is clear right now.</div>
-  </div>
-</section>
+          <div class="dashboard-card__section" *ngIf="inbox.activeInboxCount === 0">
+            <div class="dashboard-empty">Inbox is clear right now.</div>
+          </div>
+        </ng-container>
 
-
+        <ng-template #inboxFallback>
+          <div class="dashboard-empty" *ngIf="vm.inboxState.loading">
+            Loading inbox summary...
+          </div>
+          <div class="dashboard-error" *ngIf="vm.inboxState.error">
+            {{ vm.inboxState.error }}
+          </div>
+        </ng-template>
+      </section>
 
       <section class="dashboard-card">
         <div class="dashboard-card__header">

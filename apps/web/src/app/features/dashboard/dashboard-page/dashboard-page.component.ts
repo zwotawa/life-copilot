@@ -1,21 +1,75 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { Observable, combineLatest, of } from 'rxjs';
+import { catchError, map, shareReplay, startWith } from 'rxjs/operators';
+
 import { Goal } from 'src/app/core/models/goal.model';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { InboxEntry } from 'src/app/core/models/inbox-entry.model';
-import { GoalFreshnessInfo, GoalFreshnessService } from 'src/app/core/services/goal-freshness.service';
+import {
+  GoalFreshnessInfo,
+  GoalFreshnessService
+} from 'src/app/core/services/goal-freshness.service';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
 import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
 import { DashboardExecutionSnapshot } from 'src/app/core/models/dashboard-execution-snapshot.model';
 import { DashboardInsightService } from 'src/app/core/services/dashboard-insight.service';
-import { Observable } from 'rxjs';
-
 
 interface GoalFreshnessView {
   goal: Goal;
   freshness: GoalFreshnessInfo;
+}
+
+interface Loadable<T> {
+  loading: boolean;
+  data: T | null;
+  error: string | null;
+}
+
+interface InboxSummaryView {
+  activeInboxCount: number;
+  newInboxCount: number;
+  clarifiedInboxCount: number;
+  deferredInboxCount: number;
+  recentInboxEntries: InboxEntry[];
+}
+
+interface DashboardViewModel {
+  goalsState: Loadable<Goal[]>;
+  reviewState: Loadable<WeeklyReviewState>;
+  dailyRotationState: Loadable<DailyRotationItem[]>;
+  inboxState: Loadable<InboxSummaryView>;
+  executionSnapshotState: Loadable<DashboardExecutionSnapshot>;
+
+  goals: Goal[];
+  review: WeeklyReviewState | null;
+  dailyRotationItems: DailyRotationItem[];
+  inboxSummary: InboxSummaryView | null;
+  executionSnapshot: DashboardExecutionSnapshot | null;
+
+  activeGoals: Goal[];
+  activeGoalCount: number;
+  projectGoalCount: number;
+  maintainGoalCount: number;
+  explorationGoalCount: number;
+
+  selectedAnchorGoalViews: GoalFreshnessView[];
+  selectedMaintenanceGoalViews: GoalFreshnessView[];
+  selectedInfrastructureGoalView: GoalFreshnessView | null;
+  selectedCreativeGoalView: GoalFreshnessView | null;
+
+  goalsMissingMilestoneViews: GoalFreshnessView[];
+  goalsMissingNextActionViews: GoalFreshnessView[];
+  deadlineGoalViews: GoalFreshnessView[];
+
+  staleGoalCount: number;
+  overRhythmGoalCount: number;
+  untouchedGoalCount: number;
+
+  pageLoading: boolean;
+  pageErrorMessages: string[];
 }
 
 @Component({
@@ -23,94 +77,237 @@ interface GoalFreshnessView {
   templateUrl: './dashboard-page.component.html',
   styleUrls: ['./dashboard-page.component.scss']
 })
-export class DashboardPageComponent implements OnInit {
-  public goals: Goal[] = [];
-  public review!: WeeklyReviewState;
-  public dailyRotation$: Observable<DailyRotationItem[]> = new Observable();
+export class DashboardPageComponent {
+  public readonly goalsState$: Observable<Loadable<Goal[]>> =
+    this.goalStoreService.getGoals().pipe(
+      map(goals => ({
+        loading: false,
+        data: goals,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load goals.'
+        })
+      ),
+      shareReplay(1)
+    );
 
-  public activeInboxCount = 0;
-  public newInboxCount = 0;
-  public clarifiedInboxCount = 0;
-  public deferredInboxCount = 0;
-  public recentInboxEntries: InboxEntry[] = [];
-  public executionSnapshot: DashboardExecutionSnapshot | null = null;
+  public readonly reviewState$: Observable<Loadable<WeeklyReviewState>> =
+    this.weeklyReviewStoreService.getCurrentWeeklyReview().pipe(
+      map(review => ({
+        loading: false,
+        data: review,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load weekly review.'
+        })
+      ),
+      shareReplay(1)
+    );
 
+  public readonly dailyRotationState$: Observable<Loadable<DailyRotationItem[]>> =
+    this.planningWorkflowService.getOrCreateDailyRotation().pipe(
+      map(items => ({
+        loading: false,
+        data: items,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load today’s menu.'
+        })
+      ),
+      shareReplay(1)
+    );
+
+  public readonly inboxState$: Observable<Loadable<InboxSummaryView>> =
+    this.inboxService.getEntries().pipe(
+      map(entries => this.buildInboxSummary(entries)),
+      map(summary => ({
+        loading: false,
+        data: summary,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load inbox summary.'
+        })
+      ),
+      shareReplay(1)
+    );
+
+  public readonly executionSnapshotState$: Observable<Loadable<DashboardExecutionSnapshot>> =
+    this.dashboardInsightService.getExecutionSnapshot().pipe(
+      map(executionSnapshot => ({
+        loading: false,
+        data: executionSnapshot,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load execution snapshot.'
+        })
+      ),
+      shareReplay(1)
+    );
+
+  public readonly vm$: Observable<DashboardViewModel> = combineLatest([
+    this.goalsState$,
+    this.reviewState$,
+    this.dailyRotationState$,
+    this.inboxState$,
+    this.executionSnapshotState$
+  ]).pipe(
+    map(([goalsState, reviewState, dailyRotationState, inboxState, executionSnapshotState]) => {
+      const goals = goalsState.data ?? [];
+      const review = reviewState.data;
+      const dailyRotationItems = dailyRotationState.data ?? [];
+      const inboxSummary = inboxState.data;
+      const executionSnapshot = executionSnapshotState.data;
+      const activeGoals = goals.filter(goal => goal.status === 'active');
+
+      const selectedAnchorGoals = review
+        ? activeGoals.filter(goal => review.anchorGoalIds.includes(goal.id))
+        : [];
+
+      const selectedMaintenanceGoals = review
+        ? activeGoals.filter(goal => review.maintenanceGoalIds.includes(goal.id))
+        : [];
+
+      const selectedInfrastructureGoal = review
+        ? activeGoals.find(goal => goal.id === review.infrastructureGoalId) ?? null
+        : null;
+
+      const selectedCreativeGoal = review
+        ? activeGoals.find(goal => goal.id === review.creativeGoalId) ?? null
+        : null;
+
+      const goalsMissingMilestone = activeGoals
+        .filter(goal => !goal.currentMilestone?.trim())
+        .slice(0, 5);
+
+      const goalsMissingNextAction = activeGoals
+        .filter(goal => !goal.nextTinyAction?.trim())
+        .slice(0, 5);
+
+      const deadlineGoals = activeGoals
+        .filter(goal => goal.dueStyle !== 'cadence_only')
+        .slice(0, 5);
+
+      const staleGoalCount = activeGoals.filter(goal => {
+        const info = this.goalFreshnessService.getFreshnessInfo(goal);
+        return info.daysSinceTouched !== null && info.daysSinceTouched >= 7;
+      }).length;
+
+      const overRhythmGoalCount = activeGoals.filter(goal =>
+        this.goalFreshnessService.isOverRhythm(goal)
+      ).length;
+
+      const untouchedGoalCount = activeGoals.filter(goal => !goal.lastTouchedAt).length;
+
+      const pageErrorMessages = [
+        goalsState.error,
+        reviewState.error,
+        dailyRotationState.error,
+        inboxState.error,
+        executionSnapshotState.error
+      ].filter((message): message is string => !!message);
+
+      return {
+        goalsState,
+        reviewState,
+        dailyRotationState,
+        inboxState,
+        executionSnapshotState,
+
+        goals,
+        review,
+        dailyRotationItems,
+        inboxSummary,
+        executionSnapshot,
+
+        activeGoals,
+        activeGoalCount: activeGoals.length,
+        projectGoalCount: activeGoals.filter(goal => goal.type === 'project').length,
+        maintainGoalCount: activeGoals.filter(goal => goal.type === 'maintain').length,
+        explorationGoalCount: activeGoals.filter(goal => goal.type === 'exploration').length,
+
+        selectedAnchorGoalViews: selectedAnchorGoals.map(goal => this.toGoalFreshnessView(goal)),
+        selectedMaintenanceGoalViews: selectedMaintenanceGoals.map(goal => this.toGoalFreshnessView(goal)),
+        selectedInfrastructureGoalView: selectedInfrastructureGoal
+          ? this.toGoalFreshnessView(selectedInfrastructureGoal)
+          : null,
+        selectedCreativeGoalView: selectedCreativeGoal
+          ? this.toGoalFreshnessView(selectedCreativeGoal)
+          : null,
+
+        goalsMissingMilestoneViews: goalsMissingMilestone.map(goal => this.toGoalFreshnessView(goal)),
+        goalsMissingNextActionViews: goalsMissingNextAction.map(goal => this.toGoalFreshnessView(goal)),
+        deadlineGoalViews: deadlineGoals.map(goal => this.toGoalFreshnessView(goal)),
+
+        staleGoalCount,
+        overRhythmGoalCount,
+        untouchedGoalCount,
+
+        pageLoading:
+          goalsState.loading ||
+          reviewState.loading ||
+          dailyRotationState.loading ||
+          inboxState.loading ||
+          executionSnapshotState.loading,
+
+        pageErrorMessages
+      };
+    }),
+    shareReplay(1)
+  );
 
   constructor(
-    private goalStoreService: GoalStoreService,
-    private weeklyReviewStoreService: WeeklyReviewStoreService,
-    private inboxService: InboxStoreService,
-    private goalFreshnessService: GoalFreshnessService,
-    private planningWorkflowService: PlanningWorkflowService,
+    private readonly goalStoreService: GoalStoreService,
+    private readonly weeklyReviewStoreService: WeeklyReviewStoreService,
+    private readonly inboxService: InboxStoreService,
+    private readonly goalFreshnessService: GoalFreshnessService,
+    private readonly planningWorkflowService: PlanningWorkflowService,
     private readonly dashboardInsightService: DashboardInsightService
   ) {}
-
-  ngOnInit(): void {
-    this.extractGoals();
-
-    this.weeklyReviewStoreService.getCurrentWeeklyReview().subscribe({
-      next: (review) => this.review = review
-    });
-
-    this.loadDailySelections();
-    this.loadInboxSummary();
-    this.loadExecutionSnapshot();
-  }
-
-  public get activeGoals(): Goal[] {
-    if(!this.goals) return [];
-    return this.goals.filter(goal => goal.status === 'active');
-  }
-
-  public get activeGoalCount(): number {
-    return this.activeGoals.length;
-  }
-
-  public get projectGoalCount(): number {
-    return this.activeGoals.filter(goal => goal.type === 'project').length;
-  }
-
-  public get maintainGoalCount(): number {
-    return this.activeGoals.filter(goal => goal.type === 'maintain').length;
-  }
-
-  public get explorationGoalCount(): number {
-    return this.activeGoals.filter(goal => goal.type === 'exploration').length;
-  }
-
-  public get selectedAnchorGoals(): Goal[] {
-    if(!this.review) return [];
-    return this.activeGoals.filter(goal => this.review.anchorGoalIds.includes(goal.id));
-  }
-
-  public get selectedMaintenanceGoals(): Goal[] {
-    if(!this.review) return [];
-    return this.activeGoals.filter(goal => this.review.maintenanceGoalIds.includes(goal.id));
-  }
-
-  public get selectedInfrastructureGoal(): Goal | null {
-    if (!this.review) return null;
-    return this.activeGoals.find(goal => goal.id === this.review.infrastructureGoalId) ?? null;
-  }
-
-  public get selectedCreativeGoal(): Goal | null {
-    if (!this.review) return null;
-    return this.activeGoals.find(goal => goal.id === this.review.creativeGoalId) ?? null;
-  }
-
-  public get goalsMissingMilestone(): Goal[] {
-    return this.activeGoals.filter(goal => !goal.currentMilestone?.trim()).slice(0, 5);
-  }
-
-  public get goalsMissingNextAction(): Goal[] {
-    return this.activeGoals.filter(goal => !goal.nextTinyAction?.trim()).slice(0, 5);
-  }
-
-  public get deadlineGoals(): Goal[] {
-    return this.activeGoals
-      .filter(goal => goal.dueStyle !== 'cadence_only')
-      .slice(0, 5);
-  }
 
   public getCategoryLabel(category: DailyRotationItem['category']): string {
     switch (category) {
@@ -137,124 +334,55 @@ export class DashboardPageComponent implements OnInit {
     return item.id;
   }
 
-  public  loadDailySelections(): void {
-    this.dailyRotation$ = this.planningWorkflowService.getOrCreateDailyRotation();
-  }
-
-  public loadInboxSummary(): void {
-    this.inboxService.getEntries().subscribe({
-      next: (inboxEntries) => {
-        const allInboxEntries = inboxEntries;
-
-        const activeEntries = allInboxEntries.filter(entry => entry.status !== 'archived' && entry.status !== 'deferred');
-
-        this.activeInboxCount = activeEntries.length;
-        this.newInboxCount = activeEntries.filter(entry => entry.status === 'new').length;
-        this.clarifiedInboxCount = activeEntries.filter(entry => entry.status === 'clarified').length;
-        this.deferredInboxCount = activeEntries.filter(entry => entry.status === 'deferred').length;
-
-        this.recentInboxEntries = activeEntries
-          .slice()
-          .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-          .slice(0, 3);
-      }
-    });
-    
-  }
-
-  trackByInboxId(index: number, entry: InboxEntry): string {
+  public trackByInboxId(index: number, entry: InboxEntry): string {
     return entry.id;
-  }
-
-  public getGoalFreshnessLabel(goal: Goal): string {
-    return this.goalFreshnessService.getLabel(goal);
-  }
-
-  public toGoalFreshnessView(goal: Goal): GoalFreshnessView {
-    return {
-      goal,
-      freshness: this.goalFreshnessService.getFreshnessInfo(goal)
-    };
-  }
-
-  public get selectedAnchorGoalViews(): GoalFreshnessView[] {
-    return this.selectedAnchorGoals.map(goal => this.toGoalFreshnessView(goal));
-  }
-
-  public get selectedMaintenanceGoalViews(): GoalFreshnessView[] {
-    return this.selectedMaintenanceGoals.map(goal => this.toGoalFreshnessView(goal));
-  }
-
-  public get selectedInfrastructureGoalView(): GoalFreshnessView | null {
-    return this.selectedInfrastructureGoal
-      ? this.toGoalFreshnessView(this.selectedInfrastructureGoal)
-      : null;
-  }
-
-  public get selectedCreativeGoalView(): GoalFreshnessView | null {
-    return this.selectedCreativeGoal
-      ? this.toGoalFreshnessView(this.selectedCreativeGoal)
-      : null;
-  }
-
-  public get goalsMissingMilestoneViews(): GoalFreshnessView[] {
-    return this.goalsMissingMilestone.map(goal => this.toGoalFreshnessView(goal));
-  }
-
-  public get goalsMissingNextActionViews(): GoalFreshnessView[] {
-    return this.goalsMissingNextAction.map(goal => this.toGoalFreshnessView(goal));
-  }
-
-  public get deadlineGoalViews(): GoalFreshnessView[] {
-    return this.deadlineGoals.map(goal => this.toGoalFreshnessView(goal));
-  }
-
-  public get staleGoalCount(): number {
-    return this.activeGoals.filter(goal => {
-      const info = this.goalFreshnessService.getFreshnessInfo(goal);
-      return info.daysSinceTouched !== null && info.daysSinceTouched >= 7;
-    }).length;
-  }
-
-  public get overRhythmGoalCount(): number {
-    return this.activeGoals.filter(goal =>
-      this.goalFreshnessService.isOverRhythm(goal)
-    ).length;
-  }
-
-  public get untouchedGoalCount(): number {
-    return this.activeGoals.filter(goal => !goal.lastTouchedAt).length;
   }
 
   public trackByGoalViewId(index: number, item: GoalFreshnessView): string {
     return item.goal.id;
   }
 
-  // Add a helper method to handle the lookup and function call
-  getGoalClass(goalId: string | null): string {
-    const goal = this.goals.find(g => g.id === goalId);
-    // Ensure safe access if goal might be undefined
-    return goal ? 'dashboard-rotation-item__meta--' + this.getGoalFreshness(goal).tone : '';
-  }
-
-  public findGoalById(goalId: string | null): Goal | null {
-    if (!goalId) return null;
-    return this.goals.find(goal => goal.id === goalId) ?? null;
+  public getGoalFreshnessLabel(goal: Goal): string {
+    return this.goalFreshnessService.getLabel(goal);
   }
 
   public getGoalFreshness(goal: Goal): GoalFreshnessInfo {
     return this.goalFreshnessService.getFreshnessInfo(goal);
   }
 
-  private loadExecutionSnapshot(): void {
-    this.dashboardInsightService.getExecutionSnapshot().subscribe({
-      next: executionSnapshot => this.executionSnapshot = executionSnapshot
-    });
+  public getGoalClass(goalId: string | null, goals: Goal[]): string {
+    const goal = goals.find(g => g.id === goalId);
+    return goal
+      ? 'dashboard-rotation-item__meta--' + this.getGoalFreshness(goal).tone
+      : '';
   }
 
-  private extractGoals(): void {
-    this.goalStoreService.getGoals().subscribe({
-      next: (goals) => this.goals = goals
-    })
+  public findGoalById(goalId: string | null, goals: Goal[]): Goal | null {
+    if (!goalId) return null;
+    return goals.find(goal => goal.id === goalId) ?? null;
+  }
+
+  private toGoalFreshnessView(goal: Goal): GoalFreshnessView {
+    return {
+      goal,
+      freshness: this.goalFreshnessService.getFreshnessInfo(goal)
+    };
+  }
+
+  private buildInboxSummary(entries: InboxEntry[]): InboxSummaryView {
+    const activeEntries = entries.filter(
+      entry => entry.status !== 'archived' && entry.status !== 'deferred'
+    );
+
+    return {
+      activeInboxCount: activeEntries.length,
+      newInboxCount: activeEntries.filter(entry => entry.status === 'new').length,
+      clarifiedInboxCount: activeEntries.filter(entry => entry.status === 'clarified').length,
+      deferredInboxCount: activeEntries.filter(entry => entry.status === 'deferred').length,
+      recentInboxEntries: activeEntries
+        .slice()
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        .slice(0, 3)
+    };
   }
 }
