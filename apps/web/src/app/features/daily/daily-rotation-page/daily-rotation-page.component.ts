@@ -1,70 +1,222 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { Observable, combineLatest, of } from 'rxjs';
+import { catchError, map, shareReplay, startWith, finalize } from 'rxjs/operators';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
+
+interface Loadable<T> {
+  loading: boolean;
+  data: T | null;
+  error: string | null;
+}
+
+interface DailyRotationViewModel {
+  rotationState: Loadable<DailyRotationItem[]>;
+  completionDaysState: Loadable<number>;
+
+  rotationItems: DailyRotationItem[];
+  activeCompletionDays: number;
+
+  completedCount: number;
+  totalCount: number;
+  completionPercent: number;
+  isDayComplete: boolean;
+  progressMessage: string;
+
+  pageLoading: boolean;
+  pageErrorMessages: string[];
+}
 
 @Component({
   selector: 'app-daily-rotation-page',
   templateUrl: './daily-rotation-page.component.html',
   styleUrls: ['./daily-rotation-page.component.scss']
 })
-export class DailyRotationPageComponent implements OnInit {
+export class DailyRotationPageComponent {
+  private readonly initialRotationState$: Observable<Loadable<DailyRotationItem[]>> =
+    this.planningWorkflowService.getOrCreateDailyRotation().pipe(
+      map(items => ({
+        loading: false,
+        data: items,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load today’s menu.'
+        })
+      ),
+      shareReplay(1)
+    );
+
+  private readonly initialCompletionDaysState$: Observable<Loadable<number>> =
+    this.planningWorkflowService.getLastSevenDaysCompletions().pipe(
+      map(days => ({
+        loading: false,
+        data: days,
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
+          loading: false,
+          data: null,
+          error: 'Could not load recent completion history.'
+        })
+      ),
+      shareReplay(1)
+    );
+
   public rotationItems: DailyRotationItem[] = [];
-  public activeCompletionDays: number = 0;
+  public activeCompletionDays = 0;
+
+  public isRefreshingPlan = false;
+  public refreshPlanError: string | null = null;
+
+  public togglingItemIds = new Set<string>();
+  public toggleError: string | null = null;
+
+  public replacingItemIds = new Set<string>();
+  public replaceError: string | null = null;
+
+  public readonly vm$: Observable<DailyRotationViewModel> = combineLatest([
+    this.initialRotationState$,
+    this.initialCompletionDaysState$
+  ]).pipe(
+    map(([rotationState, completionDaysState]) => {
+      const rotationItems = this.rotationItems.length > 0 || rotationState.data === null
+        ? this.rotationItems
+        : (rotationState.data ?? []);
+
+      const activeCompletionDays = this.activeCompletionDays || completionDaysState.data || 0;
+
+      const completedCount = rotationItems.filter(item => item.completed).length;
+      const totalCount = rotationItems.length;
+      const completionPercent =
+        totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+      const isDayComplete = totalCount > 0 && completedCount === totalCount;
+
+      let progressMessage = 'No items planned for today.';
+      if (totalCount > 0 && isDayComplete) {
+        progressMessage = 'Done for today.';
+      } else if (totalCount > 0 && completedCount === 0) {
+        progressMessage = 'Ready to get started.';
+      } else if (totalCount > 0) {
+        progressMessage = `${completedCount} of ${totalCount} completed.`;
+      }
+
+      const pageErrorMessages = [
+        rotationState.error,
+        completionDaysState.error,
+        this.refreshPlanError,
+        this.toggleError,
+        this.replaceError
+      ].filter((message): message is string => !!message);
+
+      return {
+        rotationState,
+        completionDaysState,
+
+        rotationItems,
+        activeCompletionDays,
+
+        completedCount,
+        totalCount,
+        completionPercent,
+        isDayComplete,
+        progressMessage,
+
+        pageLoading: rotationState.loading || completionDaysState.loading,
+        pageErrorMessages
+      };
+    }),
+    shareReplay(1)
+  );
 
   constructor(
-    private planningWorkflowService: PlanningWorkflowService
-  ) {}
-
-  ngOnInit(): void {
-    this.loadDailySelections();
-  }
-
-  public get completedCount(): number {
-    return this.rotationItems.filter(item => item.completed).length;
-  }
-
-  public get totalCount(): number {
-    return this.rotationItems.length;
-  }
-
-  public get completionPercent(): number {
-    if (this.totalCount === 0) {
-      return 0;
-    }
-
-    return Math.round((this.completedCount / this.totalCount) * 100);
-  }
-
-  public get isDayComplete(): boolean {
-    return this.totalCount > 0 && this.completedCount === this.totalCount;
-  }
-
-  public get progressMessage(): string {
-    if (this.totalCount === 0) {
-      return 'No items planned for today.';
-    }
-
-    if (this.isDayComplete) {
-      return 'Done for today.';
-    }
-
-    if (this.completedCount === 0) {
-      return 'Ready to get started.';
-    }
-
-    return `${this.completedCount} of ${this.totalCount} completed.`;
+    private readonly planningWorkflowService: PlanningWorkflowService
+  ) {
+    this.loadInitialData();
   }
 
   public generateDailyRotation(): void {
-    this.planningWorkflowService.refreshTodayPlan().subscribe({
-      next: dailyRotationItems => this.rotationItems = dailyRotationItems
+    if (this.isRefreshingPlan) {
+      return;
+    }
+
+    this.isRefreshingPlan = true;
+    this.refreshPlanError = null;
+
+    this.planningWorkflowService.refreshTodayPlan().pipe(
+      finalize(() => {
+        this.isRefreshingPlan = false;
+      })
+    ).subscribe({
+      next: dailyRotationItems => {
+        this.rotationItems = dailyRotationItems;
+      },
+      error: () => {
+        this.refreshPlanError = 'Could not regenerate the daily list.';
+      }
     });
   }
 
   public toggleCompleted(item: DailyRotationItem): void {
-    this.planningWorkflowService.toggleRotationItemCompleted(item.id).subscribe({
-      next: dailyRotationItems => this.rotationItems = dailyRotationItems
+    if (this.togglingItemIds.has(item.id)) {
+      return;
+    }
+
+    this.toggleError = null;
+    this.togglingItemIds.add(item.id);
+
+    this.planningWorkflowService.toggleRotationItemCompleted(item.id).pipe(
+      finalize(() => {
+        this.togglingItemIds.delete(item.id);
+      })
+    ).subscribe({
+      next: dailyRotationItems => {
+        this.rotationItems = dailyRotationItems;
+      },
+      error: () => {
+        this.toggleError = 'Could not update item completion.';
+      }
     });
+  }
+
+  public replaceItem(item: DailyRotationItem): void {
+    if (this.replacingItemIds.has(item.id)) {
+      return;
+    }
+
+    this.replaceError = null;
+    this.replacingItemIds.add(item.id);
+
+    this.planningWorkflowService.replaceRotationItem(item.id).pipe(
+      finalize(() => {
+        this.replacingItemIds.delete(item.id);
+      })
+    ).subscribe({
+      next: replacementItems => {
+        this.rotationItems = replacementItems;
+      },
+      error: () => {
+        this.replaceError = 'Could not replace this item.';
+      }
+    });
+  }
+
+  public isItemBusy(itemId: string): boolean {
+    return this.togglingItemIds.has(itemId) || this.replacingItemIds.has(itemId);
   }
 
   public getCategoryLabel(category: DailyRotationItem['category']): string {
@@ -105,18 +257,21 @@ export class DailyRotationPageComponent implements OnInit {
     return item.id;
   }
 
-  public replaceItem(item: DailyRotationItem): void {
-    this.planningWorkflowService.replaceRotationItem(item.id).subscribe({
-      next: replacementItems => this.rotationItems = replacementItems
+  private loadInitialData(): void {
+    this.initialRotationState$.subscribe({
+      next: state => {
+        if (state.data) {
+          this.rotationItems = state.data;
+        }
+      }
     });
-  }
 
-  private loadDailySelections(): void {
-    this.planningWorkflowService.getOrCreateDailyRotation().subscribe({
-      next: rotationItems => this.rotationItems = rotationItems
-    });
-    this.planningWorkflowService.getLastSevenDaysCompletions().subscribe({
-      next: completions => this.activeCompletionDays = completions
+    this.initialCompletionDaysState$.subscribe({
+      next: state => {
+        if (state.data !== null) {
+          this.activeCompletionDays = state.data;
+        }
+      }
     });
   }
 }

@@ -1,4 +1,4 @@
-<div class="daily-page">
+<div class="daily-page" *ngIf="vm$ | async as vm">
   <div class="daily-page__container">
     <header class="daily-page__header">
       <p class="daily-page__eyebrow">Daily Rotation</p>
@@ -8,89 +8,122 @@
       </p>
     </header>
 
-    <div>
-      Last 7 Days: {{ activeCompletionDays }} active day(s)
+    <mat-progress-bar *ngIf="vm.pageLoading" mode="indeterminate"></mat-progress-bar>
+
+    <div class="daily-page__errors" *ngIf="vm.pageErrorMessages.length > 0">
+      <div class="daily-error" *ngFor="let error of vm.pageErrorMessages">
+        {{ error }}
+      </div>
     </div>
 
-    <div class="daily-progress-summary" *ngIf="totalCount > 0">
+    <div *ngIf="!vm.completionDaysState.loading && !vm.completionDaysState.error">
+      Last 7 Days: {{ vm.activeCompletionDays }} active day(s)
+    </div>
+
+    <div class="daily-progress-summary" *ngIf="vm.totalCount > 0">
       <div class="daily-progress-summary__text">
-        {{ progressMessage }} ({{ completionPercent }}%)
+        {{ vm.progressMessage }} ({{ vm.completionPercent }}%)
       </div>
 
       <div class="daily-progress-summary__bar">
         <div
           class="daily-progress-summary__fill"
-          [style.width.%]="completionPercent">
+          [style.width.%]="vm.completionPercent">
         </div>
       </div>
 
-      <div class="daily-progress-summary__done" *ngIf="isDayComplete">
+      <div class="daily-progress-summary__done" *ngIf="vm.isDayComplete">
         Done for today
       </div>
     </div>
 
     <div class="daily-page__actions">
-      <button mat-stroked-button type="button" (click)="generateDailyRotation()">
-        Regenerate Daily List
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="generateDailyRotation()"
+        [disabled]="vm.pageLoading || isRefreshingPlan"
+      >
+        {{ isRefreshingPlan ? 'Regenerating...' : 'Regenerate Daily List' }}
       </button>
     </div>
 
-    <section class="daily-list">
-      <div class="daily-card-slot" *ngFor="let item of rotationItems; trackBy: trackByItemId">
-  <article
-    class="daily-card"
-    [class.daily-card--completed]="item.completed"
-  >
-    <div class="daily-card__header">
-      <div>
-        <p class="daily-card__eyebrow">{{ getCategoryLabel(item.category) }}</p>
-        <h2 class="daily-card__title">{{ item.goalTitle }}</h2>
-        <p class="daily-card__description">
-          {{ getCategoryDescription(item.category) }}
-        </p>
+    <section class="daily-list" *ngIf="!vm.rotationState.loading && !vm.rotationState.error; else dailyListFallback">
+      <div class="daily-empty" *ngIf="vm.rotationItems.length === 0">
+        No items planned for today.
       </div>
 
-      <mat-checkbox
-        [checked]="item.completed"
-        (change)="toggleCompleted(item)"
-      >
-        Done
-      </mat-checkbox>
-    </div>
+      <div class="daily-card-slot" *ngFor="let item of vm.rotationItems; trackBy: trackByItemId">
+        <article
+          class="daily-card"
+          [class.daily-card--completed]="item.completed"
+          [class.daily-card--busy]="isItemBusy(item.id)"
+        >
+          <div class="daily-card__header">
+            <div>
+              <p class="daily-card__eyebrow">{{ getCategoryLabel(item.category) }}</p>
+              <h2 class="daily-card__title">{{ item.goalTitle }}</h2>
+              <p class="daily-card__description">
+                {{ getCategoryDescription(item.category) }}
+              </p>
+            </div>
 
-    <div class="daily-card__section">
-      <div class="daily-card__label">Next tiny action</div>
-      <div class="daily-card__value">{{ item.actionText }}</div>
-    </div>
+            <mat-checkbox
+              [checked]="item.completed"
+              [disabled]="isItemBusy(item.id)"
+              (change)="toggleCompleted(item)"
+            >
+              {{ togglingItemIds.has(item.id) ? 'Saving...' : 'Done' }}
+            </mat-checkbox>
+          </div>
 
-    <div class="daily-card__meta">
-      <span class="daily-card__chip" *ngIf="item.sessionSize">
-        Session: {{ item.sessionSize }}
-      </span>
+          <div class="daily-card__section">
+            <div class="daily-card__label">Next tiny action</div>
+            <div class="daily-card__value">{{ item.actionText }}</div>
+          </div>
 
-      <div *ngIf="item.surfacingReasons?.length">
-        <span class="daily-card__chip" *ngFor="let reason of item.surfacingReasons">
-          {{ reason }}
-        </span>
+          <div class="daily-card__meta">
+            <span class="daily-card__chip" *ngIf="item.sessionSize">
+              Session: {{ item.sessionSize }}
+            </span>
+
+            <div *ngIf="item.surfacingReasons?.length">
+              <span class="daily-card__chip" *ngFor="let reason of item.surfacingReasons">
+                {{ reason }}
+              </span>
+            </div>
+
+            <a
+              mat-stroked-button
+              color="primary"
+              *ngIf="item.goalId"
+              [routerLink]="['/goals', item.goalId]"
+              (click)="$event.stopPropagation()"
+            >
+              Open Goal
+            </a>
+          </div>
+        </article>
+
+        <button
+          mat-stroked-button
+          (click)="replaceItem(item)"
+          [disabled]="isItemBusy(item.id) || isRefreshingPlan"
+        >
+          <p class="daily-page-replace-button">
+            {{ replacingItemIds.has(item.id) ? 'Replacing...' : 'Replace' }}
+          </p>
+        </button>
       </div>
+    </section>
 
-      <a
-        mat-stroked-button
-        color="primary"
-        *ngIf="item.goalId"
-        [routerLink]="['/goals', item.goalId]"
-        (click)="$event.stopPropagation()"
-      >
-        Open Goal
-      </a>
-    </div>
-  </article>
-  <button  mat-stroked-button (click)="replaceItem(item)">
-    <p class="daily-page-replace-button">
-    Replace
-  </p></button>
-</div>
-  
-</section>
+    <ng-template #dailyListFallback>
+      <div class="daily-empty" *ngIf="vm.rotationState.loading">
+        Loading today’s menu...
+      </div>
+      <div class="daily-error" *ngIf="vm.rotationState.error">
+        {{ vm.rotationState.error }}
+      </div>
+    </ng-template>
   </div>
 </div>
