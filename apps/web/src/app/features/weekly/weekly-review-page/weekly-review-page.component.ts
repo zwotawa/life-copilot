@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, finalize, map, shareReplay, startWith } from 'rxjs/operators';
 
@@ -221,7 +222,7 @@ export class WeeklyReviewPageComponent {
         selectedInfrastructureGoal,
         selectedCreativeGoal,
 
-        hasUnsavedChanges: this.computeHasUnsavedChanges(review),
+        hasUnsavedChanges: this.hasUnsavedChanges,
 
         pageLoading:
           goalsState.loading ||
@@ -239,7 +240,7 @@ export class WeeklyReviewPageComponent {
     private readonly weeklyReviewStoreService: WeeklyReviewStoreService,
     private readonly goalSurfacingService: GoalSurfacingService,
     private readonly weeklyInsightService: WeeklyInsightService
-  ) {
+    ) {
     this.loadInitialReviewDraft();
   }
 
@@ -488,6 +489,21 @@ export class WeeklyReviewPageComponent {
       default:
         return null;
     }
+  }
+
+  public get hasUnsavedChanges(): boolean {
+    const reviewDraft = this.reviewDraftSubject.value;
+    return this.computeHasUnsavedChanges(reviewDraft);
+  }
+
+  public canDeactivate(): boolean {
+    if (!this.hasUnsavedChanges) {
+      return true;
+    }
+
+    return window.confirm(
+      'You have unsaved changes on your weekly review. Leave this page and lose those changes?'
+    );
   }
 
   private loadInitialReviewDraft(): void {

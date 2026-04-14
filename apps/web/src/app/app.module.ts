@@ -45,6 +45,7 @@ import { ApiDailyCompletionHistoryRepository } from './core/services/api-daily-c
 import { ApiGoalProgressRepository } from './core/services/api-goal-progress-repository.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
   return async () => {
@@ -66,7 +67,8 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     DashboardPageComponent,
     InboxPageComponent,
     LoginComponent,
-    RegisterComponent
+    RegisterComponent,
+    ConfirmDialogComponent
   ],
   imports: [
     BrowserModule,

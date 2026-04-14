@@ -9,15 +9,16 @@ import { InboxPageComponent } from './features/inbox/inbox-page/inbox-page.compo
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginComponent } from './features/login/login.component';
 import { RegisterComponent } from './features/register/register.component';
+import { PendingChangesGuard } from './core/guards/pending-changes.guard';
 
 const routes: Routes = [{
   path:'',
   canActivate: [AuthGuard],
   children: [
     { path: '', component: DashboardPageComponent },
-    { path: 'goals', component: GoalsPageComponent },
-    { path: 'goals/:id', component: GoalDetailPageComponent },
-    { path: 'weekly', component: WeeklyReviewPageComponent },
+    { path: 'goals', component: GoalsPageComponent, canDeactivate: [PendingChangesGuard] },
+    { path: 'goals/:id', component: GoalDetailPageComponent, canDeactivate: [PendingChangesGuard] },
+    { path: 'weekly', component: WeeklyReviewPageComponent, canDeactivate: [PendingChangesGuard] },
     { path: 'daily', component: DailyRotationPageComponent },
     { path: 'inbox', component: InboxPageComponent }
     
