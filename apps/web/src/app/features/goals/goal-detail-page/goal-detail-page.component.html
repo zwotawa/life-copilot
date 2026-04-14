@@ -1,43 +1,64 @@
-<app-goal-form [goal]="goal"></app-goal-form>
+<div class="goal-detail-page" *ngIf="vm$ | async as vm">
+  <mat-progress-bar *ngIf="vm.pageLoading" mode="indeterminate"></mat-progress-bar>
 
-<section class="goal-progress" *ngIf="goal.id">
-  <div class="goal-progress__header">
-    <h3 class="goal-progress__title">Recent Progress</h3>
-    <div class="goal-progress__count" *ngIf="progressEvents.length">
-      {{ progressEvents.length }} event{{ progressEvents.length === 1 ? '' : 's' }}
+  <div class="goal-detail-page__errors" *ngIf="vm.pageErrorMessages.length > 0">
+    <div class="goal-error" *ngFor="let error of vm.pageErrorMessages">
+      {{ error }}
     </div>
   </div>
 
-  <div *ngIf="!progressEvents.length" class="goal-progress__empty">
-    No progress recorded yet.
-  </div>
+  <ng-container *ngIf="vm.goal as goal; else goalFallback">
+    <app-goal-form [goal]="goal"></app-goal-form>
 
-  <div class="goal-progress__list" *ngIf="progressEvents.length">
-    <article *ngFor="let event of progressEvents" class="goal-progress__item">
-      <div class="goal-progress__meta-row">
-        <div
-            class="goal-progress__type"
-            [ngClass]="getEventTypeClass(event.type)"
+    <section class="goal-progress" *ngIf="goal.id">
+      <div class="goal-progress__header">
+        <h3 class="goal-progress__title">Recent Progress</h3>
+        <div class="goal-progress__count" *ngIf="vm.progressEvents.length">
+          {{ vm.progressEvents.length }} event{{ vm.progressEvents.length === 1 ? '' : 's' }}
+        </div>
+      </div>
+
+      <div *ngIf="!vm.progressEventsState.loading && vm.progressEvents.length === 0" class="goal-progress__empty">
+        No progress recorded yet.
+      </div>
+
+      <div class="goal-progress__list" *ngIf="vm.progressEvents.length">
+        <article *ngFor="let event of vm.progressEvents; trackBy: trackByEventId" class="goal-progress__item">
+          <div class="goal-progress__meta-row">
+            <div
+              class="goal-progress__type"
+              [ngClass]="getEventTypeClass(event.type)"
             >
-            {{ formatEventType(event.type) }}
-        </div>
+              {{ formatEventType(event.type) }}
+            </div>
 
-        <div class="goal-progress__timestamp">
-          {{ event.createdAt | date:'medium' }}
-        </div>
-      </div>
+            <div class="goal-progress__timestamp">
+              {{ event.createdAt | date:'medium' }}
+            </div>
+          </div>
 
-      <div class="goal-progress__task" *ngIf="event.taskText">
-        {{ event.taskText }}
-      </div>
+          <div class="goal-progress__task" *ngIf="event.taskText">
+            {{ event.taskText }}
+          </div>
 
-      <div class="goal-progress__notes" *ngIf="event.notes">
-        {{ event.notes }}
-      </div>
+          <div class="goal-progress__notes" *ngIf="event.notes">
+            {{ event.notes }}
+          </div>
 
-      <div class="goal-progress__source" *ngIf="event.source">
-        Source: {{ event.source }}
+          <div class="goal-progress__source" *ngIf="event.source">
+            Source: {{ event.source }}
+          </div>
+        </article>
       </div>
-    </article>
-  </div>
-</section>
+    </section>
+  </ng-container>
+
+  <ng-template #goalFallback>
+    <div class="goal-empty" *ngIf="vm.goalState.loading">
+      Loading goal...
+    </div>
+    <div class="goal-error" *ngIf="vm.goalState.error">
+      {{ vm.goalState.error }}
+    </div>
+  </ng-template>
+</div>

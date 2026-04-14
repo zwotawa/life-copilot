@@ -87,6 +87,28 @@ mat-form-field {
   padding-top: 0.25rem;
 }
 
+.goal-form__error {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(211, 47, 47, 0.08);
+  color: #b3261e;
+}
+
+.goal-form__status {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.goal-form__status-unsaved {
+  color: #b26a00;
+  font-weight: 600;
+}
+
+.goal-form__status-saved {
+  opacity: 0.75;
+}
+
 @media (max-width: 1000px) {
   .goal-form__grid--four {
     grid-template-columns: repeat(2, minmax(0, 1fr));

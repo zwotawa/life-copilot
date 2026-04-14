@@ -10,19 +10,46 @@
       </p>
     </header>
 
-    <form #goalForm="ngForm" class="goal-form" (ngSubmit)="onSubmit(goalForm)">
+    <div class="goal-form__error" *ngIf="saveError">
+      {{ saveError }}
+    </div>
+
+    <div class="goal-form__status" *ngIf="draft">
+      <span class="goal-form__status-unsaved" *ngIf="!isNewGoal && hasUnsavedChanges">
+        Unsaved changes
+      </span>
+
+      <span class="goal-form__status-saved" *ngIf="!isNewGoal && !hasUnsavedChanges && !isSaving">
+        Saved
+      </span>
+    </div>
+
+    <form #goalForm="ngForm" class="goal-form" (ngSubmit)="onSubmit(goalForm)" *ngIf="draft as goal">
       <section class="goal-form__section">
         <h2 class="goal-form__section-title">Basics</h2>
 
         <div class="goal-form__grid goal-form__grid--two">
           <mat-form-field appearance="outline">
             <mat-label>Title</mat-label>
-            <input matInput name="title" [(ngModel)]="goal.title" required />
+            <input
+              matInput
+              name="title"
+              [ngModel]="goal.title"
+              (ngModelChange)="updateTitle($event)"
+              [disabled]="isSaving"
+              required
+            />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Status</mat-label>
-            <mat-select name="status" [(ngModel)]="goal.status" required>
+            <mat-select
+              name="status"
+              [ngModel]="goal.status"
+              (ngModelChange)="updateStatus($event)"
+              [disabled]="isSaving"
+              required
+            >
               <mat-option value="active">Active</mat-option>
               <mat-option value="paused">Paused</mat-option>
               <mat-option value="someday">Someday</mat-option>
@@ -37,7 +64,9 @@
           <textarea
             matInput
             name="whyItMatters"
-            [(ngModel)]="goal.whyItMatters"
+            [ngModel]="goal.whyItMatters"
+            (ngModelChange)="updateWhyItMatters($event)"
+            [disabled]="isSaving"
             rows="3"
           ></textarea>
         </mat-form-field>
@@ -45,7 +74,13 @@
         <div class="goal-form__grid goal-form__grid--three">
           <mat-form-field appearance="outline">
             <mat-label>Lane</mat-label>
-            <mat-select name="lane" [(ngModel)]="goal.lane" required>
+            <mat-select
+              name="lane"
+              [ngModel]="goal.lane"
+              (ngModelChange)="updateLane($event)"
+              [disabled]="isSaving"
+              required
+            >
               <mat-option value="career_education">Career & Education</mat-option>
               <mat-option value="life_systems">Life Systems</mat-option>
               <mat-option value="relationships">Relationships</mat-option>
@@ -62,7 +97,13 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Type</mat-label>
-            <mat-select name="type" [(ngModel)]="goal.type" required>
+            <mat-select
+              name="type"
+              [ngModel]="goal.type"
+              (ngModelChange)="updateType($event)"
+              [disabled]="isSaving"
+              required
+            >
               <mat-option value="maintain">Maintain</mat-option>
               <mat-option value="project">Project</mat-option>
               <mat-option value="seasonal">Seasonal</mat-option>
@@ -72,7 +113,13 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Minimum Touch Frequency</mat-label>
-            <mat-select name="minimumTouchFrequency" [(ngModel)]="goal.minimumTouchFrequency" required>
+            <mat-select
+              name="minimumTouchFrequency"
+              [ngModel]="goal.minimumTouchFrequency"
+              (ngModelChange)="updateMinimumTouchFrequency($event)"
+              [disabled]="isSaving"
+              required
+            >
               <mat-option value="daily">Daily</mat-option>
               <mat-option value="3x_week">3x/Week</mat-option>
               <mat-option value="weekly">Weekly</mat-option>
@@ -90,7 +137,13 @@
         <div class="goal-form__grid goal-form__grid--three">
           <mat-form-field appearance="outline">
             <mat-label>Due Style</mat-label>
-            <mat-select name="dueStyle" [(ngModel)]="goal.dueStyle" required>
+            <mat-select
+              name="dueStyle"
+              [ngModel]="goal.dueStyle"
+              (ngModelChange)="updateDueStyle($event)"
+              [disabled]="isSaving"
+              required
+            >
               <mat-option value="hard_date">Hard Date</mat-option>
               <mat-option value="target_window">Target Window</mat-option>
               <mat-option value="cadence_only">Cadence Only</mat-option>
@@ -99,12 +152,26 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Real Deadline</mat-label>
-            <input matInput name="realDeadline" [(ngModel)]="goal.realDeadline" type="date" />
+            <input
+              matInput
+              name="realDeadline"
+              [ngModel]="goal.realDeadline"
+              (ngModelChange)="updateRealDeadline($event)"
+              [disabled]="isSaving"
+              type="date"
+            />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Target Date</mat-label>
-            <input matInput name="targetDate" [(ngModel)]="goal.targetDate" type="date" />
+            <input
+              matInput
+              name="targetDate"
+              [ngModel]="goal.targetDate"
+              (ngModelChange)="updateTargetDate($event)"
+              [disabled]="isSaving"
+              type="date"
+            />
           </mat-form-field>
         </div>
       </section>
@@ -115,12 +182,26 @@
         <div class="goal-form__grid goal-form__grid--two">
           <mat-form-field appearance="outline">
             <mat-label>Current Milestone</mat-label>
-            <input matInput name="currentMilestone" [(ngModel)]="goal.currentMilestone" type="text" />
+            <input
+              matInput
+              name="currentMilestone"
+              [ngModel]="goal.currentMilestone"
+              (ngModelChange)="updateCurrentMilestone($event)"
+              [disabled]="isSaving"
+              type="text"
+            />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Next Tiny Action</mat-label>
-            <input matInput name="nextTinyAction" [(ngModel)]="goal.nextTinyAction" type="text" />
+            <input
+              matInput
+              name="nextTinyAction"
+              [ngModel]="goal.nextTinyAction"
+              (ngModelChange)="updateNextTinyAction($event)"
+              [disabled]="isSaving"
+              type="text"
+            />
           </mat-form-field>
         </div>
       </section>
@@ -131,7 +212,12 @@
         <div class="goal-form__grid goal-form__grid--four">
           <mat-form-field appearance="outline">
             <mat-label>Typical Session Size</mat-label>
-            <mat-select name="typicalSessionSize" [(ngModel)]="goal.typicalSessionSize">
+            <mat-select
+              name="typicalSessionSize"
+              [ngModel]="goal.typicalSessionSize"
+              (ngModelChange)="updateTypicalSessionSize($event)"
+              [disabled]="isSaving"
+            >
               <mat-option value="5m">5 Minutes</mat-option>
               <mat-option value="10m">10 Minutes</mat-option>
               <mat-option value="25m">25 Minutes</mat-option>
@@ -141,7 +227,12 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Energy</mat-label>
-            <mat-select name="energy" [(ngModel)]="goal.energy">
+            <mat-select
+              name="energy"
+              [ngModel]="goal.energy"
+              (ngModelChange)="updateEnergy($event)"
+              [disabled]="isSaving"
+            >
               <mat-option value="low">Low</mat-option>
               <mat-option value="medium">Medium</mat-option>
               <mat-option value="deep">Deep</mat-option>
@@ -150,7 +241,12 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Resistance</mat-label>
-            <mat-select name="resistance" [(ngModel)]="goal.resistance">
+            <mat-select
+              name="resistance"
+              [ngModel]="goal.resistance"
+              (ngModelChange)="updateResistance($event)"
+              [disabled]="isSaving"
+            >
               <mat-option value="low">Low</mat-option>
               <mat-option value="medium">Medium</mat-option>
               <mat-option value="high">High</mat-option>
@@ -159,7 +255,12 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Excitement</mat-label>
-            <mat-select name="excitement" [(ngModel)]="goal.excitement">
+            <mat-select
+              name="excitement"
+              [ngModel]="goal.excitement"
+              (ngModelChange)="updateExcitement($event)"
+              [disabled]="isSaving"
+            >
               <mat-option value="low">Low</mat-option>
               <mat-option value="medium">Medium</mat-option>
               <mat-option value="high">High</mat-option>
@@ -173,14 +274,42 @@
 
         <mat-form-field appearance="outline" class="goal-form__full">
           <mat-label>Notes</mat-label>
-          <textarea matInput name="notes" [(ngModel)]="goal.notes" rows="5"></textarea>
+          <textarea
+            matInput
+            name="notes"
+            [ngModel]="goal.notes"
+            (ngModelChange)="updateNotes($event)"
+            [disabled]="isSaving"
+            rows="5"
+          ></textarea>
         </mat-form-field>
       </section>
 
       <div class="goal-form__actions">
-        <button mat-stroked-button type="button" [routerLink]="['/goals']">Cancel</button>
-        <button mat-raised-button color="primary" type="submit" [disabled]="goalForm.invalid">
-          {{ isNewGoal ? 'Create Goal' : 'Save Goal' }}
+        <button mat-stroked-button type="button" [routerLink]="['/goals']" [disabled]="isSaving">
+          Cancel
+        </button>
+
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="revertChanges()"
+          [disabled]="isSaving || isNewGoal || !hasUnsavedChanges"
+        >
+          Revert Changes
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="goalForm.invalid || !canSubmit"
+        >
+          {{
+            isSaving
+              ? (isNewGoal ? 'Creating...' : 'Saving...')
+              : (isNewGoal ? 'Create Goal' : 'Save Goal')
+          }}
         </button>
       </div>
     </form>
