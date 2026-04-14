@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
@@ -7,6 +7,7 @@ import { Goal } from 'src/app/core/models/goal.model';
 import { GoalProgressEvent } from 'src/app/core/models/goal-progress-event.model';
 import { GoalProgressStoreService } from 'src/app/core/services/goal-progress-store.service';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
+import { GoalFormComponent } from '../goal-form/goal-form.component';
 
 interface Loadable<T> {
   loading: boolean;
@@ -32,6 +33,17 @@ interface GoalDetailViewModel {
   styleUrls: ['./goal-detail-page.component.scss']
 })
 export class GoalDetailPageComponent {
+  @ViewChild(GoalFormComponent)
+  private goalFormComponent?: GoalFormComponent;
+
+  public canDeactivate(): boolean {
+    if (!this.goalFormComponent) {
+      return true;
+    }
+
+    return this.goalFormComponent.canDeactivate();
+  }
+
   public readonly goalId$: Observable<string> = this.route.paramMap.pipe(
     map(params => params.get('id') || ''),
     filter(id => !!id),

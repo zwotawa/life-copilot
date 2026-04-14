@@ -37,6 +37,20 @@ export class GoalFormComponent implements OnChanges {
     }
   }
 
+  public canDeactivate(): boolean {
+    if (this.isSaving) {
+      return false;
+    }
+
+    if (!this.hasUnsavedChanges) {
+      return true;
+    }
+
+    return window.confirm(
+      'You have unsaved changes on this goal. Leave this page and lose those changes?'
+    );
+  }
+
   public get draft(): Goal | null {
     return this.goalDraft.value;
   }
