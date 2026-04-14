@@ -12,4 +12,6 @@ export abstract class AuthService {
   abstract getAccessToken(): string | null;
   abstract isSignedIn(): boolean;
   abstract register(req: RegisterRequest): Observable<AuthResponse>;
+  abstract hasValidSession(): boolean;
+  abstract clearSession(): null;
 }

@@ -55,9 +55,8 @@ export class ApiAuthService extends AuthService {
   public async restoreSession(): Promise<CurrentUser | null> {
     const token = this.getAccessToken();
 
-    if (!token) {
-      this.currentUser = null;
-      return null;
+    if (!token || this.isTokenExpired(token)) {
+      return this.clearSession();
     }
 
     try {
@@ -72,9 +71,7 @@ export class ApiAuthService extends AuthService {
       this.currentUser = user;
       return user;
     } catch {
-      this.currentUser = null;
-      localStorage.removeItem(this.accessTokenStorageKey);
-      return null;
+      return this.clearSession();
     }
   }
 
@@ -84,5 +81,36 @@ export class ApiAuthService extends AuthService {
 
   public register(req: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiBaseUrl}/auth/register`, req)
+  }
+
+  public isTokenExpired(token: string | null): boolean {
+    if (!token) {
+      return true;
+    }
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload?.exp;
+
+      if (!exp) {
+        return true;
+      }
+
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      return exp <= nowInSeconds;
+    } catch {
+      return true;
+    }
+  }
+
+  public hasValidSession(): boolean {
+    const token = this.getAccessToken();
+    return !!token && !this.isTokenExpired(token);
+  }
+
+  public clearSession(): null {
+    this.currentUser = null;
+    localStorage.removeItem(this.accessTokenStorageKey);
+    return null;
   }
 }
