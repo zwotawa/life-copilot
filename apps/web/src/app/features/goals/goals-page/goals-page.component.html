@@ -1,4 +1,4 @@
-<div class="goals-page">
+<div class="goals-page" *ngIf="vm$ | async as vm">
   <div class="goals-page__container">
     <header class="goals-page__header">
       <div>
@@ -16,11 +16,22 @@
       </div>
     </header>
 
+    <mat-progress-bar *ngIf="vm.pageLoading" mode="indeterminate"></mat-progress-bar>
+
+    <div class="goals-page__errors" *ngIf="vm.pageErrorMessages.length > 0">
+      <div class="goals-error" *ngFor="let error of vm.pageErrorMessages">
+        {{ error }}
+      </div>
+    </div>
+
     <section class="goals-toolbar">
       <div class="goals-toolbar__filters">
         <mat-form-field appearance="outline">
           <mat-label>Filter by Status</mat-label>
-          <mat-select [(value)]="statusFilter">
+          <mat-select
+            [value]="vm.statusFilter"
+            (valueChange)="updateStatusFilter($event)"
+          >
             <mat-option value="">All Statuses</mat-option>
             <mat-option value="active">Active</mat-option>
             <mat-option value="paused">Paused</mat-option>
@@ -32,7 +43,10 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Filter by Lane</mat-label>
-          <mat-select [(value)]="laneFilter">
+          <mat-select
+            [value]="vm.laneFilter"
+            (valueChange)="updateLaneFilter($event)"
+          >
             <mat-option value="">All Lanes</mat-option>
             <mat-option value="career_education">Career & Education</mat-option>
             <mat-option value="life_systems">Life Systems</mat-option>
@@ -50,7 +64,10 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Filter by Type</mat-label>
-          <mat-select [(value)]="typeFilter">
+          <mat-select
+            [value]="vm.typeFilter"
+            (valueChange)="updateTypeFilter($event)"
+          >
             <mat-option value="">All Types</mat-option>
             <mat-option value="maintain">Maintain</mat-option>
             <mat-option value="project">Project</mat-option>
@@ -64,25 +81,38 @@
         <button
           mat-stroked-button
           type="button"
-          (click)="statusFilter = ''; laneFilter = ''; typeFilter = ''"
+          (click)="clearFilters()"
         >
           Clear Filters
         </button>
       </div>
     </section>
 
-    <section class="goals-summary">
-      <div class="goals-summary__count">
-        {{ filteredGoals.length }} goal{{ filteredGoals.length === 1 ? '' : 's' }}
-      </div>
-    </section>
+    <ng-container *ngIf="!vm.goalsState.loading && !vm.goalsState.error; else goalsFallback">
+      <section class="goals-summary">
+        <div class="goals-summary__count">
+          {{ vm.filteredGoalCount }} goal{{ vm.filteredGoalCount === 1 ? '' : 's' }}
+        </div>
+      </section>
 
-    <section *ngIf="filteredGoals.length > 0; else emptyState" class="goals-grid">
-      <app-goal-card
-        *ngFor="let goal of filteredGoals; trackBy: trackByGoalId"
-        [goal]="goal"
-      ></app-goal-card>
-    </section>
+      <section *ngIf="vm.filteredGoals.length > 0; else emptyState" class="goals-grid">
+        <app-goal-card
+          *ngFor="let goal of vm.filteredGoals; trackBy: trackByGoalId"
+          [goal]="goal"
+        ></app-goal-card>
+      </section>
+    </ng-container>
+
+    <ng-template #goalsFallback>
+      <section class="goals-empty" *ngIf="vm.goalsState.loading">
+        <h2>Loading goals...</h2>
+      </section>
+
+      <section class="goals-empty" *ngIf="vm.goalsState.error">
+        <h2>Could not load goals</h2>
+        <p>Please refresh and try again.</p>
+      </section>
+    </ng-template>
 
     <ng-template #emptyState>
       <section class="goals-empty">
@@ -91,7 +121,7 @@
         <button
           mat-stroked-button
           type="button"
-          (click)="statusFilter = ''; laneFilter = ''; typeFilter = ''"
+          (click)="clearFilters()"
         >
           Clear Filters
         </button>
