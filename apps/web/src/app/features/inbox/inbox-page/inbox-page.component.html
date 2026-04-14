@@ -1,4 +1,4 @@
-<div class="inbox-page">
+<div class="inbox-page" *ngIf="vm$ | async as vm">
   <div class="inbox-page__container">
     <header class="inbox-page__header">
       <p class="inbox-page__eyebrow">Inbox</p>
@@ -8,25 +8,33 @@
       </p>
     </header>
 
+    <mat-progress-bar *ngIf="vm.pageLoading" mode="indeterminate"></mat-progress-bar>
+
+    <div class="inbox-page__errors" *ngIf="vm.pageErrorMessages.length > 0">
+      <div class="inbox-error" *ngFor="let error of vm.pageErrorMessages">
+        {{ error }}
+      </div>
+    </div>
+
     <section class="inbox-stats">
       <article class="inbox-stat-card">
         <div class="inbox-stat-card__label">New</div>
-        <div class="inbox-stat-card__value">{{ newCount }}</div>
+        <div class="inbox-stat-card__value">{{ vm.newCount }}</div>
       </article>
 
       <article class="inbox-stat-card">
         <div class="inbox-stat-card__label">Clarified</div>
-        <div class="inbox-stat-card__value">{{ clarifiedCount }}</div>
+        <div class="inbox-stat-card__value">{{ vm.clarifiedCount }}</div>
       </article>
 
       <article class="inbox-stat-card">
         <div class="inbox-stat-card__label">Deferred</div>
-        <div class="inbox-stat-card__value">{{ deferredCount }}</div>
+        <div class="inbox-stat-card__value">{{ vm.deferredCount }}</div>
       </article>
 
       <article class="inbox-stat-card">
         <div class="inbox-stat-card__label">Archived</div>
-        <div class="inbox-stat-card__value">{{ archivedCount }}</div>
+        <div class="inbox-stat-card__value">{{ vm.archivedCount }}</div>
       </article>
     </section>
 
@@ -44,6 +52,7 @@
             [(ngModel)]="newEntryText"
             name="newEntryText"
             placeholder="Add an idea, reminder, or possible goal..."
+            [disabled]="isAdding"
           ></textarea>
         </mat-form-field>
 
@@ -53,9 +62,9 @@
             color="primary"
             type="button"
             (click)="addEntry()"
-            [disabled]="!newEntryText.trim()"
+            [disabled]="!newEntryText.trim() || isAdding"
           >
-            Add to Inbox
+            {{ isAdding ? 'Adding...' : 'Add to Inbox' }}
           </button>
         </div>
       </div>
@@ -80,49 +89,104 @@
         </mat-form-field>
       </div>
 
-      <div class="inbox-list" *ngIf="filteredEntries.length > 0; else emptyInbox">
-        <article
-          class="inbox-entry"
-          *ngFor="let entry of filteredEntries; trackBy: trackByEntryId"
-        >
-          <div class="inbox-entry__header">
-            <div class="inbox-entry__status-chip">
-              {{ getStatusLabel(entry.status) }}
+      <ng-container *ngIf="!vm.entriesState.loading && !vm.entriesState.error; else inboxListFallback">
+        <div class="inbox-list" *ngIf="vm.filteredEntries.length > 0; else emptyInbox">
+          <article
+            class="inbox-entry"
+            *ngFor="let entry of vm.filteredEntries; trackBy: trackByEntryId"
+            [class.inbox-entry--busy]="isEntryBusy(entry.id)"
+          >
+            <div class="inbox-entry__header">
+              <div class="inbox-entry__status-chip">
+                {{ getStatusLabel(entry.status) }}
+              </div>
+              <div class="inbox-entry__date">
+                {{ entry.capturedAt | date:'mediumDate' }}
+              </div>
             </div>
-            <div class="inbox-entry__date">
-              {{ entry.capturedAt | date:'mediumDate' }}
+
+            <div class="inbox-entry__text">
+              {{ entry.text }}
             </div>
-          </div>
 
-          <div class="inbox-entry__text">
-            {{ entry.text }}
-          </div>
+            <div class="inbox-entry__actions">
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="updateStatus(entry, 'new')"
+                [disabled]="isEntryBusy(entry.id)"
+              >
+                New
+              </button>
 
-          <div class="inbox-entry__actions">
-            <button mat-stroked-button type="button" (click)="updateStatus(entry, 'new')">
-              New
-            </button>
-            <button mat-stroked-button type="button" (click)="updateStatus(entry, 'clarified')">
-              Clarified
-            </button>
-            <button mat-stroked-button type="button" (click)="updateStatus(entry, 'deferred')">
-              Deferred
-            </button>
-            <button mat-stroked-button type="button" (click)="updateStatus(entry, 'archived')">
-              Archived
-            </button>
-            <button mat-button color="warn" type="button" (click)="deleteEntry(entry)">
-              Delete
-            </button>
-            <button mat-button color="primary" (click)="convertToGoal(entry)" [disabled]="entry.status === 'archived'">
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="updateStatus(entry, 'clarified')"
+                [disabled]="isEntryBusy(entry.id)"
+              >
+                Clarified
+              </button>
+
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="updateStatus(entry, 'deferred')"
+                [disabled]="isEntryBusy(entry.id)"
+              >
+                Deferred
+              </button>
+
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="updateStatus(entry, 'archived')"
+                [disabled]="isEntryBusy(entry.id)"
+              >
+                Archived
+              </button>
+
+              <button
+                mat-button
+                color="warn"
+                type="button"
+                (click)="deleteEntry(entry)"
+                [disabled]="isEntryBusy(entry.id)"
+              >
+                Delete
+              </button>
+
+              <button
+                mat-button
+                color="primary"
+                type="button"
+                (click)="convertToGoal(entry)"
+                [disabled]="entry.status === 'archived' || isEntryBusy(entry.id)"
+              >
                 Convert to Goal
-            </button>
-            <a mat-stroked-button *ngIf="entry.linkedGoalId" class="inbox-entry__linked-goal" [routerLink]="['/goals', entry.linkedGoalId]">
+              </button>
+
+              <a
+                mat-stroked-button
+                *ngIf="entry.linkedGoalId"
+                class="inbox-entry__linked-goal"
+                [routerLink]="['/goals', entry.linkedGoalId]"
+              >
                 Linked Goal
-            </a>
-          </div>
-        </article>
-      </div>
+              </a>
+            </div>
+          </article>
+        </div>
+      </ng-container>
+
+      <ng-template #inboxListFallback>
+        <div class="inbox-empty" *ngIf="vm.entriesState.loading">
+          Loading inbox items...
+        </div>
+        <div class="inbox-error" *ngIf="vm.entriesState.error">
+          {{ vm.entriesState.error }}
+        </div>
+      </ng-template>
 
       <ng-template #emptyInbox>
         <div class="inbox-empty">
@@ -131,4 +195,4 @@
       </ng-template>
     </section>
   </div>
-</div>
+</div>  
