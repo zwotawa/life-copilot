@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Observable, combineLatest, of } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, finalize } from 'rxjs/operators';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
@@ -78,8 +78,11 @@ export class DailyRotationPageComponent {
       shareReplay(1)
     );
 
-  public rotationItems: DailyRotationItem[] = [];
-  public activeCompletionDays = 0;
+  private readonly rotationItemsSubject = new BehaviorSubject<DailyRotationItem[]>([]);
+  public readonly rotationItems$ = this.rotationItemsSubject.asObservable();
+
+  private readonly activeCompletionDaysSubject = new BehaviorSubject<number>(0);
+  public readonly activeCompletionDays$ = this.activeCompletionDaysSubject.asObservable();
 
   public isRefreshingPlan = false;
   public refreshPlanError: string | null = null;
@@ -92,14 +95,16 @@ export class DailyRotationPageComponent {
 
   public readonly vm$: Observable<DailyRotationViewModel> = combineLatest([
     this.initialRotationState$,
-    this.initialCompletionDaysState$
+    this.initialCompletionDaysState$,
+    this.rotationItems$,
+    this.activeCompletionDays$
   ]).pipe(
-    map(([rotationState, completionDaysState]) => {
-      const rotationItems = this.rotationItems.length > 0 || rotationState.data === null
-        ? this.rotationItems
+    map(([rotationState, completionDaysState, currentRotationItems, currentCompletionDays]) => {
+      const rotationItems = currentRotationItems.length > 0 || rotationState.data === null
+        ? currentRotationItems
         : (rotationState.data ?? []);
 
-      const activeCompletionDays = this.activeCompletionDays || completionDaysState.data || 0;
+      const activeCompletionDays = currentCompletionDays || completionDaysState.data || 0;
 
       const completedCount = rotationItems.filter(item => item.completed).length;
       const totalCount = rotationItems.length;
@@ -165,7 +170,7 @@ export class DailyRotationPageComponent {
       })
     ).subscribe({
       next: dailyRotationItems => {
-        this.rotationItems = dailyRotationItems;
+        this.rotationItemsSubject.next(dailyRotationItems);
         this.notificationService.success('Daily list regenerated.');
       },
       error: () => {
@@ -188,7 +193,7 @@ export class DailyRotationPageComponent {
       })
     ).subscribe({
       next: dailyRotationItems => {
-        this.rotationItems = dailyRotationItems;
+        this.rotationItemsSubject.next(dailyRotationItems);
       },
       error: () => {
         this.toggleError = 'Could not update item completion.';
@@ -210,7 +215,7 @@ export class DailyRotationPageComponent {
       })
     ).subscribe({
       next: replacementItems => {
-        this.rotationItems = replacementItems;
+        this.rotationItemsSubject.next(replacementItems);
         this.notificationService.success('Item replaced.');
       },
       error: () => {
@@ -265,7 +270,7 @@ export class DailyRotationPageComponent {
     this.initialRotationState$.subscribe({
       next: state => {
         if (state.data) {
-          this.rotationItems = state.data;
+          this.rotationItemsSubject.next(state.data);
         }
       }
     });
@@ -273,7 +278,7 @@ export class DailyRotationPageComponent {
     this.initialCompletionDaysState$.subscribe({
       next: state => {
         if (state.data !== null) {
-          this.activeCompletionDays = state.data;
+          this.activeCompletionDaysSubject.next(state.data);
         }
       }
     });
