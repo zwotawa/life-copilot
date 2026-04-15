@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -7,6 +7,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{BC2D172B-13BC-136C-CDB1-4B1A687208C4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LifeCopilot.Api", "apps\api\LifeCopilot.Api\LifeCopilot.Api.csproj", "{CD590CC3-4C81-A725-C4F6-861C28B583ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LifeCopilot.Api.IntegrationTests", "LifeCopilot.Api.IntegrationTests\LifeCopilot.Api.IntegrationTests.csproj", "{4796B5BD-5FC0-42B8-A441-91EED4469327}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,6 +20,10 @@ Global
 		{CD590CC3-4C81-A725-C4F6-861C28B583ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD590CC3-4C81-A725-C4F6-861C28B583ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD590CC3-4C81-A725-C4F6-861C28B583ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4796B5BD-5FC0-42B8-A441-91EED4469327}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4796B5BD-5FC0-42B8-A441-91EED4469327}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4796B5BD-5FC0-42B8-A441-91EED4469327}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4796B5BD-5FC0-42B8-A441-91EED4469327}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

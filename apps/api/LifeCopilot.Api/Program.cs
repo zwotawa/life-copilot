@@ -1140,3 +1140,5 @@ static GoalProgressEventDto ToGoalProgressEventDto(GoalProgressEventEntity entit
     Source = entity.Source,
     SourceItemId = entity.SourceItemId
 };
+
+public partial class Program { }
