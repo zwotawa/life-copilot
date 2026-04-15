@@ -17,6 +17,7 @@ interface InboxViewModel {
   entriesState: Loadable<InboxEntry[]>;
   entries: InboxEntry[];
   filteredEntries: InboxEntry[];
+  selectedStatusFilter: 'all' | InboxEntryStatus;
 
   newCount: number;
   clarifiedCount: number;
@@ -34,7 +35,10 @@ interface InboxViewModel {
 })
 export class InboxPageComponent {
   public newEntryText = '';
-  public selectedStatusFilter: 'all' | InboxEntryStatus = 'all';
+  private readonly selectedStatusFilterSubject =
+    new BehaviorSubject<'all' | InboxEntryStatus>('all');
+  
+  public readonly selectedStatusFilter$ = this.selectedStatusFilterSubject.asObservable();
 
   public isAdding = false;
   public addError: string | null = null;
@@ -72,18 +76,19 @@ export class InboxPageComponent {
 
   public readonly vm$: Observable<InboxViewModel> = combineLatest([
     this.initialEntriesState$,
-    this.entries$
+    this.entries$,
+    this.selectedStatusFilter$
   ]).pipe(
-    map(([entriesState, currentEntries]) => {
+    map(([entriesState, currentEntries, selectedStatusFilter]) => {
       const entries =
         currentEntries.length > 0 || entriesState.data === null
           ? currentEntries
           : (entriesState.data ?? []);
 
       const filteredEntries =
-        this.selectedStatusFilter === 'all'
+        selectedStatusFilter === 'all'
           ? entries
-          : entries.filter(entry => entry.status === this.selectedStatusFilter);
+          : entries.filter(entry => entry.status === selectedStatusFilter);
 
       const pageErrorMessages = [
         entriesState.error,
@@ -96,6 +101,7 @@ export class InboxPageComponent {
         entriesState,
         entries,
         filteredEntries,
+        selectedStatusFilter,
 
         newCount: entries.filter(entry => entry.status === 'new').length,
         clarifiedCount: entries.filter(entry => entry.status === 'clarified').length,
@@ -220,6 +226,10 @@ export class InboxPageComponent {
       }
     });
   }
+
+  public updateSelectedStatusFilter(value: 'all' | InboxEntryStatus): void {
+  this.selectedStatusFilterSubject.next(value);
+}
 
   private loadInitialEntries(): void {
     this.initialEntriesState$.subscribe({

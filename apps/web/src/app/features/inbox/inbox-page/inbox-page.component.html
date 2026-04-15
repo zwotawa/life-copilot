@@ -79,7 +79,11 @@
 
         <mat-form-field appearance="outline" class="inbox-filter">
           <mat-label>Status filter</mat-label>
-          <mat-select [(ngModel)]="selectedStatusFilter" name="selectedStatusFilter">
+          <mat-select 
+            [ngModel]="vm.selectedStatusFilter"
+            (ngModelChange)="updateSelectedStatusFilter($event)"
+            name="selectedStatusFilter"
+          >
             <mat-option value="all">All</mat-option>
             <mat-option value="new">New</mat-option>
             <mat-option value="clarified">Clarified</mat-option>
