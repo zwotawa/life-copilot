@@ -124,57 +124,11 @@ app.UseCors(CorsPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
 
-var apiKey = (app.Configuration["API_KEY"])?.Trim();
+var healthApi = app.MapGroup("/health");
+var publicApi = app.MapGroup("/api");
+var authenticatedApi = app.MapGroup("/api").RequireAuthorization();
 
-app.Use(async (context, next) =>
-{
-    var path = context.Request.Path.Value ?? "";
-    var method = context.Request.Method;
-
-    var isSwagger = path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase);
-    var isHealth = path.StartsWith("/health", StringComparison.OrdinalIgnoreCase);
-
-    var isMutation = HttpMethods.IsPost(method) || HttpMethods.IsPut(method) || HttpMethods.IsDelete(method) || HttpMethods.IsPatch(method);
-    var isAuth = path.StartsWith("/api/auth", StringComparison.OrdinalIgnoreCase);
-    var isGoals = path.StartsWith("/api/goals", StringComparison.OrdinalIgnoreCase);
-    var isInbox = path.StartsWith("/api/inbox", StringComparison.OrdinalIgnoreCase);
-    var isWeeklyReview = path.StartsWith("/api/weekly-review", StringComparison.OrdinalIgnoreCase);
-    var isCompletionHistory = path.StartsWith("/api/completion-history", StringComparison.OrdinalIgnoreCase);
-    var isGoalProgress = path.StartsWith("/api/goal-progress", StringComparison.OrdinalIgnoreCase);
-
-    if (!isMutation || isSwagger || isHealth || isAuth || isGoals || isInbox || isWeeklyReview || isCompletionHistory || isGoalProgress)
-    {
-        await next();
-        return;
-    }
-
-    if (context.User?.Identity?.IsAuthenticated == true)
-    {
-        await next();
-        return;
-    }
-
-    if (string.IsNullOrWhiteSpace(apiKey))
-    {
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-        await context.Response.WriteAsync("MIDDLEWARE_API_KEY_NOT_CONFIGURED");
-        return;
-    }
-
-    var expected = (apiKey ?? "").Trim();
-
-    if (!context.Request.Headers.TryGetValue("X-API-Key", out var provided) ||
-        !string.Equals(provided.ToString().Trim(), expected, StringComparison.Ordinal))
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        await context.Response.WriteAsync("MIDDLEWARE_API_KEY_BLOCK");
-        return;
-    }
-
-    await next();
-});
-
-app.MapGet("/health", (IHostEnvironment env,IConfiguration config) =>
+healthApi.MapGet("", (IHostEnvironment env,IConfiguration config) =>
 {
     var sha = config["GIT_SHA"] ?? "unknown";
 
@@ -187,7 +141,20 @@ app.MapGet("/health", (IHostEnvironment env,IConfiguration config) =>
     });
 });
 
-app.MapGet("/api/meta/version", (IHostEnvironment env, IConfiguration config) =>
+healthApi.MapGet("/db", async (LifeCopilotDbContext db) =>
+{
+    try
+    {
+        await db.Database.CanConnectAsync();
+        return Results.Ok(new { status = "ok" });
+    }
+    catch
+    {
+        return Results.Problem("Database connection failed");
+    }
+});
+
+publicApi.MapGet("/meta/version", (IHostEnvironment env, IConfiguration config) =>
 {
     var assembly = Assembly.GetExecutingAssembly();
     var informationalVersion =
@@ -211,7 +178,7 @@ app.MapGet("/api/meta/version", (IHostEnvironment env, IConfiguration config) =>
 .WithTags("Meta")
 .AllowAnonymous();
 
-app.MapPost("/api/auth/register", async (
+publicApi.MapPost("/auth/register", async (
     RegisterRequest req,
     LifeCopilotDbContext db,
     PasswordHasher<UserEntity> passwordHasher,
@@ -268,7 +235,7 @@ app.MapPost("/api/auth/register", async (
     });
 });
 
-app.MapPost("/api/auth/login", async (
+publicApi.MapPost("/auth/login", async (
     LoginRequest req,
     LifeCopilotDbContext db,
     PasswordHasher<UserEntity> passwordHasher,
@@ -293,7 +260,7 @@ app.MapPost("/api/auth/login", async (
     });
 });
 
-app.MapGet("/api/auth/me", async (
+authenticatedApi.MapGet("/auth/me", async (
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
 {
@@ -306,9 +273,9 @@ app.MapGet("/api/auth/me", async (
         return Results.Unauthorized();
 
     return Results.Ok(ToCurrentUserDto(user));
-}).RequireAuthorization();
+});
 
-app.MapGet("/api/goals", async (
+authenticatedApi.MapGet("/goals", async (
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
 {
@@ -322,9 +289,9 @@ app.MapGet("/api/goals", async (
         .ToListAsync();
 
     return Results.Ok(goals.Select(ToGoalDto));
-}).RequireAuthorization();
+});
 
-app.MapGet("/api/goals/{id}", async (
+authenticatedApi.MapGet("/goals/{id}", async (
     string id,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -341,9 +308,9 @@ app.MapGet("/api/goals/{id}", async (
         return Results.NotFound();
 
     return Results.Ok(ToGoalDto(goal));
-}).RequireAuthorization();
+});
 
-app.MapPost("/api/goals", async (
+authenticatedApi.MapPost("/goals", async (
     SaveGoalRequest req,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -392,9 +359,9 @@ app.MapPost("/api/goals", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToGoalDto(goal));
-}).RequireAuthorization();
+});
 
-app.MapPut("/api/goals/{id}", async (
+authenticatedApi.MapPut("/goals/{id}", async (
     string id,
     SaveGoalRequest req,
     ClaimsPrincipal principal,
@@ -445,9 +412,9 @@ app.MapPut("/api/goals/{id}", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToGoalDto(goal));
-}).RequireAuthorization();
+});
 
-app.MapDelete("/api/goals/{id}", async (
+authenticatedApi.MapDelete("/goals/{id}", async (
     string id,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -467,9 +434,9 @@ app.MapDelete("/api/goals/{id}", async (
     await db.SaveChangesAsync();
 
     return Results.NoContent();
-}).RequireAuthorization();
+});
 
-app.MapGet("/api/weekly-review/current", async (
+authenticatedApi.MapGet("/weekly-review/current", async (
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
 {
@@ -505,9 +472,9 @@ app.MapGet("/api/weekly-review/current", async (
     }
 
     return Results.Ok(ToWeeklyReviewDto(existing));
-}).RequireAuthorization();
+});
 
-app.MapPut("/api/weekly-review/current", async (
+authenticatedApi.MapPut("/weekly-review/current", async (
     SaveWeeklyReviewRequest req,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -546,9 +513,9 @@ app.MapPut("/api/weekly-review/current", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToWeeklyReviewDto(existing));
-}).RequireAuthorization();
+});
 
-app.MapPost("/api/weekly-review/reset", async (
+authenticatedApi.MapPost("/weekly-review/reset", async (
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
 {
@@ -586,9 +553,9 @@ app.MapPost("/api/weekly-review/reset", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToWeeklyReviewDto(existing));
-}).RequireAuthorization();
+});
 
-app.MapGet("/api/inbox", async (
+authenticatedApi.MapGet("/inbox", async (
     ClaimsPrincipal principal,
     LifeCopilotDbContext db
 ) =>
@@ -603,9 +570,9 @@ app.MapGet("/api/inbox", async (
         .ToListAsync();
 
     return Results.Ok(inboxEntries.Select(ToInboxEntryDto));    
-}).RequireAuthorization();
+});
 
-app.MapPost("/api/inbox", async (
+authenticatedApi.MapPost("/inbox", async (
     CreateInboxEntryRequest req,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db
@@ -645,9 +612,9 @@ app.MapPost("/api/inbox", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToInboxEntryDto(entry));
-}).RequireAuthorization();
+});
 
-app.MapPut("/api/inbox/{id}", async (
+authenticatedApi.MapPut("/inbox/{id}", async (
     string id,
     UpdateInboxEntryRequest req,
     ClaimsPrincipal principal,
@@ -688,9 +655,9 @@ app.MapPut("/api/inbox/{id}", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToInboxEntryDto(existing));
-}).RequireAuthorization();
+});
 
-app.MapPatch("/api/inbox/{id}/status", async (
+authenticatedApi.MapPatch("/inbox/{id}/status", async (
     string id,
     UpdateInboxStatusRequest req,
     ClaimsPrincipal principal,
@@ -716,9 +683,9 @@ app.MapPatch("/api/inbox/{id}/status", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToInboxEntryDto(existing));
-}).RequireAuthorization();
+});
 
-app.MapPatch("/api/inbox/{id}/convert", async (
+authenticatedApi.MapPatch("/inbox/{id}/convert", async (
     string id,
     ConvertInboxEntryRequest req,
     ClaimsPrincipal principal,
@@ -753,9 +720,9 @@ app.MapPatch("/api/inbox/{id}/convert", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToInboxEntryDto(existing));
-}).RequireAuthorization();
+});
 
-app.MapDelete("/api/inbox/{id}", async (
+authenticatedApi.MapDelete("/inbox/{id}", async (
     string id,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db
@@ -778,9 +745,9 @@ app.MapDelete("/api/inbox/{id}", async (
     await db.SaveChangesAsync();
 
     return Results.NoContent();
-}).RequireAuthorization();
+});
 
-app.MapGet("/api/daily-rotation/{date}", async (
+authenticatedApi.MapGet("/daily-rotation/{date}", async (
     string date,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -799,9 +766,9 @@ app.MapGet("/api/daily-rotation/{date}", async (
 
     var items = JsonSerializer.Deserialize<List<DailyRotationItemDto>>(existing.ItemsJson) ?? [];
     return Results.Ok(items);
-}).RequireAuthorization();
+});
 
-app.MapPut("/api/daily-rotation/{date}", async (
+authenticatedApi.MapPut("/daily-rotation/{date}", async (
     string date,
     SaveDailyRotationRequest req,
     ClaimsPrincipal principal,
@@ -837,9 +804,9 @@ app.MapPut("/api/daily-rotation/{date}", async (
 
     var items = JsonSerializer.Deserialize<List<DailyRotationItemDto>>(existing.ItemsJson) ?? [];
     return Results.Ok(items);
-}).RequireAuthorization();
+});
 
-app.MapDelete("/api/daily-rotation/{date}", async (
+authenticatedApi.MapDelete("/daily-rotation/{date}", async (
     string date,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -858,9 +825,9 @@ app.MapDelete("/api/daily-rotation/{date}", async (
     await db.SaveChangesAsync();
 
     return Results.NoContent();
-}).RequireAuthorization();
+});
 
-app.MapGet("/api/completion-history", async (
+authenticatedApi.MapGet("/completion-history", async (
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
 {
@@ -874,9 +841,9 @@ app.MapGet("/api/completion-history", async (
         .ToListAsync();
 
     return Results.Ok(summaries.Select(ToDailyCompletionSummaryDto));
-}).RequireAuthorization();
+});
 
-app.MapPut("/api/completion-history/{date}", async (
+authenticatedApi.MapPut("/completion-history/{date}", async (
     string date,
     DailyCompletionSummaryDto req,
     ClaimsPrincipal principal,
@@ -913,9 +880,9 @@ app.MapPut("/api/completion-history/{date}", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToDailyCompletionSummaryDto(existing));
-}).RequireAuthorization();
+});
 
-app.MapGet("/api/goal-progress/goal/{goalId}", async (
+authenticatedApi.MapGet("/goal-progress/goal/{goalId}", async (
     string goalId,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -930,9 +897,9 @@ app.MapGet("/api/goal-progress/goal/{goalId}", async (
         .ToListAsync();
 
     return Results.Ok(events.Select(ToGoalProgressEventDto));
-}).RequireAuthorization();
+});
 
-app.MapGet("/api/goal-progress/source-item/{sourceItemId}", async (
+authenticatedApi.MapGet("/goal-progress/source-item/{sourceItemId}", async (
     string sourceItemId,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -948,9 +915,9 @@ app.MapGet("/api/goal-progress/source-item/{sourceItemId}", async (
         return Results.NotFound();
 
     return Results.Ok(ToGoalProgressEventDto(existing));
-}).RequireAuthorization();
+});
 
-app.MapPost("/api/goal-progress", async (
+authenticatedApi.MapPost("/goal-progress", async (
     GoalProgressEventDto req,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -987,9 +954,9 @@ app.MapPost("/api/goal-progress", async (
     await db.SaveChangesAsync();
 
     return Results.Ok(ToGoalProgressEventDto(entity));
-}).RequireAuthorization();
+});
 
-app.MapDelete("/api/goal-progress/{id}", async (
+authenticatedApi.MapDelete("/goal-progress/{id}", async (
     string id,
     ClaimsPrincipal principal,
     LifeCopilotDbContext db) =>
@@ -1011,7 +978,7 @@ app.MapDelete("/api/goal-progress/{id}", async (
     await db.SaveChangesAsync();
 
     return Results.NoContent();
-}).RequireAuthorization();
+});
 
 app.Run();
 
