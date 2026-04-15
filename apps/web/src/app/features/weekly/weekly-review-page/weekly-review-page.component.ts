@@ -10,6 +10,7 @@ import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
 import { WeeklyInsightService } from 'src/app/core/services/weekly-insights.service';
 import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
+import { NotificationService } from 'src/app/shared/services/notification.service';
 
 interface Loadable<T> {
   loading: boolean;
@@ -239,7 +240,8 @@ export class WeeklyReviewPageComponent {
     private readonly goalStoreService: GoalStoreService,
     private readonly weeklyReviewStoreService: WeeklyReviewStoreService,
     private readonly goalSurfacingService: GoalSurfacingService,
-    private readonly weeklyInsightService: WeeklyInsightService
+    private readonly weeklyInsightService: WeeklyInsightService,
+    private notificationService: NotificationService
     ) {
     this.loadInitialReviewDraft();
   }
@@ -263,6 +265,7 @@ export class WeeklyReviewPageComponent {
         const clonedReview = this.cloneReview(savedReview);
         this.lastSavedReview = this.cloneReview(clonedReview);
         this.reviewDraftSubject.next(clonedReview);
+        this.notificationService.success('Weekly review saved.');
       },
       error: () => {
         this.saveError = 'Could not save weekly review.';
@@ -287,6 +290,7 @@ export class WeeklyReviewPageComponent {
         const clonedReview = this.cloneReview(review);
         this.lastSavedReview = this.cloneReview(clonedReview);
         this.reviewDraftSubject.next(clonedReview);
+        this.notificationService.success('Weekly review reset.');
       },
       error: () => {
         this.resetError = 'Could not reset weekly review.';

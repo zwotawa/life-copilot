@@ -6,6 +6,7 @@ import { finalize } from 'rxjs/operators';
 import { Goal } from 'src/app/core/models/goal.model';
 import { GoalCreationWorkflowService } from 'src/app/core/services/goal-creation-workflow.service';
 import { EditableDraft } from 'src/app/core/utils/editable-draft';
+import { NotificationService } from 'src/app/shared/services/notification.service';
 
 @Component({
   selector: 'app-goal-form',
@@ -26,7 +27,8 @@ export class GoalFormComponent implements OnChanges {
   constructor(
     private readonly router: Router,
     private readonly location: Location,
-    private readonly goalCreateWorkflowService: GoalCreationWorkflowService
+    private readonly goalCreateWorkflowService: GoalCreationWorkflowService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -96,6 +98,7 @@ export class GoalFormComponent implements OnChanges {
       ).subscribe({
         next: savedGoal => {
           this.goalDraft.replace(savedGoal);
+          this.notificationService.success('Goal saved.');
           this.router.navigate(['/goals', savedGoal.id]);
         },
         error: () => {
@@ -112,6 +115,7 @@ export class GoalFormComponent implements OnChanges {
     ).subscribe({
       next: savedGoal => {
         this.goalDraft.replace(savedGoal);
+        this.notificationService.success('Goal created.');
         this.router.navigate(['/goals', savedGoal.id]);
       },
       error: () => {

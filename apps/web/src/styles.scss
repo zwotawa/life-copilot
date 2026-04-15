@@ -37,3 +37,18 @@ $life-copilot-theme: mat.define-light-theme((
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.app-snackbar--success .mdc-snackbar__surface {
+  background-color: #2e7d32 !important;
+  color: white !important;
+}
+
+.app-snackbar--error .mdc-snackbar__surface {
+  background-color: #b3261e !important;
+  color: white !important;
+}
+
+.app-snackbar--info .mdc-snackbar__surface {
+  background-color: #1e4db7 !important;
+  color: white !important;
+}

@@ -5,6 +5,7 @@ import { catchError, finalize, map, shareReplay, startWith } from 'rxjs/operator
 
 import { InboxEntry, InboxEntryStatus } from 'src/app/core/models/inbox-entry.model';
 import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
+import { NotificationService } from 'src/app/shared/services/notification.service';
 
 interface Loadable<T> {
   loading: boolean;
@@ -110,7 +111,8 @@ export class InboxPageComponent {
 
   constructor(
     private readonly inboxService: InboxStoreService,
-    private readonly router: Router
+    private readonly router: Router,
+    private notificationService: NotificationService
   ) {
     this.loadInitialEntries();
   }
@@ -133,6 +135,7 @@ export class InboxPageComponent {
       next: () => {
         this.newEntryText = '';
         this.reloadEntries();
+        this.notificationService.success('Inbox item added.');
       },
       error: () => {
         this.addError = 'Could not add inbox entry.';
@@ -155,6 +158,7 @@ export class InboxPageComponent {
     ).subscribe({
       next: () => {
         this.reloadEntries();
+        this.notificationService.success(`Moved to ${this.getStatusLabel(status)}.`);
       },
       error: () => {
         this.updateError = 'Could not update inbox item status.';
@@ -177,6 +181,7 @@ export class InboxPageComponent {
     ).subscribe({
       next: () => {
         this.reloadEntries();
+        this.notificationService.success('Inbox item deleted.');
       },
       error: () => {
         this.deleteError = 'Could not delete inbox entry.';

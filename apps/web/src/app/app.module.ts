@@ -46,6 +46,8 @@ import { ApiGoalProgressRepository } from './core/services/api-goal-progress-rep
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
   return async () => {
@@ -86,7 +88,8 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     MatSelectModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatSnackBarModule
   ],
   providers: [
     {provide: AuthService, useClass: ApiAuthService},

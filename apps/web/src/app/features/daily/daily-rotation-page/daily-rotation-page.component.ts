@@ -3,6 +3,7 @@ import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, finalize } from 'rxjs/operators';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
+import { NotificationService } from 'src/app/shared/services/notification.service';
 
 interface Loadable<T> {
   loading: boolean;
@@ -144,7 +145,8 @@ export class DailyRotationPageComponent {
   );
 
   constructor(
-    private readonly planningWorkflowService: PlanningWorkflowService
+    private readonly planningWorkflowService: PlanningWorkflowService,
+    private notificationService: NotificationService
   ) {
     this.loadInitialData();
   }
@@ -164,6 +166,7 @@ export class DailyRotationPageComponent {
     ).subscribe({
       next: dailyRotationItems => {
         this.rotationItems = dailyRotationItems;
+        this.notificationService.success('Daily list regenerated.');
       },
       error: () => {
         this.refreshPlanError = 'Could not regenerate the daily list.';
@@ -208,6 +211,7 @@ export class DailyRotationPageComponent {
     ).subscribe({
       next: replacementItems => {
         this.rotationItems = replacementItems;
+        this.notificationService.success('Item replaced.');
       },
       error: () => {
         this.replaceError = 'Could not replace this item.';
