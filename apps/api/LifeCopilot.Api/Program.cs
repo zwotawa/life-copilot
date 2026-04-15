@@ -1,9 +1,11 @@
 
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using LifeCopilot.Api.Data;
+using LifeCopilot.Api.Meta;
 using LifeCopilot.Api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -185,89 +187,29 @@ app.MapGet("/health", (IHostEnvironment env,IConfiguration config) =>
     });
 });
 
-app.MapGet("/health/keylen", (IConfiguration cfg) =>
+app.MapGet("/api/meta/version", (IHostEnvironment env, IConfiguration config) =>
 {
-    var key = (cfg["API_KEY"] ?? "").Trim();
-    return Results.Ok(new { keyLen = key.Length });
-});
+    var assembly = Assembly.GetExecutingAssembly();
+    var informationalVersion =
+        assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? assembly.GetName().Version?.ToString()
+        ?? "unknown";
 
-// Jobs CRUD
-app.MapGet("/api/jobs", async (LifeCopilotDbContext db) =>
-{
-    var jobs = await db.JobCards
-        .OrderByDescending( x =>  x.LastTouchedAt )
-        .ToListAsync();
-
-    return Results.Ok(jobs);
-});
-
-app.MapPost("/api/jobs", async (CreateJobCardRequest req, LifeCopilotDbContext db) =>
-{
-   var errors = ValidateCreation(req);
-   if (errors.Count > 0) return Results.ValidationProblem(errors);
-
-   var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-   var entity = new JobCardEntity
-   {
-        Id = Guid.NewGuid(),
-        Company = req.Company.Trim(),
-        Role = req.Role.Trim(),
-        Stage = req.Stage.Trim(),
-        Link = string.IsNullOrWhiteSpace(req.Link) ? null : req.Link.Trim(),
-        CreatedAt = now,
-        LastTouchedAt = now,
-        NextAction = string.IsNullOrWhiteSpace(req.NextAction) ? null : req.NextAction.Trim(),
-        NextTouchAt = req.NextTouchAt
-   };
-
-   db.JobCards.Add(entity);
-   await db.SaveChangesAsync();
-
-   return Results.Created($"/api/jobs/{entity.Id}", entity);
-});
-
-app.MapPut("/api/jobs/{id:guid}", async (Guid id, UpdateJobCardRequest req, LifeCopilotDbContext db) =>
-{
-    var entity = await db.JobCards.FindAsync(id);
-    if (entity is null) return Results.NotFound();
-
-    var errors = ValidateUpdate(req);
-    if (errors.Count > 0) return Results.ValidationProblem(errors);
-
-    entity.Company = req.Company.Trim();
-    entity.Role = req.Role.Trim();
-    entity.Link = string.IsNullOrWhiteSpace(req.Link) ? null : req.Link.Trim();
-    entity.Stage = req.Stage.Trim();
-    entity.NextAction = string.IsNullOrWhiteSpace(req.NextAction) ? null : req.NextAction.Trim();
-    entity.LastTouchedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-    entity.NextTouchAt = req.NextTouchAt;
-
-    await db.SaveChangesAsync();
-    return Results.Ok(entity);
-});
-
-app.MapDelete("/api/jobs/{id:guid}", async (Guid id, LifeCopilotDbContext db) =>
-{
-   var entity = await db.JobCards.FindAsync(id);
-   if (entity is null) return Results.NotFound();
-
-   db.JobCards.Remove(entity);
-   await db.SaveChangesAsync();
-   return Results.NoContent(); 
-});
-
-app.MapGet("/health/db", async (LifeCopilotDbContext db) =>
-{
-    try
+    var response = new ApiVersionResponse
     {
-        await db.Database.CanConnectAsync();
-        return Results.Ok(new { status = "ok" });
-    }
-    catch
-    {
-        return Results.Problem("Database connection failed");
-    }
-});
+        AppName = "LifeCopilot.Api",
+        Environment = env.EnvironmentName,
+        Version = informationalVersion,
+        CommitSha = config["Build:CommitSha"] ?? Environment.GetEnvironmentVariable("BUILD_COMMIT_SHA"),
+        BuildTimestampUtc = config["Build:TimestampUtc"] ?? Environment.GetEnvironmentVariable("BUILD_TIMESTAMP_UTC"),
+        ServerTimeUtc = DateTime.UtcNow.ToString("O")
+    };
+
+    return Results.Ok(response);
+})
+.WithName("GetApiVersion")
+.WithTags("Meta")
+.AllowAnonymous();
 
 app.MapPost("/api/auth/register", async (
     RegisterRequest req,
