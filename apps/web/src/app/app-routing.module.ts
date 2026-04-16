@@ -10,6 +10,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { LoginComponent } from './features/login/login.component';
 import { RegisterComponent } from './features/register/register.component';
 import { PendingChangesGuard } from './core/guards/pending-changes.guard';
+import { DiagnosticsPageComponent } from './features/diagnostics-page/diagnostics-page.component';
 
 const routes: Routes = [{
   path:'',
@@ -20,8 +21,8 @@ const routes: Routes = [{
     { path: 'goals/:id', component: GoalDetailPageComponent, canDeactivate: [PendingChangesGuard] },
     { path: 'weekly', component: WeeklyReviewPageComponent, canDeactivate: [PendingChangesGuard] },
     { path: 'daily', component: DailyRotationPageComponent },
-    { path: 'inbox', component: InboxPageComponent }
-    
+    { path: 'inbox', component: InboxPageComponent },
+    { path: 'diagnostics', component: DiagnosticsPageComponent }
   ]
 },
 { path: 'login', component: LoginComponent},

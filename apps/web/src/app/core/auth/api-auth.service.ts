@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom, Observable, tap } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
+
 import { AuthService } from './auth.service';
 import { CurrentUser } from '../models/auth.model';
 import { RegisterRequest } from '../models/api/api-register-request.model';
@@ -14,20 +15,29 @@ interface AuthResponse {
   providedIn: 'root'
 })
 export class ApiAuthService extends AuthService {
-  private currentUser: CurrentUser | null = null;
+  private readonly currentUserSubject = new BehaviorSubject<CurrentUser | null>(null);
+  public readonly currentUser$ = this.currentUserSubject.asObservable();
+
   private readonly accessTokenStorageKey = 'lifeCopilot.auth.accessToken';
   private readonly apiBaseUrl = '/api';
 
-  constructor(private http: HttpClient) {
+  constructor(private readonly http: HttpClient) {
     super();
   }
 
   public getCurrentUser(): CurrentUser | null {
-    return this.currentUser;
+    return this.currentUserSubject.value;
   }
 
   public isAuthenticated(): boolean {
-    return !!this.getAccessToken() && !!this.currentUser?.isAuthenticated;
+    const token = this.getAccessToken();
+    const user = this.getCurrentUser();
+
+    return !!token && !this.isTokenExpired(token) && !!user?.isAuthenticated;
+  }
+
+  public isSignedIn(): boolean {
+    return this.isAuthenticated();
   }
 
   public getAccessToken(): string | null {
@@ -42,14 +52,14 @@ export class ApiAuthService extends AuthService {
       })
     );
 
-    this.currentUser = response.user;
     localStorage.setItem(this.accessTokenStorageKey, response.accessToken);
+    this.currentUserSubject.next(response.user);
+
     return response.user;
   }
 
   public async signOut(): Promise<void> {
-    this.currentUser = null;
-    localStorage.removeItem(this.accessTokenStorageKey);
+    this.clearSession();
   }
 
   public async restoreSession(): Promise<CurrentUser | null> {
@@ -68,19 +78,15 @@ export class ApiAuthService extends AuthService {
         })
       );
 
-      this.currentUser = user;
+      this.currentUserSubject.next(user);
       return user;
     } catch {
       return this.clearSession();
     }
   }
 
-  public isSignedIn(): boolean {
-    return !!this.currentUser
-  }
-
   public register(req: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiBaseUrl}/auth/register`, req)
+    return this.http.post<AuthResponse>(`${this.apiBaseUrl}/auth/register`, req);
   }
 
   public isTokenExpired(token: string | null): boolean {
@@ -109,8 +115,8 @@ export class ApiAuthService extends AuthService {
   }
 
   public clearSession(): null {
-    this.currentUser = null;
     localStorage.removeItem(this.accessTokenStorageKey);
+    this.currentUserSubject.next(null);
     return null;
   }
 }

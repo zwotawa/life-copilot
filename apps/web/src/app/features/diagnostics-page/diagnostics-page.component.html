@@ -1,0 +1,70 @@
+<div class="diagnostics-page" *ngIf="vm$ | async as vm">
+  <div class="diagnostics-page__container">
+    <header class="diagnostics-page__header">
+      <p class="diagnostics-page__eyebrow">Diagnostics</p>
+      <h1 class="diagnostics-page__title">App Diagnostics</h1>
+      <p class="diagnostics-page__subtitle">
+        Quick visibility into auth state, backend version, and app connectivity.
+      </p>
+    </header>
+
+    <mat-progress-bar *ngIf="vm.pageLoading" mode="indeterminate"></mat-progress-bar>
+
+    <div class="diagnostics-page__errors" *ngIf="vm.pageErrorMessages.length > 0">
+      <div class="diagnostics-error" *ngFor="let error of vm.pageErrorMessages">
+        {{ error }}
+      </div>
+    </div>
+
+    <section class="diagnostics-grid">
+      <article class="diagnostics-card">
+        <div class="diagnostics-card__header">
+          <h2>Session</h2>
+        </div>
+
+        <div class="diagnostics-card__body">
+          <p><strong>Authenticated:</strong> {{ vm.authSnapshot.isAuthenticated ? 'Yes' : 'No' }}</p>
+          <p><strong>User:</strong> {{ vm.authSnapshot.currentUserEmail || 'Unknown' }}</p>
+          <p><strong>Token present:</strong> {{ vm.authSnapshot.tokenPresent ? 'Yes' : 'No' }}</p>
+          <p><strong>Token expired:</strong> {{ vm.authSnapshot.tokenExpired ? 'Yes' : 'No' }}</p>
+        </div>
+      </article>
+
+      <article class="diagnostics-card">
+        <div class="diagnostics-card__header">
+          <h2>Backend</h2>
+        </div>
+
+        <div class="diagnostics-card__body" *ngIf="vm.backendVersion as backend; else backendFallback">
+          <p><strong>API reachable:</strong> {{ vm.apiReachable ? 'Yes' : 'No' }}</p>
+          <p><strong>App:</strong> {{ backend.appName }}</p>
+          <p><strong>Environment:</strong> {{ backend.environment }}</p>
+          <p><strong>Version:</strong> {{ backend.version }}</p>
+          <p><strong>Commit SHA:</strong> {{ backend.commitSha || 'Not set' }}</p>
+          <p><strong>Build time (UTC):</strong> {{ backend.buildTimestampUtc || 'Not set' }}</p>
+          <p><strong>Server time (UTC):</strong> {{ backend.serverTimeUtc }}</p>
+        </div>
+
+        <ng-template #backendFallback>
+          <div class="diagnostics-empty" *ngIf="vm.backendVersionState.loading">
+            Loading backend diagnostics...
+          </div>
+          <div class="diagnostics-error" *ngIf="vm.backendVersionState.error">
+            {{ vm.backendVersionState.error }}
+          </div>
+        </ng-template>
+      </article>
+
+      <article class="diagnostics-card">
+        <div class="diagnostics-card__header">
+          <h2>Frontend</h2>
+        </div>
+
+        <div class="diagnostics-card__body">
+          <p><strong>Current URL:</strong> {{ vm.currentUrl }}</p>
+          <p><strong>Browser time (UTC):</strong> {{ vm.browserTime }}</p>
+        </div>
+      </article>
+    </section>
+  </div>
+</div>

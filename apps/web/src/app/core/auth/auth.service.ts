@@ -4,6 +4,7 @@ import { AuthResponse } from "../models/api/api-auth-response.model";
 import { RegisterRequest } from "../models/api/api-register-request.model";
 
 export abstract class AuthService {
+  abstract currentUser$: Observable<CurrentUser | null>;
   abstract getCurrentUser(): CurrentUser | null;
   abstract isAuthenticated(): boolean;
   abstract signIn(email: string, password: string): Promise<CurrentUser>;
@@ -14,4 +15,5 @@ export abstract class AuthService {
   abstract register(req: RegisterRequest): Observable<AuthResponse>;
   abstract hasValidSession(): boolean;
   abstract clearSession(): null;
+  abstract isTokenExpired(token: string | null): boolean;
 }

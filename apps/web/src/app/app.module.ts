@@ -47,6 +47,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { DiagnosticsPageComponent } from './features/diagnostics-page/diagnostics-page.component';
 
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
@@ -70,7 +71,8 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     InboxPageComponent,
     LoginComponent,
     RegisterComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    DiagnosticsPageComponent
   ],
   imports: [
     BrowserModule,
