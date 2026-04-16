@@ -47,48 +47,7 @@
     </section>
 
     <div class="dashboard-grid">
-      <div class="dashboard-card">
-        <div class="dashboard-card__header">
-          <h3>Execution Snapshot</h3>
-        </div>
-
-        <div class="dashboard-card__body" *ngIf="vm.executionSnapshot as executionSnapshot; else executionSnapshotFallback">
-          <p>
-            <strong>Today:</strong>
-            {{ executionSnapshot.todayCompletedCount }}/{{ executionSnapshot.todayTotalCount }}
-            complete ({{ executionSnapshot.todayCompletionPercent }}%)
-          </p>
-
-          <p>
-            <strong>Active days (last 7):</strong>
-            {{ executionSnapshot.activeDaysLast7 }}/7
-          </p>
-
-          <p>
-            <strong>Average completion:</strong>
-            {{ executionSnapshot.averageCompletionPercentLast7 }}%
-          </p>
-
-          <p>
-            <strong>Fully completed days:</strong>
-            {{ executionSnapshot.fullyCompletedDaysLast7 }}
-          </p>
-
-          <div class="dashboard-card__actions">
-            <a routerLink="/daily">Open Today’s Plan</a>
-            <a routerLink="/weekly">Open Weekly Review</a>
-          </div>
-        </div>
-
-        <ng-template #executionSnapshotFallback>
-          <div class="dashboard-empty" *ngIf="vm.executionSnapshotState.loading">
-            Loading execution snapshot...
-          </div>
-          <div class="dashboard-error" *ngIf="vm.executionSnapshotState.error">
-            {{ vm.executionSnapshotState.error }}
-          </div>
-        </ng-template>
-      </div>
+      
 
       <section class="dashboard-card">
         <div class="dashboard-card__header">
@@ -293,6 +252,107 @@
           </div>
         </ng-template>
       </section>
+
+      <section class="dashboard-card">
+        <div class="dashboard-card__header">
+          <h2>Progress snapshot</h2>
+          <a routerLink="/goals" class="dashboard-card__link">Open Goals</a>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Recently touched</div>
+          <div class="dashboard-stat-inline">
+            {{ vm.goalInsights.recentlyTouched.count }}/{{ vm.goalInsights.activeGoalCount }}
+          </div>
+          <ul class="dashboard-list" *ngIf="vm.goalInsights.recentlyTouched.goals.length > 0">
+            <li *ngFor="let goal of vm.goalInsights.recentlyTouched.goals; trackBy: trackByGoalId">
+              <div class="dashboard-list-item__title">{{ goal.title }}</div>
+              <div class="dashboard-list-item__meta">
+                {{ getGoalFreshnessLabel(goal) }}
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Stale goals</div>
+          <div class="dashboard-stat-inline">
+            {{ vm.goalInsights.stale.count }}
+          </div>
+          <ul class="dashboard-list" *ngIf="vm.goalInsights.stale.goals.length > 0; else noStaleGoals">
+            <li *ngFor="let goal of vm.goalInsights.stale.goals; trackBy: trackByGoalId">
+              <div class="dashboard-list-item__title">{{ goal.title }}</div>
+              <div class="dashboard-list-item__meta">
+                {{ getGoalFreshnessLabel(goal) }}
+              </div>
+            </li>
+          </ul>
+          <ng-template #noStaleGoals>
+            <div class="dashboard-empty">No stale goals right now.</div>
+          </ng-template>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Untouched goals</div>
+          <div class="dashboard-stat-inline">
+            {{ vm.goalInsights.untouched.count }}
+          </div>
+          <ul class="dashboard-list" *ngIf="vm.goalInsights.untouched.goals.length > 0; else noUntouchedGoals">
+            <li *ngFor="let goal of vm.goalInsights.untouched.goals; trackBy: trackByGoalId">
+              <div class="dashboard-list-item__title">{{ goal.title }}</div>
+              <div class="dashboard-list-item__meta">
+                No touch recorded
+              </div>
+            </li>
+          </ul>
+          <ng-template #noUntouchedGoals>
+            <div class="dashboard-empty">Everything has at least one touch.</div>
+          </ng-template>
+        </div>
+      </section>
+
+      <div class="dashboard-card">
+        <div class="dashboard-card__header">
+          <h3>Execution Snapshot</h3>
+        </div>
+
+        <div class="dashboard-card__body" *ngIf="vm.executionSnapshot as executionSnapshot; else executionSnapshotFallback">
+          <p>
+            <strong>Today:</strong>
+            {{ executionSnapshot.todayCompletedCount }}/{{ executionSnapshot.todayTotalCount }}
+            complete ({{ executionSnapshot.todayCompletionPercent }}%)
+          </p>
+
+          <p>
+            <strong>Active days (last 7):</strong>
+            {{ executionSnapshot.activeDaysLast7 }}/7
+          </p>
+
+          <p>
+            <strong>Average completion:</strong>
+            {{ executionSnapshot.averageCompletionPercentLast7 }}%
+          </p>
+
+          <p>
+            <strong>Fully completed days:</strong>
+            {{ executionSnapshot.fullyCompletedDaysLast7 }}
+          </p>
+
+          <div class="dashboard-card__actions">
+            <a routerLink="/daily">Open Today’s Plan</a>
+            <a routerLink="/weekly">Open Weekly Review</a>
+          </div>
+        </div>
+
+        <ng-template #executionSnapshotFallback>
+          <div class="dashboard-empty" *ngIf="vm.executionSnapshotState.loading">
+            Loading execution snapshot...
+          </div>
+          <div class="dashboard-error" *ngIf="vm.executionSnapshotState.error">
+            {{ vm.executionSnapshotState.error }}
+          </div>
+        </ng-template>
+      </div>
 
       <section class="dashboard-card">
         <div class="dashboard-card__header">

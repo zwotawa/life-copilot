@@ -18,6 +18,8 @@ import { DashboardExecutionSnapshot } from 'src/app/core/models/dashboard-execut
 import { DashboardInsightService } from 'src/app/core/services/dashboard-insight.service';
 import { Loadable } from 'src/app/core/models/loadable.model';
 import { toLoadable } from 'src/app/core/utils/loadable-helpers';
+import { GoalInsightsSnapshot } from 'src/app/core/models/goal-insights.model';
+import { GoalInsightsService } from 'src/app/core/services/goal-insights.service';
 
 interface GoalFreshnessView {
   goal: Goal;
@@ -63,6 +65,8 @@ interface DashboardViewModel {
   staleGoalCount: number;
   overRhythmGoalCount: number;
   untouchedGoalCount: number;
+
+  goalInsights: GoalInsightsSnapshot;
 
   pageLoading: boolean;
   pageErrorMessages: string[];
@@ -123,6 +127,8 @@ export class DashboardPageComponent {
       const inboxSummary = inboxState.data;
       const executionSnapshot = executionSnapshotState.data;
       const activeGoals = goals.filter(goal => goal.status === 'active');
+
+      const goalInsights = this.goalInsightsService.getSnapshot(goals);
 
       const selectedAnchorGoals = review
         ? activeGoals.filter(goal => review.anchorGoalIds.includes(goal.id))
@@ -206,6 +212,7 @@ export class DashboardPageComponent {
         staleGoalCount,
         overRhythmGoalCount,
         untouchedGoalCount,
+        goalInsights,
 
         pageLoading:
           goalsState.loading ||
@@ -226,7 +233,8 @@ export class DashboardPageComponent {
     private readonly inboxService: InboxStoreService,
     private readonly goalFreshnessService: GoalFreshnessService,
     private readonly planningWorkflowService: PlanningWorkflowService,
-    private readonly dashboardInsightService: DashboardInsightService
+    private readonly dashboardInsightService: DashboardInsightService,
+    private readonly goalInsightsService: GoalInsightsService
   ) {}
 
   public getCategoryLabel(category: DailyRotationItem['category']): string {
