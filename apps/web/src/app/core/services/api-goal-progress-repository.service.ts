@@ -29,4 +29,8 @@ export class ApiGoalProgressRepository extends GoalProgressRepository {
       catchError(error => error?.status === 404 ? of(undefined) : (() => { throw error; })())
     );
   }
+
+  public override getAllEvents(): Observable<GoalProgressEvent[]> {
+    return this.http.get<GoalProgressEvent[]>(`${this.apiBaseUrl}`);
+  }
 }

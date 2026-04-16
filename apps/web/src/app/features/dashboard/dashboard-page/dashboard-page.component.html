@@ -309,6 +309,39 @@
             <div class="dashboard-empty">Everything has at least one touch.</div>
           </ng-template>
         </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">Most active goals this week</div>
+          <ul class="dashboard-list" *ngIf="vm.goalInsights.mostActiveGoals.length > 0; else noMostActiveGoals">
+            <li *ngFor="let item of vm.goalInsights.mostActiveGoals; trackBy: trackByActiveGoalInsightId">
+              <div class="dashboard-list-item__title">{{ item.goalTitle }}</div>
+              <div class="dashboard-list-item__meta">
+                {{ item.progressEventCount }} event{{ item.progressEventCount === 1 ? '' : 's' }}
+              </div>
+            </li>
+          </ul>
+          <ng-template #noMostActiveGoals>
+            <div class="dashboard-empty">No recent progress events yet.</div>
+          </ng-template>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-card__label">No recent progress</div>
+          <div class="dashboard-stat-inline">
+            {{ vm.goalInsights.noProgress.count }}
+          </div>
+          <ul class="dashboard-list" *ngIf="vm.goalInsights.noProgress.goals.length > 0; else noNoProgressGoals">
+            <li *ngFor="let goal of vm.goalInsights.noProgress.goals; trackBy: trackByGoalId">
+              <div class="dashboard-list-item__title">{{ goal.title }}</div>
+              <div class="dashboard-list-item__meta">
+                {{ getGoalFreshnessLabel(goal) }}
+              </div>
+            </li>
+          </ul>
+          <ng-template #noNoProgressGoals>
+            <div class="dashboard-empty">All active goals show recent progress.</div>
+          </ng-template>
+        </div>
       </section>
 
       <div class="dashboard-card">

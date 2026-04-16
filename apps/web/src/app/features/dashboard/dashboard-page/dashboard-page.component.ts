@@ -20,6 +20,8 @@ import { Loadable } from 'src/app/core/models/loadable.model';
 import { toLoadable } from 'src/app/core/utils/loadable-helpers';
 import { GoalInsightsSnapshot } from 'src/app/core/models/goal-insights.model';
 import { GoalInsightsService } from 'src/app/core/services/goal-insights.service';
+import { GoalProgressEvent } from 'src/app/core/models/goal-progress-event.model';
+import { GoalProgressStoreService } from 'src/app/core/services/goal-progress-store.service';
 
 interface GoalFreshnessView {
   goal: Goal;
@@ -88,7 +90,10 @@ export class DashboardPageComponent {
     toLoadable(this.planningWorkflowService.getOrCreateDailyRotation(), 'Could not load today’s menu.');
 
   public readonly executionSnapshotState$: Observable<Loadable<DashboardExecutionSnapshot>> =
-  toLoadable(this.dashboardInsightService.getExecutionSnapshot(), 'Could not load execution snapshot.');
+    toLoadable(this.dashboardInsightService.getExecutionSnapshot(), 'Could not load execution snapshot.');
+
+  public readonly progressEventsState$: Observable<Loadable<GoalProgressEvent[]>> =
+    toLoadable(this.goalProgressStoreService.getAllEvents(), 'Could not load goal progress insights.');
 
   public readonly inboxState$: Observable<Loadable<InboxSummaryView>> =
     this.inboxService.getEntries().pipe(
@@ -118,17 +123,23 @@ export class DashboardPageComponent {
     this.reviewState$,
     this.dailyRotationState$,
     this.inboxState$,
-    this.executionSnapshotState$
+    this.executionSnapshotState$,
+    this.progressEventsState$
   ]).pipe(
-    map(([goalsState, reviewState, dailyRotationState, inboxState, executionSnapshotState]) => {
+    map(([
+      goalsState, 
+      reviewState, 
+      dailyRotationState, 
+      inboxState, 
+      executionSnapshotState, 
+      progressEventsState
+    ]) => {
       const goals = goalsState.data ?? [];
       const review = reviewState.data;
       const dailyRotationItems = dailyRotationState.data ?? [];
       const inboxSummary = inboxState.data;
       const executionSnapshot = executionSnapshotState.data;
       const activeGoals = goals.filter(goal => goal.status === 'active');
-
-      const goalInsights = this.goalInsightsService.getSnapshot(goals);
 
       const selectedAnchorGoals = review
         ? activeGoals.filter(goal => review.anchorGoalIds.includes(goal.id))
@@ -169,12 +180,16 @@ export class DashboardPageComponent {
 
       const untouchedGoalCount = activeGoals.filter(goal => !goal.lastTouchedAt).length;
 
+      const progressEvents = progressEventsState.data ?? [];
+      const goalInsights = this.goalInsightsService.getSnapshot(goals, progressEvents); 
+
       const pageErrorMessages = [
         goalsState.error,
         reviewState.error,
         dailyRotationState.error,
         inboxState.error,
-        executionSnapshotState.error
+        executionSnapshotState.error,
+        progressEventsState.error,
       ].filter((message): message is string => !!message);
 
       return {
@@ -234,7 +249,8 @@ export class DashboardPageComponent {
     private readonly goalFreshnessService: GoalFreshnessService,
     private readonly planningWorkflowService: PlanningWorkflowService,
     private readonly dashboardInsightService: DashboardInsightService,
-    private readonly goalInsightsService: GoalInsightsService
+    private readonly goalInsightsService: GoalInsightsService,
+    private readonly goalProgressStoreService: GoalProgressStoreService
   ) {}
 
   public getCategoryLabel(category: DailyRotationItem['category']): string {
@@ -268,6 +284,10 @@ export class DashboardPageComponent {
 
   public trackByGoalViewId(index: number, item: GoalFreshnessView): string {
     return item.goal.id;
+  }
+
+  public trackByActiveGoalInsightId(index: number, item: { goalId: string }): string {
+    return item.goalId;
   }
 
   public getGoalFreshnessLabel(goal: Goal): string {

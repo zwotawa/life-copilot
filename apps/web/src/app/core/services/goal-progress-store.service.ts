@@ -26,4 +26,8 @@ export class GoalProgressStoreService {
         return this.goalProgressRepository.getEventBySourceItemId(sourceItemId);
     }
 
+    public getAllEvents(): Observable<GoalProgressEvent[]> {
+        return this.goalProgressRepository.getAllEvents();
+    }
+
 }

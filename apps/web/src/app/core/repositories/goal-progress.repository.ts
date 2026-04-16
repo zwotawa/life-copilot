@@ -8,4 +8,5 @@ export abstract class GoalProgressRepository {
 
   // useful for undo of a daily checkbox
   public abstract getEventBySourceItemId(sourceItemId: string): Observable<GoalProgressEvent | undefined>;
+  public abstract getAllEvents(): Observable<GoalProgressEvent[]>;
 }
