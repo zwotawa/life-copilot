@@ -1049,6 +1049,23 @@ authenticatedApi.MapDelete("/goal-progress/{id}", async (
     return Results.NoContent();
 });
 
+authenticatedApi.MapGet("/goal-progress", async (
+    ClaimsPrincipal principal,
+    LifeCopilotDbContext db) =>
+{
+    var userId = GetCurrentUserId(principal);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var events = await db.GoalProgressEvents
+        .Where(e => e.UserId == userId)
+        .OrderByDescending(e => e.CreatedAt)
+        .ToListAsync();
+
+
+    return Results.Ok(events.Select(ToGoalProgressEventDto));
+});
+
 app.Run();
 
 static Dictionary<string, string[]> ValidateCreation(CreateJobCardRequest req) 
