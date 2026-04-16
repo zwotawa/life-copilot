@@ -11,7 +11,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
+using LifeCopilot.Api.Common;
+using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -120,6 +121,74 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseCors(CorsPolicyName);
+
+app.UseExceptionHandler(exceptionApp =>
+{
+    exceptionApp.Run(async context =>
+    {
+        var logger = context.RequestServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("GlobalExceptionHandler");
+
+        var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+        var exception = exceptionFeature?.Error;
+
+        var requestId = context.TraceIdentifier;
+
+        logger.LogError(
+            exception,
+            "Unhandled exception for {Method} {Path}. RequestId: {RequestId}",
+            context.Request.Method,
+            context.Request.Path,
+            requestId);
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        var response = new ApiErrorResponse
+        {
+            Message = "An unexpected error occurred.",
+            Code = "unexpected_error",
+            RequestId = requestId
+        };
+
+        await context.Response.WriteAsJsonAsync(response);
+    });
+});
+
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("RequestLogging");
+
+    var startedAt = DateTime.UtcNow;
+
+    try
+    {
+        await next();
+    }
+    finally
+    {
+        var elapsedMs = (DateTime.UtcNow - startedAt).TotalMilliseconds;
+
+        var userId =
+            context.User?.Identity?.IsAuthenticated == true
+                ? context.User.FindFirst("sub")?.Value
+                    ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                    ?? "authenticated"
+                : "anonymous";
+
+        logger.LogInformation(
+            "HTTP {Method} {Path} responded {StatusCode} in {ElapsedMs:0.0} ms. RequestId: {RequestId}. User: {UserId}",
+            context.Request.Method,
+            context.Request.Path,
+            context.Response.StatusCode,
+            elapsedMs,
+            context.TraceIdentifier,
+            userId);
+    }
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
