@@ -4,14 +4,10 @@ import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, finalize, map, shareReplay, startWith } from 'rxjs/operators';
 
 import { InboxEntry, InboxEntryStatus } from 'src/app/core/models/inbox-entry.model';
+import { Loadable } from 'src/app/core/models/loadable.model';
 import { InboxStoreService } from 'src/app/core/services/inbox-store.service';
+import { toLoadable } from 'src/app/core/utils/loadable-helpers';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-
-interface Loadable<T> {
-  loading: boolean;
-  data: T | null;
-  error: string | null;
-}
 
 interface InboxViewModel {
   entriesState: Loadable<InboxEntry[]>;
@@ -52,30 +48,11 @@ export class InboxPageComponent {
   private readonly entriesSubject = new BehaviorSubject<InboxEntry[]>([]);
   public readonly entries$ = this.entriesSubject.asObservable();
 
-  private readonly initialEntriesState$: Observable<Loadable<InboxEntry[]>> =
-    this.inboxService.getEntries().pipe(
-      map(entries => ({
-        loading: false,
-        data: entries,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load inbox entries.'
-        })
-      ),
-      shareReplay(1)
-    );
+  private readonly entriesState$: Observable<Loadable<InboxEntry[]>> =
+    toLoadable(this.inboxService.getEntries(), 'Could not load inbox entries.');
 
   public readonly vm$: Observable<InboxViewModel> = combineLatest([
-    this.initialEntriesState$,
+    this.entriesState$,
     this.entries$,
     this.selectedStatusFilter$
   ]).pipe(
@@ -228,11 +205,11 @@ export class InboxPageComponent {
   }
 
   public updateSelectedStatusFilter(value: 'all' | InboxEntryStatus): void {
-  this.selectedStatusFilterSubject.next(value);
-}
+    this.selectedStatusFilterSubject.next(value);
+  }
 
   private loadInitialEntries(): void {
-    this.initialEntriesState$.subscribe({
+    this.entriesState$.subscribe({
       next: state => {
         if (state.data) {
           this.entriesSubject.next(state.data);

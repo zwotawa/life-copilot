@@ -3,16 +3,12 @@ import { Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith } from 'rxjs/operators';
 
 import { BackendVersionInfo } from 'src/app/core/models/backend-version.model';
+import { Loadable } from 'src/app/core/models/loadable.model';
 import {
   AuthDiagnosticsSnapshot,
   DiagnosticsService
 } from 'src/app/core/services/diagnostics.service';
-
-interface Loadable<T> {
-  loading: boolean;
-  data: T | null;
-  error: string | null;
-}
+import { toLoadable } from 'src/app/core/utils/loadable-helpers';
 
 interface DiagnosticsViewModel {
   backendVersionState: Loadable<BackendVersionInfo>;
@@ -32,27 +28,8 @@ interface DiagnosticsViewModel {
 })
 export class DiagnosticsPageComponent {
   private readonly backendVersionState$: Observable<Loadable<BackendVersionInfo>> =
-    this.diagnosticsService.getBackendVersion().pipe(
-      map(version => ({
-        loading: false,
-        data: version,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load backend diagnostics.'
-        })
-      ),
-      shareReplay(1)
-    );
-
+    toLoadable(this.diagnosticsService.getBackendVersion(), 'Could not load backend diagnostics.');
+    
   public readonly vm$: Observable<DiagnosticsViewModel> = combineLatest([
     this.backendVersionState$,
     this.diagnosticsService.authSnapshot$

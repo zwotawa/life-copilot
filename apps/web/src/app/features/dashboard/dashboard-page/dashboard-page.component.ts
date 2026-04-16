@@ -16,16 +16,12 @@ import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-st
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
 import { DashboardExecutionSnapshot } from 'src/app/core/models/dashboard-execution-snapshot.model';
 import { DashboardInsightService } from 'src/app/core/services/dashboard-insight.service';
+import { Loadable } from 'src/app/core/models/loadable.model';
+import { toLoadable } from 'src/app/core/utils/loadable-helpers';
 
 interface GoalFreshnessView {
   goal: Goal;
   freshness: GoalFreshnessInfo;
-}
-
-interface Loadable<T> {
-  loading: boolean;
-  data: T | null;
-  error: string | null;
 }
 
 interface InboxSummaryView {
@@ -79,70 +75,16 @@ interface DashboardViewModel {
 })
 export class DashboardPageComponent {
   public readonly goalsState$: Observable<Loadable<Goal[]>> =
-    this.goalStoreService.getGoals().pipe(
-      map(goals => ({
-        loading: false,
-        data: goals,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load goals.'
-        })
-      ),
-      shareReplay(1)
-    );
+    toLoadable(this.goalStoreService.getGoals(), 'Could not load goals.');
 
   public readonly reviewState$: Observable<Loadable<WeeklyReviewState>> =
-    this.weeklyReviewStoreService.getCurrentWeeklyReview().pipe(
-      map(review => ({
-        loading: false,
-        data: review,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load weekly review.'
-        })
-      ),
-      shareReplay(1)
-    );
+    toLoadable(this.weeklyReviewStoreService.getCurrentWeeklyReview(), 'Could not load weekly review.');
 
   public readonly dailyRotationState$: Observable<Loadable<DailyRotationItem[]>> =
-    this.planningWorkflowService.getOrCreateDailyRotation().pipe(
-      map(items => ({
-        loading: false,
-        data: items,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load today’s menu.'
-        })
-      ),
-      shareReplay(1)
-    );
+    toLoadable(this.planningWorkflowService.getOrCreateDailyRotation(), 'Could not load today’s menu.');
+
+  public readonly executionSnapshotState$: Observable<Loadable<DashboardExecutionSnapshot>> =
+  toLoadable(this.dashboardInsightService.getExecutionSnapshot(), 'Could not load execution snapshot.');
 
   public readonly inboxState$: Observable<Loadable<InboxSummaryView>> =
     this.inboxService.getEntries().pipe(
@@ -162,28 +104,6 @@ export class DashboardPageComponent {
           loading: false,
           data: null,
           error: 'Could not load inbox summary.'
-        })
-      ),
-      shareReplay(1)
-    );
-
-  public readonly executionSnapshotState$: Observable<Loadable<DashboardExecutionSnapshot>> =
-    this.dashboardInsightService.getExecutionSnapshot().pipe(
-      map(executionSnapshot => ({
-        loading: false,
-        data: executionSnapshot,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load execution snapshot.'
         })
       ),
       shareReplay(1)

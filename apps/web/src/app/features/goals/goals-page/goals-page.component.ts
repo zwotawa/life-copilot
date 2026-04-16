@@ -3,13 +3,9 @@ import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith } from 'rxjs/operators';
 
 import { Goal } from 'src/app/core/models/goal.model';
+import { Loadable } from 'src/app/core/models/loadable.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
-
-interface Loadable<T> {
-  loading: boolean;
-  data: T | null;
-  error: string | null;
-}
+import { toLoadable } from 'src/app/core/utils/loadable-helpers';
 
 interface GoalsPageViewModel {
   goalsState: Loadable<Goal[]>;
@@ -38,26 +34,7 @@ export class GoalsPageComponent {
   public readonly typeFilter$ = this.typeFilterSubject.asObservable();
 
   private readonly goalsState$: Observable<Loadable<Goal[]>> =
-    this.goalStoreService.getGoals().pipe(
-      map(goals => ({
-        loading: false,
-        data: goals,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load goals.'
-        })
-      ),
-      shareReplay(1)
-    );
+    toLoadable(this.goalStoreService.getGoals(), 'Could not load goals.');
 
   public readonly vm$: Observable<GoalsPageViewModel> = combineLatest([
     this.goalsState$,

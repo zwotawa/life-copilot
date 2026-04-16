@@ -246,14 +246,14 @@ export class GoalFormComponent implements OnChanges {
   }
 
   private get navState(): {
-  inboxItemId?: string;
-  prefillGoalTitle?: string;
-} | undefined {
-  return this.location.getState() as {
     inboxItemId?: string;
     prefillGoalTitle?: string;
-  } | undefined;
-}
+  } | undefined {
+    return this.location.getState() as {
+      inboxItemId?: string;
+      prefillGoalTitle?: string;
+    } | undefined;
+  }
 
   private buildInitialGoal(goal: Goal): Goal {
     const initializedGoal: Goal = this.cloneGoal(goal);

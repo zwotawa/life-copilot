@@ -1,22 +1,17 @@
 import { Component } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, finalize, map, shareReplay, startWith } from 'rxjs/operators';
 
 import { Goal } from 'src/app/core/models/goal.model';
+import { Loadable } from 'src/app/core/models/loadable.model';
 import { WeeklyExecutionInsights } from 'src/app/core/models/weekly-execution-insights.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
 import { WeeklyInsightService } from 'src/app/core/services/weekly-insights.service';
 import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
+import { toLoadable } from 'src/app/core/utils/loadable-helpers';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-
-interface Loadable<T> {
-  loading: boolean;
-  data: T | null;
-  error: string | null;
-}
 
 interface WeeklyReviewViewModel {
   goalsState: Loadable<Goal[]>;
@@ -55,71 +50,14 @@ export class WeeklyReviewPageComponent {
 
   private lastSavedReview: WeeklyReviewState | null = null;
 
-  private readonly initialGoalsState$: Observable<Loadable<Goal[]>> =
-    this.goalStoreService.getGoals().pipe(
-      map(goals => ({
-        loading: false,
-        data: goals,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load goals.'
-        })
-      ),
-      shareReplay(1)
-    );
+  private readonly goalsState$: Observable<Loadable<Goal[]>> =
+    toLoadable(this.goalStoreService.getGoals(), 'Could not load goals.');
 
-  private readonly initialReviewState$: Observable<Loadable<WeeklyReviewState>> =
-    this.weeklyReviewStoreService.getCurrentWeeklyReview().pipe(
-      map(review => ({
-        loading: false,
-        data: review,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load weekly review.'
-        })
-      ),
-      shareReplay(1)
-    );
+  private readonly reviewState$: Observable<Loadable<WeeklyReviewState>> =
+    toLoadable(this.weeklyReviewStoreService.getCurrentWeeklyReview(), 'Could not load weekly review.');
 
-  private readonly initialInsightsState$: Observable<Loadable<WeeklyExecutionInsights | null>> =
-    this.weeklyInsightService.getLast7DaysInsights().pipe(
-      map(weeklyInsights => ({
-        loading: false,
-        data: weeklyInsights,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load weekly execution insights.'
-        })
-      ),
-      shareReplay(1)
-    );
+  private readonly insightsState$: Observable<Loadable<WeeklyExecutionInsights | null>> =
+    toLoadable(this.weeklyInsightService.getLast7DaysInsights(), 'Could not load weekly execution insights.');
 
   public isSaving = false;
   public saveError: string | null = null;
@@ -128,9 +66,9 @@ export class WeeklyReviewPageComponent {
   public resetError: string | null = null;
 
   public readonly vm$: Observable<WeeklyReviewViewModel> = combineLatest([
-    this.initialGoalsState$,
-    this.initialReviewState$,
-    this.initialInsightsState$,
+    this.goalsState$,
+    this.reviewState$,
+    this.insightsState$,
     this.reviewDraft$
   ]).pipe(
     map(([goalsState, reviewState, insightsState, reviewDraft]) => {
@@ -511,7 +449,7 @@ export class WeeklyReviewPageComponent {
   }
 
   private loadInitialReviewDraft(): void {
-    this.initialReviewState$.subscribe({
+    this.reviewState$.subscribe({
       next: state => {
         if (state.data && !this.reviewDraftSubject.value) {
           const clonedReview = this.cloneReview(state.data);

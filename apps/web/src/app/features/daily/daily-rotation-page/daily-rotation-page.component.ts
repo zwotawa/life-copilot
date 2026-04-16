@@ -2,14 +2,10 @@ import { Component } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, finalize } from 'rxjs/operators';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
+import { Loadable } from 'src/app/core/models/loadable.model';
 import { PlanningWorkflowService } from 'src/app/core/services/planning-workflow.service';
+import { toLoadable } from 'src/app/core/utils/loadable-helpers';
 import { NotificationService } from 'src/app/shared/services/notification.service';
-
-interface Loadable<T> {
-  loading: boolean;
-  data: T | null;
-  error: string | null;
-}
 
 interface DailyRotationViewModel {
   rotationState: Loadable<DailyRotationItem[]>;
@@ -34,50 +30,12 @@ interface DailyRotationViewModel {
   styleUrls: ['./daily-rotation-page.component.scss']
 })
 export class DailyRotationPageComponent {
-  private readonly initialRotationState$: Observable<Loadable<DailyRotationItem[]>> =
-    this.planningWorkflowService.getOrCreateDailyRotation().pipe(
-      map(items => ({
-        loading: false,
-        data: items,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load today’s menu.'
-        })
-      ),
-      shareReplay(1)
-    );
-
-  private readonly initialCompletionDaysState$: Observable<Loadable<number>> =
-    this.planningWorkflowService.getLastSevenDaysCompletions().pipe(
-      map(days => ({
-        loading: false,
-        data: days,
-        error: null
-      })),
-      startWith({
-        loading: true,
-        data: null,
-        error: null
-      }),
-      catchError(() =>
-        of({
-          loading: false,
-          data: null,
-          error: 'Could not load recent completion history.'
-        })
-      ),
-      shareReplay(1)
-    );
-
+  private readonly rotationState$: Observable<Loadable<DailyRotationItem[]>> =
+    toLoadable(this.planningWorkflowService.getOrCreateDailyRotation(), 'Could not load today’s menu.');
+    
+  private readonly completionDaysState$: Observable<Loadable<number>> =
+    toLoadable(this.planningWorkflowService.getLastSevenDaysCompletions(), 'Could not load recent completion history.');
+    
   private readonly rotationItemsSubject = new BehaviorSubject<DailyRotationItem[]>([]);
   public readonly rotationItems$ = this.rotationItemsSubject.asObservable();
 
@@ -94,8 +52,8 @@ export class DailyRotationPageComponent {
   public replaceError: string | null = null;
 
   public readonly vm$: Observable<DailyRotationViewModel> = combineLatest([
-    this.initialRotationState$,
-    this.initialCompletionDaysState$,
+    this.rotationState$,
+    this.completionDaysState$,
     this.rotationItems$,
     this.activeCompletionDays$
   ]).pipe(
@@ -267,7 +225,7 @@ export class DailyRotationPageComponent {
   }
 
   private loadInitialData(): void {
-    this.initialRotationState$.subscribe({
+    this.rotationState$.subscribe({
       next: state => {
         if (state.data) {
           this.rotationItemsSubject.next(state.data);
@@ -275,7 +233,7 @@ export class DailyRotationPageComponent {
       }
     });
 
-    this.initialCompletionDaysState$.subscribe({
+    this.completionDaysState$.subscribe({
       next: state => {
         if (state.data !== null) {
           this.activeCompletionDaysSubject.next(state.data);

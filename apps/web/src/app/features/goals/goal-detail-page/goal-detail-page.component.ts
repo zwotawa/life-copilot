@@ -8,12 +8,7 @@ import { GoalProgressEvent } from 'src/app/core/models/goal-progress-event.model
 import { GoalProgressStoreService } from 'src/app/core/services/goal-progress-store.service';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { GoalFormComponent } from '../goal-form/goal-form.component';
-
-interface Loadable<T> {
-  loading: boolean;
-  data: T | null;
-  error: string | null;
-}
+import { Loadable } from 'src/app/core/models/loadable.model';
 
 interface GoalDetailViewModel {
   goalState: Loadable<Goal>;
