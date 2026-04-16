@@ -179,7 +179,7 @@ app.Use(async (context, next) =>
                     ?? "authenticated"
                 : "anonymous";
 
-        logger.LogWarning(
+        logger.LogInformation(
             "HTTP {Method} {Path} responded {StatusCode} in {ElapsedMs:0.0} ms. RequestId: {RequestId}. User: {UserId}",
             context.Request.Method,
             context.Request.Path,
