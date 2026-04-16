@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http.Json;
 using LifeCopilot.Api.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace LifeCopilot.Api.IntegrationTests.Goals;
 

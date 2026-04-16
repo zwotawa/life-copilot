@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LifeCopilot.Api.IntegrationTests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+18af25cceca4368a02c693304343b36066641aeb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2c6e106f7f8f7c6310614d7de378a5a88e96968e")]
 [assembly: System.Reflection.AssemblyProductAttribute("LifeCopilot.Api.IntegrationTests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LifeCopilot.Api.IntegrationTests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

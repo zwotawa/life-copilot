@@ -452,3 +452,4 @@ C:\Projects\life-copilot\LifeCopilot.Api.IntegrationTests\obj\Debug\net8.0\refin
 C:\Projects\life-copilot\LifeCopilot.Api.IntegrationTests\obj\Debug\net8.0\LifeCopilot.Api.IntegrationTests.pdb
 C:\Projects\life-copilot\LifeCopilot.Api.IntegrationTests\obj\Debug\net8.0\LifeCopilot.Api.IntegrationTests.genruntimeconfig.cache
 C:\Projects\life-copilot\LifeCopilot.Api.IntegrationTests\obj\Debug\net8.0\ref\LifeCopilot.Api.IntegrationTests.dll
+C:\Projects\life-copilot\LifeCopilot.Api.IntegrationTests\bin\Debug\net8.0\appsettings.Production.json
