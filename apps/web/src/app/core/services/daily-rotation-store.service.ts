@@ -5,6 +5,7 @@ import { WeeklyReviewState } from '../models/weekly-review.model';
 import { Goal } from '../models/goal.model';
 import { DailyRotationItem } from '../models/daily-rotation.model';
 import { Observable } from 'rxjs';
+import { GoalBehaviorEvidence } from './goal-surfacing.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,9 +20,10 @@ export class DailyRotationStoreService {
   public generateDailyRotationForDate(
     date: string,
     goals: Goal[],
-    weeklyReview: WeeklyReviewState
+    weeklyReview: WeeklyReviewState,
+    evidenceByGoalId: Record<string, GoalBehaviorEvidence>
   ): Observable<DailyRotationItem[]> {
-    const items = this.rotationEngineService.generateDailyRotation(goals, weeklyReview)
+    const items = this.rotationEngineService.generateDailyRotation(goals, weeklyReview, evidenceByGoalId)
       .map(item => ({
         ...item,
         date

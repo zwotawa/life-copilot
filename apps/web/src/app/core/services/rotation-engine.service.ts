@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Goal } from '../models/goal.model';
 import { DailyRotationItem } from '../models/daily-rotation.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
-import { GoalSurfacingService, SuggestedDailyCategory } from './goal-surfacing.service';
+import { GoalBehaviorEvidence, GoalSurfacingService, SuggestedDailyCategory } from './goal-surfacing.service';
 
 interface ScoredGoalCandidate {
   goal: Goal;
@@ -22,12 +22,13 @@ export class RotationEngineService {
 
   public generateDailyRotation(
   goals: Goal[],
-  weeklyReview: WeeklyReviewState
+  weeklyReview: WeeklyReviewState,
+  evidenceByGoalId: Record<string, GoalBehaviorEvidence>
 ): DailyRotationItem[] {
   const activeGoals = goals.filter(goal => goal.status === 'active');
 
   const scoredCandidates: ScoredGoalCandidate[] = activeGoals.map(goal => {
-    const result = this.goalSurfacingService.getSurfacingResult(goal, weeklyReview);
+    const result = this.goalSurfacingService.getSurfacingResult(goal, weeklyReview, evidenceByGoalId[goal.id] ?? null);
 
     return {
       goal,
