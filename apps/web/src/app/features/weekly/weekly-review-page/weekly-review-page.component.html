@@ -80,6 +80,14 @@
         </div>
       </section>
 
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="showSurfacingDebug = !showSurfacingDebug"
+      >
+        {{ showSurfacingDebug ? 'Hide Surfacing Debug' : 'Show Surfacing Debug' }}
+      </button>
+
       <section class="weekly-section">
         <div class="weekly-section__header">
           <h2>Anchor goals</h2>
@@ -91,35 +99,69 @@
 
         <div class="weekly-goal-list">
           <label
-            class="weekly-goal-option"
-            [class.weekly-goal-option--disabled]="isAnchorDisabled(goal.id) || isSaving || isResetting"
-            *ngFor="let goal of vm.anchorCandidates; trackBy: trackByGoalId"
+  class="weekly-goal-option"
+  [class.weekly-goal-option--disabled]="isAnchorDisabled(goal.id) || isSaving || isResetting"
+  *ngFor="let goal of vm.anchorCandidates; trackBy: trackByGoalId"
+>
+  <input
+    type="checkbox"
+    [checked]="isAnchorSelected(goal.id)"
+    [disabled]="isAnchorDisabled(goal.id) || isSaving || isResetting"
+    (change)="toggleAnchor(goal.id)"
+  />
+  <div class="weekly-goal-option__body">
+    <div class="weekly-goal-option__title">{{ goal.title }}</div>
+    <div class="weekly-goal-option__meta">
+      {{ goal.lane | capitalizeFirstLetter }} · {{ goal.type | capitalizeFirstLetter }}
+    </div>
+
+    <ng-container *ngIf="!showSurfacingDebug; else surfacingDebugBlock">
+      <div class="goal-hint">
+        Score: {{ getSurfacingScore(goal) }} · {{ (getSuggestedCategory(goal)) | capitalizeFirstLetter }}
+      </div>
+
+      <div class="goal-hint goal-hint--secondary">
+        {{ getSurfacingReasons(goal) }}
+      </div>
+
+      <div class="goal-hint goal-hint--secondary">
+        {{ getFreshnessLabel(goal) }}
+        <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
+          · {{ cadenceHint }}
+        </ng-container>
+      </div>
+    </ng-container>
+
+    <ng-template #surfacingDebugBlock>
+      <div class="goal-debug" *ngIf="getSurfacingResult(goal) as surfacing">
+        <div class="goal-debug__summary">
+          Category: {{ (surfacing.suggestedCategory || 'none') | capitalizeFirstLetter }} ·
+          Score: {{ surfacing.score }}
+        </div>
+
+        <div class="goal-debug__reasons" *ngIf="surfacing.reasons.length > 0">
+          {{ surfacing.reasons.join(' · ') }}
+        </div>
+
+        <div class="goal-debug__freshness">
+          {{ getFreshnessLabel(goal) }}
+          <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
+            · {{ cadenceHint }}
+          </ng-container>
+        </div>
+
+        <div class="goal-debug__factors">
+          <span
+            class="goal-debug__factor"
+            *ngFor="let entry of getSurfacingBreakdownEntries(goal)"
           >
-            <input
-              type="checkbox"
-              [checked]="isAnchorSelected(goal.id)"
-              [disabled]="isAnchorDisabled(goal.id) || isSaving || isResetting"
-              (change)="toggleAnchor(goal.id)"
-            />
-            <div class="weekly-goal-option__body">
-              <div class="weekly-goal-option__title">{{ goal.title }}</div>
-              <div class="weekly-goal-option__meta">
-                {{ goal.lane }} · {{ goal.type }}
-              </div>
-              <div class="goal-hint">
-                Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
-              </div>
-              <div class="goal-hint goal-hint--secondary">
-                {{ getSurfacingReasons(goal) }}
-              </div>
-              <div class="goal-hint goal-hint--secondary">
-                {{ getFreshnessLabel(goal) }}
-                <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
-                  · {{ cadenceHint }}
-                </ng-container>
-              </div>
-            </div>
-          </label>
+            {{ entry.label }}: {{ entry.value >= 0 ? '+' : '' }}{{ entry.value }}
+          </span>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+</label>
         </div>
       </section>
 
@@ -185,6 +227,25 @@
                 <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
                   · {{ cadenceHint }}
                 </ng-container>
+              </div>
+              <div class="goal-debug" *ngIf="showSurfacingDebug && getSurfacingResult(goal) as surfacing">
+                <div class="goal-debug__summary">
+                  Category: {{ surfacing.suggestedCategory || 'none' }} ·
+                  Score: {{ surfacing.score }}
+                </div>
+
+                <div class="goal-debug__reasons" *ngIf="surfacing.reasons.length > 0">
+                  {{ surfacing.reasons.join(' · ') }}
+                </div>
+
+                <div class="goal-debug__factors">
+                  <span
+                    class="goal-debug__factor"
+                    *ngFor="let entry of getSurfacingBreakdownEntries(goal)"
+                  >
+                    {{ entry.label }}: {{ entry.value >= 0 ? '+' : '' }}{{ entry.value }}
+                  </span>
+                </div>
               </div>
             </div>
           </label>

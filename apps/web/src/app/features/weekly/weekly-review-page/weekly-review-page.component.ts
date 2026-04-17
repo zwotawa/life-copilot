@@ -7,7 +7,7 @@ import { Loadable } from 'src/app/core/models/loadable.model';
 import { WeeklyExecutionInsights } from 'src/app/core/models/weekly-execution-insights.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
-import { GoalBehaviorEvidence, GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
+import { GoalBehaviorEvidence, GoalSurfacingResult, GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
 import { WeeklyInsightService } from 'src/app/core/services/weekly-insights.service';
 import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
 import { toLoadable } from 'src/app/core/utils/loadable-helpers';
@@ -53,6 +53,7 @@ export class WeeklyReviewPageComponent {
 
   private lastSavedReview: WeeklyReviewState | null = null;
   private evidenceByGoalId: Record<string, GoalBehaviorEvidence> = {};
+  public showSurfacingDebug: boolean = true;
 
   private readonly goalsState$: Observable<Loadable<Goal[]>> =
     toLoadable(this.goalStoreService.getGoals(), 'Could not load goals.');
@@ -482,6 +483,43 @@ export class WeeklyReviewPageComponent {
     );
 
     return result.reasons.slice(0, 3).join(' · ');
+  }
+
+  public getSurfacingResult(goal: Goal): GoalSurfacingResult | null {
+    const review = this.reviewDraftSubject.value;
+
+    if (!review) {
+      return null;
+    }
+
+    return this.goalSurfacingService.getSurfacingResult(
+      goal,
+      review,
+      this.evidenceByGoalId[goal.id] ?? null
+    );
+  }
+
+  public getSurfacingBreakdownEntries(goal: Goal): { label: string; value: number }[] {
+    const result = this.getSurfacingResult(goal);
+
+    if (!result) {
+      return [];
+    }
+
+    const factors = result.factorBreakdown;
+
+    return [
+      { label: 'Status', value: factors.statusWeight },
+      { label: 'Frequency', value: factors.frequencyWeight },
+      { label: 'Freshness', value: factors.freshnessWeight },
+      { label: 'Due', value: factors.dueWeight },
+      { label: 'Weekly', value: factors.weeklySelectionWeight },
+      { label: 'Excitement', value: factors.excitementWeight },
+      { label: 'Momentum', value: factors.recentMomentumWeight },
+      { label: 'No progress', value: factors.noProgressWeight },
+      { label: 'Resistance', value: -factors.resistancePenalty },
+      { label: 'Over-served', value: -factors.overServedPenalty }
+    ];
   }
 
   private loadInitialReviewDraft(): void {

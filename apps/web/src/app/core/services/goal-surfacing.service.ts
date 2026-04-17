@@ -23,6 +23,7 @@ export interface GoalSurfacingResult {
   reasons: string[];
   daysSinceTouched: number | null;
   dueInDays: number | null;
+  factorBreakdown: SurfacingFactors
 }
 
 export interface GoalBehaviorEvidence {
@@ -30,7 +31,7 @@ export interface GoalBehaviorEvidence {
   hasProgressInLast14Days: boolean;
 }
 
-interface SurfacingFactors {
+export interface SurfacingFactors {
   statusWeight: number;
   frequencyWeight: number;
   freshnessWeight: number;
@@ -60,11 +61,11 @@ export class GoalSurfacingService {
     const daysSinceTouched = freshness.daysSinceTouched;
     const dueInDays = this.getDueInDays(goal);
 
-    const factors = this.buildFactors(goal, review, freshness, dueInDays, evidence ?? null);
-    const score = this.calculateScore(factors);
+    const factorBreakdown = this.buildFactors(goal, review, freshness, dueInDays, evidence ?? null);
+    const score = this.calculateScore(factorBreakdown);
 
-    this.addBaseReasons(reasons, goal, review, freshness, dueInDays, factors);
-    this.addEvidenceReasons(reasons, evidence ?? null, factors);
+    this.addBaseReasons(reasons, goal, review, freshness, dueInDays, factorBreakdown);
+    this.addEvidenceReasons(reasons, evidence ?? null, factorBreakdown);
 
     return {
       goalId: goal.id,
@@ -72,7 +73,8 @@ export class GoalSurfacingService {
       suggestedCategory: this.getSuggestedDailyCategory(goal, review, dueInDays),
       reasons,
       daysSinceTouched,
-      dueInDays
+      dueInDays,
+      factorBreakdown
     };
   }
 

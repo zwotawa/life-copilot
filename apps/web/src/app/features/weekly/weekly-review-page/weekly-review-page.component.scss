@@ -228,4 +228,37 @@ mat-form-field {
 
 .weekly-page__status-saved {
   opacity: 0.75;
+}.goal-debug {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.04);
+  font-size: 0.85rem;
+}
+
+.goal-debug__summary {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.goal-debug__reasons {
+  opacity: 0.85;
+  margin-bottom: 0.35rem;
+}
+
+.goal-debug__factors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.goal-debug__factor {
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.goal-debug__freshness {
+  margin-bottom: 0.35rem;
+  opacity: 0.85;
 }

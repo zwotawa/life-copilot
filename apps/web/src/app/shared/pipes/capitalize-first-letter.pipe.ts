@@ -4,7 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'capitalizeFirstLetter',
 })
 export class CapitalilzeFirstLetter implements PipeTransform {
-    transform(word: string | undefined): string | undefined {
+    transform(word: string | undefined | null): string | undefined {
         if(word) {
             if (word.length === 0) {
                 return ""; // Handle empty strings gracefully
