@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Goal } from '../models/goal.model';
 import { GoalInsightsSnapshot, ActiveGoalInsightItem } from '../models/goal-insights.model';
 import { GoalProgressEvent } from '../models/goal-progress-event.model';
+import { GoalBehaviorEvidence } from './goal-surfacing.service';
 
 @Injectable({
   providedIn: 'root'
@@ -130,4 +131,43 @@ export class GoalInsightsService {
 
     return diffDays <= days;
   }
+
+  public buildEvidenceByGoalId(
+    progressEvents: GoalProgressEvent[]
+    ): Record<string, GoalBehaviorEvidence> {
+        const now = new Date();
+        const evidenceByGoalId: Record<string, GoalBehaviorEvidence> = {};
+
+        for (const event of progressEvents) {
+            if (!event.goalId) {
+            continue;
+            }
+
+            const createdAt = new Date(event.createdAt);
+            if (Number.isNaN(createdAt.getTime())) {
+            continue;
+            }
+
+            const diffDays = Math.floor(
+            (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+            );
+
+            if (!evidenceByGoalId[event.goalId]) {
+            evidenceByGoalId[event.goalId] = {
+                progressEventCountLast7Days: 0,
+                hasProgressInLast14Days: false
+            };
+            }
+
+            if (diffDays <= 7) {
+            evidenceByGoalId[event.goalId].progressEventCountLast7Days += 1;
+            }
+
+            if (diffDays <= 14) {
+            evidenceByGoalId[event.goalId].hasProgressInLast14Days = true;
+            }
+        }
+
+        return evidenceByGoalId;
+    }
 }

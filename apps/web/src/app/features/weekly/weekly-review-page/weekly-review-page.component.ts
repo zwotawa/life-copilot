@@ -1,17 +1,20 @@
 import { Component } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
-import { catchError, finalize, map, shareReplay, startWith } from 'rxjs/operators';
+import { finalize, map, shareReplay, startWith } from 'rxjs/operators';
 
 import { Goal } from 'src/app/core/models/goal.model';
 import { Loadable } from 'src/app/core/models/loadable.model';
 import { WeeklyExecutionInsights } from 'src/app/core/models/weekly-execution-insights.model';
 import { WeeklyReviewState } from 'src/app/core/models/weekly-review.model';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
-import { GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
+import { GoalBehaviorEvidence, GoalSurfacingService } from 'src/app/core/services/goal-surfacing.service';
 import { WeeklyInsightService } from 'src/app/core/services/weekly-insights.service';
 import { WeeklyReviewStoreService } from 'src/app/core/services/weekly-review-store.service';
 import { toLoadable } from 'src/app/core/utils/loadable-helpers';
 import { NotificationService } from 'src/app/shared/services/notification.service';
+import { GoalProgressEvent } from 'src/app/core/models/goal-progress-event.model';
+import { GoalProgressStoreService } from 'src/app/core/services/goal-progress-store.service';
+import { GoalInsightsService } from 'src/app/core/services/goal-insights.service';
 
 interface WeeklyReviewViewModel {
   goalsState: Loadable<Goal[]>;
@@ -49,6 +52,7 @@ export class WeeklyReviewPageComponent {
   public readonly reviewDraft$ = this.reviewDraftSubject.asObservable();
 
   private lastSavedReview: WeeklyReviewState | null = null;
+  private evidenceByGoalId: Record<string, GoalBehaviorEvidence> = {};
 
   private readonly goalsState$: Observable<Loadable<Goal[]>> =
     toLoadable(this.goalStoreService.getGoals(), 'Could not load goals.');
@@ -58,6 +62,9 @@ export class WeeklyReviewPageComponent {
 
   private readonly insightsState$: Observable<Loadable<WeeklyExecutionInsights | null>> =
     toLoadable(this.weeklyInsightService.getLast7DaysInsights(), 'Could not load weekly execution insights.');
+
+  private readonly progressEventsState$: Observable<Loadable<GoalProgressEvent[]>> =
+    toLoadable(this.goalProgressStoreService.getAllEvents(), 'Could not load progress evidence.');
 
   public isSaving = false;
   public saveError: string | null = null;
@@ -69,25 +76,31 @@ export class WeeklyReviewPageComponent {
     this.goalsState$,
     this.reviewState$,
     this.insightsState$,
-    this.reviewDraft$
+    this.reviewDraft$,
+    this.progressEventsState$
   ]).pipe(
-    map(([goalsState, reviewState, insightsState, reviewDraft]) => {
+    map(([goalsState, reviewState, insightsState, reviewDraft, progressEventsState]) => {
       const goals = goalsState.data ?? [];
       const review = reviewDraft ?? reviewState.data ?? null;
       const weeklyInsights = insightsState.data ?? null;
       const activeGoals = goals.filter(goal => goal.status === 'active');
+      const progressEvents = progressEventsState.data ?? [];
+      const evidenceByGoalId = this.goalInsightsService.buildEvidenceByGoalId(progressEvents);
+      this.evidenceByGoalId = evidenceByGoalId;
 
       const anchorCandidates = review
         ? this.goalSurfacingService.sortGoalsBySurfacing(
             activeGoals.filter(goal => goal.type !== 'maintain'),
-            review
+            review,
+            evidenceByGoalId
           )
         : [];
 
       const maintenanceCandidates = review
         ? this.goalSurfacingService.sortGoalsBySurfacing(
             activeGoals.filter(goal => goal.type === 'maintain'),
-            review
+            review,
+            evidenceByGoalId
           )
         : [];
 
@@ -103,7 +116,8 @@ export class WeeklyReviewPageComponent {
                 'mobility_transportation'
               ].includes(goal.lane)
             ),
-            review
+            review,
+            evidenceByGoalId
           )
         : [];
 
@@ -113,7 +127,8 @@ export class WeeklyReviewPageComponent {
               goal.type === 'exploration' ||
               goal.lane === 'creative_experiments'
             ),
-            review
+            review,
+            evidenceByGoalId
           )
         : [];
 
@@ -137,6 +152,7 @@ export class WeeklyReviewPageComponent {
         goalsState.error,
         reviewState.error,
         insightsState.error,
+        progressEventsState.error,
         this.saveError,
         this.resetError
       ].filter((message): message is string => !!message);
@@ -166,7 +182,8 @@ export class WeeklyReviewPageComponent {
         pageLoading:
           goalsState.loading ||
           reviewState.loading ||
-          insightsState.loading,
+          insightsState.loading ||
+          progressEventsState.loading,
 
         pageErrorMessages
       };
@@ -179,7 +196,9 @@ export class WeeklyReviewPageComponent {
     private readonly weeklyReviewStoreService: WeeklyReviewStoreService,
     private readonly goalSurfacingService: GoalSurfacingService,
     private readonly weeklyInsightService: WeeklyInsightService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private goalProgressStoreService: GoalProgressStoreService,
+    private goalInsightsService: GoalInsightsService
     ) {
     this.loadInitialReviewDraft();
   }
@@ -364,7 +383,10 @@ export class WeeklyReviewPageComponent {
       return 0;
     }
 
-    return this.goalSurfacingService.getSurfacingScore(goal, reviewDraft);
+    return this.goalSurfacingService.getSurfacingScore(
+      goal, 
+      reviewDraft,
+      this.evidenceByGoalId[goal.id] ?? null);
   }
 
   public getSuggestedCategory(goal: Goal): string | null {
@@ -446,6 +468,20 @@ export class WeeklyReviewPageComponent {
     return window.confirm(
       'You have unsaved changes on your weekly review. Leave this page and lose those changes?'
     );
+  }
+
+  public getSurfacingReasons(goal: Goal): string {
+    if (!this.reviewDraftSubject.value) {
+      return '';
+    }
+
+    const result = this.goalSurfacingService.getSurfacingResult(
+      goal,
+      this.reviewDraftSubject.value,
+      this.evidenceByGoalId[goal.id] ?? null
+    );
+
+    return result.reasons.slice(0, 3).join(' · ');
   }
 
   private loadInitialReviewDraft(): void {

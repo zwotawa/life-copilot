@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import {
   Goal,
   GoalStatus,
-  GoalType,
   IntensityLevel,
   TouchFrequency
 } from '../models/goal.model';
@@ -26,16 +25,34 @@ export interface GoalSurfacingResult {
   dueInDays: number | null;
 }
 
+export interface GoalBehaviorEvidence {
+  progressEventCountLast7Days: number;
+  hasProgressInLast14Days: boolean;
+}
+
+interface SurfacingFactors {
+  statusWeight: number;
+  frequencyWeight: number;
+  freshnessWeight: number;
+  dueWeight: number;
+  weeklySelectionWeight: number;
+  excitementWeight: number;
+  resistancePenalty: number;
+  recentMomentumWeight: number;
+  noProgressWeight: number;
+  overServedPenalty: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class GoalSurfacingService {
-  
-  constructor(private goalFreshnessService: GoalFreshnessService) {}
+  constructor(private readonly goalFreshnessService: GoalFreshnessService) {}
 
   public getSurfacingResult(
     goal: Goal,
-    review: WeeklyReviewState | null
+    review: WeeklyReviewState | null,
+    evidence?: GoalBehaviorEvidence | null
   ): GoalSurfacingResult {
     const reasons: string[] = [];
 
@@ -43,52 +60,11 @@ export class GoalSurfacingService {
     const daysSinceTouched = freshness.daysSinceTouched;
     const dueInDays = this.getDueInDays(goal);
 
-    let score = 0;
+    const factors = this.buildFactors(goal, review, freshness, dueInDays, evidence ?? null);
+    const score = this.calculateScore(factors);
 
-    const statusWeight = this.getStatusWeight(goal.status);
-    score += statusWeight;
-    if (statusWeight !== 0) {
-      reasons.push(`${capitalize(goal.status)} goal`);
-    }
-
-    const touchWeight = this.getFrequencyWeight(goal.minimumTouchFrequency);
-    score += touchWeight;
-    if (touchWeight !== 0) {
-      reasons.push(`${this.goalFreshnessService.getTouchFrequencyLabel(goal.minimumTouchFrequency)} rhythm`);
-    }
-
-    const freshnessWeight = this.getFreshnessWeight(freshness);
-    score += freshnessWeight;
-    const freshnessReason = this.getFreshnessReason(freshness);
-    if (freshnessReason) {
-      reasons.push(freshnessReason);
-    }
-
-    const dueWeight = this.getDueWeight(dueInDays);
-    score += dueWeight;
-    if (dueWeight !== 0) {
-      reasons.push(`Due soon`);
-    }
-
-    const anchorWeight = this.getWeeklySelectionWeight(goal, review);
-    score += anchorWeight;
-    if (anchorWeight !== 0) {
-      reasons.push(`Chosen in weekly review`);
-    }
-
-    const excitementWeight = this.getExcitementWeight(goal.excitement);
-    score += excitementWeight;
-    if (excitementWeight !== 0) {
-      reasons.push(`High interest`);
-    }
-
-    const resistancePenalty = this.getResistancePenalty(goal.resistance);
-    score -= resistancePenalty;
-    if (resistancePenalty !== 0) {
-      reasons.push(`Higher resistance`);
-    }
-
-    score = Math.max(0, score);
+    this.addBaseReasons(reasons, goal, review, freshness, dueInDays, factors);
+    this.addEvidenceReasons(reasons, evidence ?? null, factors);
 
     return {
       goalId: goal.id,
@@ -100,19 +76,28 @@ export class GoalSurfacingService {
     };
   }
 
-  public getSurfacingScore(goal: Goal, review: WeeklyReviewState | null): number {
-    return this.getSurfacingResult(goal, review).score;
+  public getSurfacingScore(
+    goal: Goal,
+    review: WeeklyReviewState | null,
+    evidence?: GoalBehaviorEvidence | null
+  ): number {
+    return this.getSurfacingResult(goal, review, evidence).score;
   }
 
   public sortGoalsBySurfacing(
     goals: Goal[],
-    review: WeeklyReviewState | null
+    review: WeeklyReviewState | null,
+    evidenceByGoalId?: Record<string, GoalBehaviorEvidence>
   ): Goal[] {
     return goals
       .slice()
       .sort((a, b) => {
+        const aEvidence = evidenceByGoalId?.[a.id] ?? null;
+        const bEvidence = evidenceByGoalId?.[b.id] ?? null;
+
         const scoreDiff =
-          this.getSurfacingScore(b, review) - this.getSurfacingScore(a, review);
+          this.getSurfacingScore(b, review, bEvidence) -
+          this.getSurfacingScore(a, review, aEvidence);
 
         if (scoreDiff !== 0) {
           return scoreDiff;
@@ -169,7 +154,11 @@ export class GoalSurfacingService {
     return 'momentum';
   }
 
-  public isSuggestedToday(goal: Goal, review: WeeklyReviewState | null): boolean {
+  public isSuggestedToday(
+    goal: Goal,
+    review: WeeklyReviewState | null,
+    evidence?: GoalBehaviorEvidence | null
+  ): boolean {
     if (goal.status !== 'active') {
       return false;
     }
@@ -178,7 +167,138 @@ export class GoalSurfacingService {
       return true;
     }
 
-    return this.getSurfacingScore(goal, review) >= 28;
+    return this.getSurfacingScore(goal, review, evidence) >= 28;
+  }
+
+  private buildFactors(
+    goal: Goal,
+    review: WeeklyReviewState | null,
+    freshness: GoalFreshnessInfo,
+    dueInDays: number | null,
+    evidence: GoalBehaviorEvidence | null
+  ): SurfacingFactors {
+    return {
+      statusWeight: this.getStatusWeight(goal.status),
+      frequencyWeight: this.getFrequencyWeight(goal.minimumTouchFrequency),
+      freshnessWeight: this.getFreshnessWeight(freshness),
+      dueWeight: this.getDueWeight(dueInDays),
+      weeklySelectionWeight: this.getWeeklySelectionWeight(goal, review),
+      excitementWeight: this.getExcitementWeight(goal.excitement),
+      resistancePenalty: this.getResistancePenalty(goal.resistance),
+      recentMomentumWeight: this.getRecentMomentumWeight(evidence),
+      noProgressWeight: this.getNoProgressWeight(evidence),
+      overServedPenalty: this.getOverServedPenalty(evidence)
+    };
+  }
+
+  private calculateScore(factors: SurfacingFactors): number {
+    const score =
+      factors.statusWeight +
+      factors.frequencyWeight +
+      factors.freshnessWeight +
+      factors.dueWeight +
+      factors.weeklySelectionWeight +
+      factors.excitementWeight +
+      factors.recentMomentumWeight +
+      factors.noProgressWeight -
+      factors.resistancePenalty -
+      factors.overServedPenalty;
+
+    return Math.max(0, score);
+  }
+
+  private addBaseReasons(
+    reasons: string[],
+    goal: Goal,
+    review: WeeklyReviewState | null,
+    freshness: GoalFreshnessInfo,
+    dueInDays: number | null,
+    factors: SurfacingFactors
+  ): void {
+    if (factors.statusWeight !== 0) {
+      reasons.push(`${capitalize(goal.status)} goal`);
+    }
+
+    if (factors.frequencyWeight !== 0) {
+      reasons.push(`${this.goalFreshnessService.getTouchFrequencyLabel(goal.minimumTouchFrequency)} rhythm`);
+    }
+
+    const freshnessReason = this.getFreshnessReason(freshness);
+    if (freshnessReason) {
+      reasons.push(freshnessReason);
+    }
+
+    if (factors.dueWeight !== 0) {
+      reasons.push('Due soon');
+    }
+
+    if (factors.weeklySelectionWeight !== 0) {
+      reasons.push('Chosen in weekly review');
+    }
+
+    if (factors.excitementWeight !== 0) {
+      reasons.push('High interest');
+    }
+
+    if (factors.resistancePenalty !== 0) {
+      reasons.push('Higher resistance');
+    }
+  }
+
+  private addEvidenceReasons(
+    reasons: string[],
+    evidence: GoalBehaviorEvidence | null,
+    factors: SurfacingFactors
+  ): void {
+    if (!evidence) {
+      return;
+    }
+
+    if (factors.recentMomentumWeight > 0) {
+      reasons.push('Recent progress momentum');
+    }
+
+    if (factors.noProgressWeight > 0) {
+      reasons.push('No progress recorded in 14 days');
+    }
+
+    if (factors.overServedPenalty > 0) {
+      reasons.push('Already receiving strong recent attention');
+    }
+  }
+
+  private getRecentMomentumWeight(evidence: GoalBehaviorEvidence | null): number {
+    if (!evidence) {
+      return 0;
+    }
+
+    const count = evidence.progressEventCountLast7Days;
+
+    if (count <= 0) return 0;
+    if (count === 1) return 2;
+    if (count === 2) return 4;
+    return 5;
+  }
+
+  private getNoProgressWeight(evidence: GoalBehaviorEvidence | null): number {
+    if (!evidence) {
+      return 0;
+    }
+
+    return evidence.hasProgressInLast14Days ? 0 : 6;
+  }
+
+  private getOverServedPenalty(evidence: GoalBehaviorEvidence | null): number {
+    if (!evidence) {
+      return 0;
+    }
+
+    const count = evidence.progressEventCountLast7Days;
+
+    if (count >= 6) return 5;
+    if (count >= 4) return 3;
+
+    return 0;
   }
 
   private getStatusWeight(status: GoalStatus): number {
@@ -190,7 +310,6 @@ export class GoalSurfacingService {
       case 'someday':
         return -12;
       case 'completed':
-        return -20;
       case 'archived':
         return -20;
       default:
@@ -300,11 +419,11 @@ export class GoalSurfacingService {
 
     const now = new Date();
     const diffMs = dueDate.getTime() - now.getTime();
+
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
   }
 
   private getFreshnessWeight(freshness: GoalFreshnessInfo): number {
-
     if (freshness.daysSinceTouched === null) {
       return 6;
     }
@@ -337,7 +456,6 @@ export class GoalSurfacingService {
   }
 
   private getFreshnessReason(freshness: GoalFreshnessInfo): string | null {
-
     if (freshness.daysSinceTouched === null) {
       return 'No touch recorded yet';
     }

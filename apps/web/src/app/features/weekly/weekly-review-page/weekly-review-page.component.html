@@ -110,6 +110,9 @@
                 Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
               </div>
               <div class="goal-hint goal-hint--secondary">
+                {{ getSurfacingReasons(goal) }}
+              </div>
+              <div class="goal-hint goal-hint--secondary">
                 {{ getFreshnessLabel(goal) }}
                 <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
                   · {{ cadenceHint }}
@@ -173,6 +176,9 @@
               </div>
               <div class="goal-hint">
                 Score: {{ getSurfacingScore(goal) }} · {{ getSuggestedCategory(goal) }}
+              </div>
+              <div class="goal-hint goal-hint--secondary">
+                {{ getSurfacingReasons(goal) }}
               </div>
               <div class="goal-hint goal-hint--secondary">
                 {{ getFreshnessLabel(goal) }}
