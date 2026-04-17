@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using LifeCopilot.Api.Common;
 using Microsoft.AspNetCore.Diagnostics;
+using LifeCopilot.Api.Surfacing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,6 +103,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<PasswordHasher<UserEntity>>();
+builder.Services.AddScoped<ISurfacingDecisionService, SurfacingDecisionService>();
 
 var app = builder.Build();
 
@@ -1064,6 +1066,38 @@ authenticatedApi.MapGet("/goal-progress", async (
 
 
     return Results.Ok(events.Select(ToGoalProgressEventDto));
+});
+
+authenticatedApi.MapGet("/surfacing-decisions", async (
+    ClaimsPrincipal user,
+    ISurfacingDecisionService surfacingDecisionService) =>
+{
+    var userId = GetCurrentUserId(user);
+    if (userId is null)
+        return Results.Unauthorized();
+
+    var events = await surfacingDecisionService.GetEventsForUserAsync(userId ?? Guid.Empty);
+    return Results.Ok(events);
+});
+
+authenticatedApi.MapPost("/surfacing-decisions", async (
+    ClaimsPrincipal user,
+    SurfacingDecisionEventDto dto,
+    ISurfacingDecisionService surfacingDecisionService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var created = await surfacingDecisionService.AddEventAsync(userId ?? Guid.Empty, dto);
+    return Results.Ok(created);
+});
+
+authenticatedApi.MapPost("/surfacing-decisions/batch", async (
+    ClaimsPrincipal user,
+    List<SurfacingDecisionEventDto> dtos,
+    ISurfacingDecisionService surfacingDecisionService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var created = await surfacingDecisionService.AddEventsAsync(userId ?? Guid.Empty, dtos);
+    return Results.Ok(created);
 });
 
 app.Run();

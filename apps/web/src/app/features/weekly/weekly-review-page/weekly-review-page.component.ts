@@ -15,6 +15,9 @@ import { NotificationService } from 'src/app/shared/services/notification.servic
 import { GoalProgressEvent } from 'src/app/core/models/goal-progress-event.model';
 import { GoalProgressStoreService } from 'src/app/core/services/goal-progress-store.service';
 import { GoalInsightsService } from 'src/app/core/services/goal-insights.service';
+import { SurfacingDecisionRepository } from 'src/app/core/repositories/surfacing-decision.repository';
+import { createSurfacingDecisionEvent } from 'src/app/core/utils/create-surfacing-decision-event';
+import { SurfacingDecisionEvent } from 'src/app/core/models/surfacing-decision-event.model';
 
 interface WeeklyReviewViewModel {
   goalsState: Loadable<Goal[]>;
@@ -51,9 +54,10 @@ export class WeeklyReviewPageComponent {
   private readonly reviewDraftSubject = new BehaviorSubject<WeeklyReviewState | null>(null);
   public readonly reviewDraft$ = this.reviewDraftSubject.asObservable();
 
+  public showSurfacingDebug: boolean = true;
   private lastSavedReview: WeeklyReviewState | null = null;
   private evidenceByGoalId: Record<string, GoalBehaviorEvidence> = {};
-  public showSurfacingDebug: boolean = true;
+  private currentGoals: Goal[] = [];
 
   private readonly goalsState$: Observable<Loadable<Goal[]>> =
     toLoadable(this.goalStoreService.getGoals(), 'Could not load goals.');
@@ -88,6 +92,7 @@ export class WeeklyReviewPageComponent {
       const progressEvents = progressEventsState.data ?? [];
       const evidenceByGoalId = this.goalInsightsService.buildEvidenceByGoalId(progressEvents);
       this.evidenceByGoalId = evidenceByGoalId;
+      this.currentGoals = goals;
 
       const anchorCandidates = review
         ? this.goalSurfacingService.sortGoalsBySurfacing(
@@ -199,7 +204,8 @@ export class WeeklyReviewPageComponent {
     private readonly weeklyInsightService: WeeklyInsightService,
     private notificationService: NotificationService,
     private goalProgressStoreService: GoalProgressStoreService,
-    private goalInsightsService: GoalInsightsService
+    private goalInsightsService: GoalInsightsService,
+    private readonly surfacingDecisionRepository: SurfacingDecisionRepository
     ) {
     this.loadInitialReviewDraft();
   }
@@ -223,8 +229,17 @@ export class WeeklyReviewPageComponent {
         const clonedReview = this.cloneReview(savedReview);
         this.lastSavedReview = this.cloneReview(clonedReview);
         this.reviewDraftSubject.next(clonedReview);
-        this.notificationService.success('Weekly review saved.');
-      },
+
+        const decisionEvents = this.buildWeeklySurfacingDecisionEvents(clonedReview);
+
+        this.surfacingDecisionRepository.addEvents(decisionEvents).subscribe({
+          next: () => {
+            this.notificationService.success('Weekly review saved.');
+          },
+          error: () => {
+            this.notificationService.success('Weekly review saved.');
+          }
+      })},
       error: () => {
         this.saveError = 'Could not save weekly review.';
       }
@@ -566,5 +581,64 @@ export class WeeklyReviewPageComponent {
     }
 
     return a.every((value, index) => value === b[index]);
+  }
+
+  private buildWeeklySurfacingDecisionEvents(review: WeeklyReviewState): SurfacingDecisionEvent[] {
+    const events: SurfacingDecisionEvent[] = [];
+    const goals = this.currentGoals;
+
+    const buildEvent = (
+      goal: Goal,
+      weeklyRole: 'anchor' | 'maintenance' | 'infrastructure' | 'creative'
+    ): SurfacingDecisionEvent => {
+      const surfacing = this.goalSurfacingService.getSurfacingResult(
+        goal,
+        review,
+        this.evidenceByGoalId[goal.id] ?? null
+      );
+
+      return createSurfacingDecisionEvent({
+        context: 'weekly_save',
+        goalId: goal.id,
+        goalTitle: goal.title,
+        score: surfacing.score,
+        suggestedCategory: surfacing.suggestedCategory,
+        reasons: surfacing.reasons,
+        metadata: {
+          weeklyRole,
+          selected: true
+        }
+      });
+    };
+
+    for (const goalId of review.anchorGoalIds) {
+      const goal = goals.find(g => g.id === goalId);
+      if (goal) {
+        events.push(buildEvent(goal, 'anchor'));
+      }
+    }
+
+    for (const goalId of review.maintenanceGoalIds) {
+      const goal = goals.find(g => g.id === goalId);
+      if (goal) {
+        events.push(buildEvent(goal, 'maintenance'));
+      }
+    }
+
+    if (review.infrastructureGoalId) {
+      const goal = goals.find(g => g.id === review.infrastructureGoalId);
+      if (goal) {
+        events.push(buildEvent(goal, 'infrastructure'));
+      }
+    }
+
+    if (review.creativeGoalId) {
+      const goal = goals.find(g => g.id === review.creativeGoalId);
+      if (goal) {
+        events.push(buildEvent(goal, 'creative'));
+      }
+    }
+
+    return events;
   }
 }

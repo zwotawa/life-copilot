@@ -48,6 +48,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { DiagnosticsPageComponent } from './features/diagnostics-page/diagnostics-page.component';
+import { SurfacingDecisionRepository } from './core/repositories/surfacing-decision.repository';
+import { ApiSurfacingDecisionService } from './core/services/api-surfacing-decision.service';
 
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
@@ -101,6 +103,7 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     {provide: WeeklyReviewRepository, useClass: ApiWeeklyReviewRepository},
     {provide: DailyCompletionHistoryRepository, useClass: ApiDailyCompletionHistoryRepository},
     {provide: GoalProgressRepository, useClass: ApiGoalProgressRepository},
+    {provide: SurfacingDecisionRepository, useExisting: ApiSurfacingDecisionService},
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,

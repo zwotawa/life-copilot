@@ -5,9 +5,12 @@ import { WeeklyReviewStoreService } from './weekly-review-store.service';
 import { DailyRotationStoreService } from './daily-rotation-store.service';
 import { RotationEngineService } from './rotation-engine.service';
 import { DailyCompletionHistoryStoreService } from './daily-completion-history-store.service';
-import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, map, Observable, of, switchMap, tap } from 'rxjs';
 import { GoalProgressStoreService } from './goal-progress-store.service';
 import { GoalInsightsService } from './goal-insights.service';
+import { SurfacingDecisionRepository } from '../repositories/surfacing-decision.repository';
+import { SurfacingDecisionEvent } from '../models/surfacing-decision-event.model';
+import { createSurfacingDecisionEvent } from '../utils/create-surfacing-decision-event';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +24,8 @@ export class PlanningWorkflowService {
     private rotationEngineService: RotationEngineService,
     private dailyCompletionHistoryStoreService: DailyCompletionHistoryStoreService,
     private goalProgressStoreService: GoalProgressStoreService,
-    private goalInsightsService: GoalInsightsService
+    private goalInsightsService: GoalInsightsService,
+    private readonly surfacingDecisionRepository: SurfacingDecisionRepository
   ) { }
 
   public getOrCreateDailyRotation(): Observable<DailyRotationItem[]> {
@@ -48,30 +52,45 @@ export class PlanningWorkflowService {
 
 
   private regenerateDailyRotation(): Observable<DailyRotationItem[]> {
-    const today = this.getTodayKey();
+  const today = this.getTodayKey();
 
-    return combineLatest([
-      this.goalStoreService.getGoals(),
-      this.weeklyReviewStoreService.getCurrentWeeklyReview(),
-      this.goalProgressStoreService.getAllEvents()
-    ]).pipe(
-      switchMap(([goals, weeklyReview, progressEvents]) => {
-        const evidenceByGoalId =
+  return combineLatest([
+    this.goalStoreService.getGoals(),
+    this.weeklyReviewStoreService.getCurrentWeeklyReview(),
+    this.goalProgressStoreService.getAllEvents()
+  ]).pipe(
+    switchMap(([goals, weeklyReview, progressEvents]) => {
+      const evidenceByGoalId =
         this.goalInsightsService.buildEvidenceByGoalId(progressEvents);
 
-        return this.dailyRotationStoreService.generateDailyRotationForDate(
-          today,
-          goals,
-          weeklyReview,
-          evidenceByGoalId
-        ).pipe(
-          switchMap(newRotationItems => this.saveDailyCompletionSummary(newRotationItems).pipe(
+      return this.dailyRotationStoreService.generateDailyRotationForDate(
+        today,
+        goals,
+        weeklyReview,
+        evidenceByGoalId
+      ).pipe(
+        switchMap(newRotationItems =>
+          this.saveDailyCompletionSummary(newRotationItems).pipe(
+            tap(() => {
+              const decisionEvents =
+                this.buildDailyGenerationDecisionEvents(newRotationItems);
+
+              if (decisionEvents.length === 0) {
+                return;
+              }
+
+              this.surfacingDecisionRepository.addEvents(decisionEvents).subscribe({
+                next: () => {},
+                error: () => {}
+              });
+            }),
             map(() => newRotationItems)
-          ))
-        );
-      })
-    );
-  }
+          )
+        )
+      );
+    })
+  );
+}
 
 
   //wrapper functions for wording clarity
@@ -84,54 +103,75 @@ export class PlanningWorkflowService {
   }
 
   private regenerateDailyRotationPreservingCompleted(): Observable<DailyRotationItem[]> {
-    const today = this.getTodayKey();
+  const today = this.getTodayKey();
 
-    return combineLatest([
-      this.dailyRotationStoreService.loadRotationItemsForDate(today),
-      this.buildFreshRotationCandidates()
-    ]).pipe(
-      switchMap(([currentItems, freshItems]) => {
-        if (currentItems.length === 0) {
-          return this.resetTodayPlan();
+  return combineLatest([
+    this.dailyRotationStoreService.loadRotationItemsForDate(today),
+    this.buildFreshRotationCandidates()
+  ]).pipe(
+    switchMap(([currentItems, freshItems]) => {
+      if (currentItems.length === 0) {
+        return this.resetTodayPlan();
+      }
+
+      const usedGoalIds = new Set(
+        currentItems
+          .filter(item => item.completed && item.goalId)
+          .map(item => item.goalId as string)
+      );
+
+      const generatedItems: DailyRotationItem[] = [];
+
+      const updatedItems = currentItems.map(currentItem => {
+        if (currentItem.completed) {
+          return currentItem;
         }
 
-        const usedGoalIds = new Set(
-          currentItems
-            .filter(item => item.completed && item.goalId)
-            .map(item => item.goalId as string)
+        const replacement = this.pickReplacementForCategory(
+          currentItem,
+          freshItems,
+          usedGoalIds,
+          today
         );
 
-        const updatedItems = currentItems.map(currentItem => {
-          if (currentItem.completed) {
-            return currentItem;
-          }
+        if (!replacement || replacement.goalId === currentItem.goalId) {
+          return currentItem;
+        }
 
-          const replacement = this.pickReplacementForCategory(
-            currentItem,
-            freshItems,
-            usedGoalIds,
-            today
-          );
+        if (replacement.goalId) {
+          usedGoalIds.add(replacement.goalId);
+        }
 
-          if (!replacement) {
-            return currentItem;
-          }
+        generatedItems.push(replacement);
 
-          if (replacement.goalId) {
-            usedGoalIds.add(replacement.goalId);
-          }
+        return replacement;
+      });
 
-          return replacement;
-        });
+      return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
+        switchMap(latestRotation =>
+          this.saveDailyCompletionSummary(latestRotation).pipe(
+            tap(() => {
+              const decisionEvents =
+                this.buildDailyGenerationDecisionEvents(generatedItems);
 
-        return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
-          switchMap((latestRotation) => this.saveDailyCompletionSummary(latestRotation).pipe(
+              console.log('daily generation decisionEvents', decisionEvents);
+
+              if (decisionEvents.length === 0) {
+                return;
+              }
+
+              this.surfacingDecisionRepository.addEvents(decisionEvents).subscribe({
+                next: () => console.log('daily generation events saved'),
+                error: err => console.error('daily generation events failed', err)
+              });
+            }),
             map(() => latestRotation)
-          ))
-        );
-      })
-    );
-  }
+          )
+        )
+      );
+    })
+  );
+}
 
   public setRotationItemCompletedOrUncompleted(
     itemId: string,
@@ -262,6 +302,15 @@ export class PlanningWorkflowService {
 
         return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
           switchMap(latestRotation => this.saveDailyCompletionSummary(latestRotation).pipe(
+            tap(() => {
+              if (!replacement.goalId) return;
+              const replacementEvent = this.buildDailyReplaceDecisionEvent(itemToReplace, replacement);
+
+              this.surfacingDecisionRepository.addEvent(replacementEvent).subscribe({
+                next: () => {},
+                error: () => {}
+              });
+            }),
             map(() => latestRotation)
           ))
         );
@@ -387,6 +436,44 @@ private isWithinPast7Days(dateString: string): boolean {
   
   // Return true if between 0 and 7 days ago
   return diffInDays >= 0 && diffInDays <= 7;
+}
+
+private buildDailyReplaceDecisionEvent(
+  originalItem: DailyRotationItem,
+  replacementItem: DailyRotationItem
+): SurfacingDecisionEvent {
+  return createSurfacingDecisionEvent({
+    context: 'daily_replace',
+    goalId: replacementItem.goalId ?? '',
+    goalTitle: replacementItem.goalTitle,
+    score: replacementItem.surfacingScore ?? 0,
+    suggestedCategory: replacementItem.category,
+    reasons: replacementItem.surfacingReasons ?? [],
+    metadata: {
+      date: replacementItem.date,
+      replacedGoalId: originalItem.goalId
+    }
+  });
+}
+
+private buildDailyGenerationDecisionEvents(
+  items: DailyRotationItem[]
+): SurfacingDecisionEvent[] {
+  return items
+    .filter(item => !!item.goalId)
+    .map(item =>
+      createSurfacingDecisionEvent({
+        context: 'daily_generation',
+        goalId: item.goalId ?? '',
+        goalTitle: item.goalTitle,
+        score: item.surfacingScore ?? 0,
+        suggestedCategory: item.category,
+        reasons: item.surfacingReasons ?? [],
+        metadata: {
+          date: item.date
+        }
+      })
+    );
 }
 
 
