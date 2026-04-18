@@ -54,7 +54,7 @@ export class WeeklyReviewPageComponent {
   private readonly reviewDraftSubject = new BehaviorSubject<WeeklyReviewState | null>(null);
   public readonly reviewDraft$ = this.reviewDraftSubject.asObservable();
 
-  public showSurfacingDebug: boolean = true;
+  public showSurfacingDebug: boolean = false;
   private lastSavedReview: WeeklyReviewState | null = null;
   private evidenceByGoalId: Record<string, GoalBehaviorEvidence> = {};
   private currentGoals: Goal[] = [];
@@ -96,7 +96,11 @@ export class WeeklyReviewPageComponent {
 
       const anchorCandidates = review
         ? this.goalSurfacingService.sortGoalsBySurfacing(
-            activeGoals.filter(goal => goal.type !== 'maintain'),
+            this.filterGoalsForWeeklySection(
+              activeGoals.filter(goal => goal.type !== 'maintain'),
+              'anchor',
+              review
+            ),
             review,
             evidenceByGoalId
           )
@@ -104,7 +108,11 @@ export class WeeklyReviewPageComponent {
 
       const maintenanceCandidates = review
         ? this.goalSurfacingService.sortGoalsBySurfacing(
-            activeGoals.filter(goal => goal.type === 'maintain'),
+            this.filterGoalsForWeeklySection(
+              activeGoals.filter(goal => goal.type === 'maintain'),
+              'maintenance',
+              review
+            ),
             review,
             evidenceByGoalId
           )
@@ -112,15 +120,19 @@ export class WeeklyReviewPageComponent {
 
       const infrastructureCandidates = review
         ? this.goalSurfacingService.sortGoalsBySurfacing(
-            activeGoals.filter(goal =>
-              goal.type === 'maintain' ||
-              [
-                'life_systems',
-                'money_admin',
-                'home_environment',
-                'community_tools',
-                'mobility_transportation'
-              ].includes(goal.lane)
+            this.filterGoalsForWeeklySection(
+              activeGoals.filter(goal =>
+                goal.type === 'maintain' ||
+                [
+                  'life_systems',
+                  'money_admin',
+                  'home_environment',
+                  'community_tools',
+                  'mobility_transportation'
+                ].includes(goal.lane)
+              ),
+              'infrastructure',
+              review
             ),
             review,
             evidenceByGoalId
@@ -129,9 +141,13 @@ export class WeeklyReviewPageComponent {
 
       const creativeCandidates = review
         ? this.goalSurfacingService.sortGoalsBySurfacing(
-            activeGoals.filter(goal =>
-              goal.type === 'exploration' ||
-              goal.lane === 'creative_experiments'
+            this.filterGoalsForWeeklySection(
+              activeGoals.filter(goal =>
+                goal.type === 'exploration' ||
+                goal.lane === 'creative_experiments'
+              ),
+              'creative',
+              review
             ),
             review,
             evidenceByGoalId
@@ -239,7 +255,7 @@ export class WeeklyReviewPageComponent {
           error: () => {
             this.notificationService.success('Weekly review saved.');
           }
-      })},
+      })} ,
       error: () => {
         this.saveError = 'Could not save weekly review.';
       }
@@ -640,5 +656,54 @@ export class WeeklyReviewPageComponent {
     }
 
     return events;
+  }
+
+  private isGoalSelectedElsewhere(
+    goalId: string,
+    currentSection: 'anchor' | 'maintenance' | 'infrastructure' | 'creative',
+    review: WeeklyReviewState
+  ): boolean {
+    switch (currentSection) {
+      case 'anchor':
+        return (
+          review.maintenanceGoalIds.includes(goalId) ||
+          review.infrastructureGoalId === goalId ||
+          review.creativeGoalId === goalId
+        );
+
+      case 'maintenance':
+        return (
+          review.anchorGoalIds.includes(goalId) ||
+          review.infrastructureGoalId === goalId ||
+          review.creativeGoalId === goalId
+        );
+
+      case 'infrastructure':
+        return (
+          review.anchorGoalIds.includes(goalId) ||
+          review.maintenanceGoalIds.includes(goalId) ||
+          review.creativeGoalId === goalId
+        );
+
+      case 'creative':
+        return (
+          review.anchorGoalIds.includes(goalId) ||
+          review.maintenanceGoalIds.includes(goalId) ||
+          review.infrastructureGoalId === goalId
+        );
+
+      default:
+        return false;
+    }
+  }
+
+  private filterGoalsForWeeklySection(
+    goals: Goal[],
+    currentSection: 'anchor' | 'maintenance' | 'infrastructure' | 'creative',
+    review: WeeklyReviewState
+  ): Goal[] {
+    return goals.filter(goal =>
+      !this.isGoalSelectedElsewhere(goal.id, currentSection, review)
+    );
   }
 }

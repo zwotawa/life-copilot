@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Goal } from '../models/goal.model';
 import { DailyRotationItem } from '../models/daily-rotation.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
-import { GoalBehaviorEvidence, GoalSurfacingService, SuggestedDailyCategory } from './goal-surfacing.service';
+import { GoalBehaviorEvidence, GoalSurfacingResult, GoalSurfacingService, SuggestedDailyCategory } from './goal-surfacing.service';
 
 interface ScoredGoalCandidate {
   goal: Goal;
@@ -11,10 +11,34 @@ interface ScoredGoalCandidate {
   reasons: string[];
 }
 
+type WeeklyRole = 'anchor' | 'maintenance' | 'infrastructure' | 'creative';
+
 @Injectable({
   providedIn: 'root'
 })
 export class RotationEngineService {
+
+  private readonly weeklyRoleCategoryAdjustments: Record<
+    WeeklyRole,
+    Partial<Record<SuggestedDailyCategory, number>>
+  > = {
+    anchor: {
+      momentum: 6,
+      responsible: 3
+    },
+    maintenance: {
+      maintenance: 6,
+      fallback: 3
+    },
+    infrastructure: {
+      responsible: 6,
+      maintenance: 3
+    },
+    creative: {
+      interesting: 6,
+      momentum: 3
+    }
+  };
 
   constructor(
     private goalSurfacingService: GoalSurfacingService  
@@ -28,7 +52,7 @@ export class RotationEngineService {
   const activeGoals = goals.filter(goal => goal.status === 'active');
 
   const scoredCandidates: ScoredGoalCandidate[] = activeGoals.map(goal => {
-    const result = this.goalSurfacingService.getSurfacingResult(goal, weeklyReview, evidenceByGoalId[goal.id] ?? null);
+    const result = this.getAdjustedDailySurfacingResult(goal, weeklyReview, evidenceByGoalId);
 
     return {
       goal,
@@ -243,5 +267,110 @@ private toRotationItem(
       return reason;
     })
     .filter((reason, index, array) => array.indexOf(reason) === index);
-}
+  }
+
+  private getWeeklyRole(
+    goalId: string,
+    review: WeeklyReviewState | null
+  ): WeeklyRole | null {
+    if (!review) {
+      return null;
+    }
+
+    if (review.anchorGoalIds.includes(goalId)) {
+      return 'anchor';
+    }
+
+    if (review.maintenanceGoalIds.includes(goalId)) {
+      return 'maintenance';
+    }
+
+    if (review.infrastructureGoalId === goalId) {
+      return 'infrastructure';
+    }
+
+    if (review.creativeGoalId === goalId) {
+      return 'creative';
+    }
+
+    return null;
+  }
+
+  private getWeeklyRoleCategoryAdjustment(
+    weeklyRole: WeeklyRole | null,
+    category: SuggestedDailyCategory | null
+  ): number {
+    if (!weeklyRole || !category) {
+      return 0;
+    }
+
+    return this.weeklyRoleCategoryAdjustments[weeklyRole][category] ?? 0;
+  }
+
+  private getWeeklyRoleCategoryReason(
+    weeklyRole: WeeklyRole | null,
+    category: SuggestedDailyCategory | null,
+    adjustment: number
+  ): string | null {
+    if (!weeklyRole || !category || adjustment <= 0) {
+      return null;
+    }
+
+    switch (weeklyRole) {
+      case 'anchor':
+        if (category === 'momentum') return 'Weekly anchor aligned with momentum';
+        if (category === 'responsible') return 'Weekly anchor aligned with responsible work';
+        return null;
+
+      case 'maintenance':
+        if (category === 'maintenance') return 'Maintenance focus aligned with upkeep';
+        if (category === 'fallback') return 'Maintenance focus fits a lighter touch';
+        return null;
+
+      case 'infrastructure':
+        if (category === 'responsible') return 'Infrastructure focus aligned with responsible work';
+        if (category === 'maintenance') return 'Infrastructure focus aligned with system upkeep';
+        return null;
+
+      case 'creative':
+        if (category === 'interesting') return 'Creative focus aligned with interesting work';
+        if (category === 'momentum') return 'Creative focus aligned with forward motion';
+        return null;
+
+      default:
+        return null;
+    }
+  }
+
+  private getAdjustedDailySurfacingResult(
+    goal: Goal,
+    review: WeeklyReviewState | null,
+    evidenceByGoalId: Record<string, GoalBehaviorEvidence> = {}
+  ): GoalSurfacingResult {
+    const surfacing = this.goalSurfacingService.getSurfacingResult(
+      goal,
+      review,
+      evidenceByGoalId[goal.id] ?? null
+    );
+
+    const weeklyRole = this.getWeeklyRole(goal.id, review);
+    const adjustment = this.getWeeklyRoleCategoryAdjustment(
+      weeklyRole,
+      surfacing.suggestedCategory
+    );
+
+    const roleReason = this.getWeeklyRoleCategoryReason(
+      weeklyRole,
+      surfacing.suggestedCategory,
+      adjustment
+    );
+
+    return {
+      ...surfacing,
+      score: surfacing.score + adjustment,
+      reasons: roleReason
+        ? [...surfacing.reasons, roleReason]
+        : surfacing.reasons
+    };
+  }
 }
