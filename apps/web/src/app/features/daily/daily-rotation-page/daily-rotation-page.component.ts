@@ -51,6 +51,9 @@ export class DailyRotationPageComponent {
   public replacingItemIds = new Set<string>();
   public replaceError: string | null = null;
 
+  public isGeneratingMore = false;
+  public generateMoreError: string | null = null;
+
   public readonly vm$: Observable<DailyRotationViewModel> = combineLatest([
     this.rotationState$,
     this.completionDaysState$,
@@ -222,6 +225,27 @@ export class DailyRotationPageComponent {
 
   public trackByItemId(index: number, item: DailyRotationItem): string {
     return item.id;
+  }
+
+  public generateMoreOptions(): void {
+    if (this.isGeneratingMore) {
+      return;
+    }
+
+    this.isGeneratingMore = true;
+    this.generateMoreError = null;
+
+    this.planningWorkflowService.generateMoreDailyOptions().subscribe({
+      next: dailyRotationItems => {
+        this.rotationItemsSubject.next(dailyRotationItems);
+        this.notificationService.success('Added more daily options.');
+        this.isGeneratingMore = false;
+      },
+      error: () => {
+        this.generateMoreError = 'Could not generate more daily options.';
+        this.isGeneratingMore = false;
+      }
+    });
   }
 
   private loadInitialData(): void {

@@ -47,6 +47,6 @@ apps/api/LifeCopilot.Api/obj
 apps/api/LifeCopilot.Api/bin
 
 # api tests
-LifeCopilot.Api.IntegrationTests/bin
-LifeCopilot.Api.IntegrationTests/obj
+LifeCopilot.Api.IntegrationTests/bin/*
+LifeCopilot.Api.IntegrationTests/obj/*
 

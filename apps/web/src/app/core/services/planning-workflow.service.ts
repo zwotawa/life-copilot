@@ -268,6 +268,56 @@ export class PlanningWorkflowService {
     
   }
 
+  public generateMoreDailyOptions(): Observable<DailyRotationItem[]> {
+  const today = this.getTodayKey();
+
+  return combineLatest([
+    this.dailyRotationStoreService.loadRotationItemsForDate(today),
+    this.buildFreshRotationCandidates()
+  ]).pipe(
+    switchMap(([currentItems, freshItems]) => {
+      const usedGoalIds = new Set(
+        currentItems
+          .filter(item => !!item.goalId)
+          .map(item => item.goalId as string)
+      );
+
+      const additionalItems = this.pickAdditionalDailyItems(
+        freshItems,
+        usedGoalIds,
+        3
+      );
+
+      if (additionalItems.length === 0) {
+        return of(currentItems);
+      }
+
+      const updatedItems = [...currentItems, ...additionalItems];
+
+      return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
+        switchMap(latestRotation =>
+          this.saveDailyCompletionSummary(latestRotation).pipe(
+            tap(() => {
+              const decisionEvents =
+                this.buildDailyGenerationDecisionEvents(additionalItems);
+
+              if (decisionEvents.length === 0) {
+                return;
+              }
+
+              this.surfacingDecisionRepository.addEvents(decisionEvents).subscribe({
+                next: () => {},
+                error: () => {}
+              });
+            }),
+            map(() => latestRotation)
+          )
+        )
+      );
+    })
+  );
+}
+
   private getTodayKey(): string {
     return new Date().toISOString().slice(0, 10);
   }
@@ -474,6 +524,64 @@ private buildDailyGenerationDecisionEvents(
         }
       })
     );
+}
+
+private pickAdditionalDailyItems(
+  freshItems: DailyRotationItem[],
+  usedGoalIds: Set<string>,
+  maxItems: number
+): DailyRotationItem[] {
+  const availableItems = freshItems.filter(item =>
+    !!item.goalId && !usedGoalIds.has(item.goalId)
+  );
+
+  const pickOne = (category: DailyRotationItem['category']): DailyRotationItem | null => {
+    const match = availableItems.find(item => item.category === category);
+    if (!match) {
+      return null;
+    }
+
+    usedGoalIds.add(match.goalId ?? '');
+    const index = availableItems.findIndex(item => item.id === match.id);
+    if (index >= 0) {
+      availableItems.splice(index, 1);
+    }
+
+    return match;
+  };
+
+  const selected: DailyRotationItem[] = [];
+
+  const preferredOrder: DailyRotationItem['category'][] = [
+    'momentum',
+    'maintenance',
+    'responsible',
+    'interesting',
+    'fallback'
+  ];
+
+  for (const category of preferredOrder) {
+    if (selected.length >= maxItems) {
+      break;
+    }
+
+    const picked = pickOne(category);
+    if (picked) {
+      selected.push(picked);
+    }
+  }
+
+  while (selected.length < maxItems && availableItems.length > 0) {
+    const next = availableItems.shift();
+    if (next) {
+      if (next.goalId) {
+        usedGoalIds.add(next.goalId);
+      }
+      selected.push(next);
+    }
+  }
+
+  return selected;
 }
 
 
