@@ -1,3 +1,4 @@
+using LifeCopilot.Api.GoalMilestones;
 using LifeCopilot.Api.Models;
 using LifeCopilot.Api.Surfacing;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ public class LifeCopilotDbContext : DbContext
     public DbSet<DailyCompletionSummaryEntity> DailyCompletionSummaries => Set<DailyCompletionSummaryEntity>();
     public DbSet<GoalProgressEventEntity> GoalProgressEvents => Set<GoalProgressEventEntity>();
     public DbSet<SurfacingDecisionEventEntity> SurfacingDecisionEvents => Set<SurfacingDecisionEventEntity>();
+    public DbSet<GoalMilestoneEntity> GoalMilestones => Set<GoalMilestoneEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -211,6 +213,16 @@ public class LifeCopilotDbContext : DbContext
             entity.Property(x => x.Context).IsRequired();
             entity.Property(x => x.GoalTitle).IsRequired();
             entity.Property(x => x.ReasonsJson).IsRequired();
+        });
+
+        modelBuilder.Entity<GoalMilestoneEntity>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Title).IsRequired();
+            entity.Property(x => x.Status).IsRequired();
+
+            entity.HasIndex(x => new { x.UserId, x.GoalId, x.Order });
         });
     }
 }

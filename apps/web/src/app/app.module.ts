@@ -50,6 +50,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { DiagnosticsPageComponent } from './features/diagnostics-page/diagnostics-page.component';
 import { SurfacingDecisionRepository } from './core/repositories/surfacing-decision.repository';
 import { ApiSurfacingDecisionService } from './core/services/api-surfacing-decision.service';
+import { GoalMilestoneRepository } from './core/repositories/goal-milestone.repository';
+import { ApiGoalMilestoneService } from './core/services/api/api-goal-milestone.service';
 
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
@@ -104,6 +106,7 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     {provide: DailyCompletionHistoryRepository, useClass: ApiDailyCompletionHistoryRepository},
     {provide: GoalProgressRepository, useClass: ApiGoalProgressRepository},
     {provide: SurfacingDecisionRepository, useExisting: ApiSurfacingDecisionService},
+    { provide: GoalMilestoneRepository, useExisting: ApiGoalMilestoneService },
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,

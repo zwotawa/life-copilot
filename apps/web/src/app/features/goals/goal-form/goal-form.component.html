@@ -177,36 +177,6 @@
       </section>
 
       <section class="goal-form__section">
-        <h2 class="goal-form__section-title">Progress</h2>
-
-        <div class="goal-form__grid goal-form__grid--two">
-          <mat-form-field appearance="outline">
-            <mat-label>Current Milestone</mat-label>
-            <input
-              matInput
-              name="currentMilestone"
-              [ngModel]="goal.currentMilestone"
-              (ngModelChange)="updateCurrentMilestone($event)"
-              [disabled]="isSaving"
-              type="text"
-            />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Next Tiny Action</mat-label>
-            <input
-              matInput
-              name="nextTinyAction"
-              [ngModel]="goal.nextTinyAction"
-              (ngModelChange)="updateNextTinyAction($event)"
-              [disabled]="isSaving"
-              type="text"
-            />
-          </mat-form-field>
-        </div>
-      </section>
-
-      <section class="goal-form__section">
         <h2 class="goal-form__section-title">Effort & Feel</h2>
 
         <div class="goal-form__grid goal-form__grid--four">

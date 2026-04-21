@@ -6,6 +6,9 @@
       {{ error }}
     </div>
   </div>
+    <div class="goal-detail-page__error" *ngIf="milestoneError">
+      {{ milestoneError }}
+    </div>
 
   <ng-container *ngIf="vm.goal as goal; else goalFallback">
     <app-goal-form [goal]="goal"></app-goal-form>
@@ -61,4 +64,187 @@
       {{ vm.goalState.error }}
     </div>
   </ng-template>
+
+  <section class="goal-milestones" *ngIf="vm.goal?.id">
+    <div class="goal-milestones__header">
+      <h3 class="goal-milestones__title">Milestones</h3>
+      <div class="goal-milestones__count">
+        {{ vm.milestones.length }} milestone{{ vm.milestones.length === 1 ? '' : 's' }}
+      </div>
+    </div>
+
+    <div class="goal-milestones__composer">
+      <mat-form-field appearance="outline" class="goal-milestones__input">
+        <mat-label>New milestone</mat-label>
+        <input
+          matInput
+          [(ngModel)]="newMilestoneTitle"
+          name="newMilestoneTitle"
+          placeholder="Add the next milestone..."
+        />
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="addMilestone(vm.goal, vm.milestones)"
+        [disabled]="!newMilestoneTitle.trim() || isSavingMilestone"
+      >
+        Add Milestone
+      </button>
+    </div>
+
+    <div class="goal-milestones__loading" *ngIf="vm.milestonesState.loading">
+      Loading milestones...
+    </div>
+
+    <div class="goal-milestones__empty" *ngIf="!vm.milestonesState.loading && vm.milestones.length === 0">
+      No milestones yet. Add one to start shaping this goal.
+    </div>
+
+    <div class="goal-milestones__list" *ngIf="!vm.milestonesState.loading && vm.milestones.length > 0">
+  <article
+    class="goal-milestone"
+    *ngFor="let milestone of vm.milestones; trackBy: trackByMilestoneId"
+    [class.goal-milestone--active]="milestone.status === 'active'"
+    [class.goal-milestone--completed]="milestone.status === 'completed'"
+  >
+    <ng-container *ngIf="!isEditingMilestone(milestone.id); else editMilestoneBlock">
+      <div class="goal-milestone__header">
+        <div class="goal-milestone__header-main">
+          <div class="goal-milestone__title-row">
+            <div class="goal-milestone__title">{{ milestone.title }}</div>
+            <div
+              class="goal-milestone__status"
+              [class.goal-milestone__status--active]="milestone.status === 'active'"
+              [class.goal-milestone__status--completed]="milestone.status === 'completed'"
+              [class.goal-milestone__status--not-started]="milestone.status === 'not_started'"
+            >
+              {{ getMilestoneStatusLabel(milestone.status) }}
+            </div>
+          </div>
+
+          <div class="goal-milestone__meta">
+            Step {{ milestone.order + 1 }}
+            <ng-container *ngIf="milestone.completedAt">
+              · Completed {{ milestone.completedAt | date:'mediumDate' }}
+            </ng-container>
+          </div>
+        </div>
+
+        <div class="goal-milestone__reorder">
+          <button
+            mat-icon-button
+            type="button"
+            (click)="moveMilestoneUp(vm.goal, milestone, vm.milestones)"
+            [disabled]="milestone.order === 0 || isSavingMilestone"
+            aria-label="Move milestone up"
+          >
+            <mat-icon>arrow_upward</mat-icon>
+          </button>
+
+          <button
+            mat-icon-button
+            type="button"
+            (click)="moveMilestoneDown(vm.goal, milestone, vm.milestones)"
+            [disabled]="milestone.order === vm.milestones.length - 1 || isSavingMilestone"
+            aria-label="Move milestone down"
+          >
+            <mat-icon>arrow_downward</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="goal-milestone__notes" *ngIf="milestone.notes">
+        {{ milestone.notes }}
+      </div>
+
+      <div class="goal-milestone__actions">
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="startEditingMilestone(milestone)"
+          [disabled]="isSavingMilestone"
+        >
+          Edit
+        </button>
+
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="setActiveMilestone(vm.goal, milestone, vm.milestones)"
+          [disabled]="milestone.status === 'active' || milestone.status === 'completed' || isSavingMilestone"
+        >
+          Set Active
+        </button>
+
+        <button
+          mat-stroked-button
+          color="primary"
+          type="button"
+          (click)="completeMilestone(vm.goal, milestone, vm.milestones)"
+          [disabled]="milestone.status === 'completed' || isSavingMilestone"
+        >
+          Complete
+        </button>
+
+        <button
+          mat-button
+          color="warn"
+          type="button"
+          (click)="deleteMilestone(milestone)"
+          [disabled]="isDeletingMilestone(milestone.id)"
+        >
+          Delete
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-template #editMilestoneBlock>
+      <div class="goal-milestone__edit">
+        <mat-form-field appearance="outline" class="goal-milestone__edit-field">
+          <mat-label>Milestone title</mat-label>
+          <input
+            matInput
+            [(ngModel)]="editingMilestoneTitle"
+            name="editingMilestoneTitle"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="goal-milestone__edit-field">
+          <mat-label>Notes</mat-label>
+          <textarea
+            matInput
+            rows="3"
+            [(ngModel)]="editingMilestoneNotes"
+            name="editingMilestoneNotes"
+          ></textarea>
+        </mat-form-field>
+
+        <div class="goal-milestone__actions">
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="saveMilestoneEdits(vm.goal, milestone)"
+            [disabled]="!editingMilestoneTitle.trim() || isSavingMilestone"
+          >
+            Save
+          </button>
+
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="cancelEditingMilestone()"
+            [disabled]="isSavingMilestone"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </article>
+</div>
+  </section>
 </div>

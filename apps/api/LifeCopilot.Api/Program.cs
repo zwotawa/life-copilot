@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using LifeCopilot.Api.Common;
 using Microsoft.AspNetCore.Diagnostics;
 using LifeCopilot.Api.Surfacing;
+using LifeCopilot.Api.GoalMilestones;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,6 +105,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<PasswordHasher<UserEntity>>();
 builder.Services.AddScoped<ISurfacingDecisionService, SurfacingDecisionService>();
+builder.Services.AddScoped<IGoalMilestoneService, GoalMilestoneService>();
 
 var app = builder.Build();
 
@@ -1098,6 +1100,66 @@ authenticatedApi.MapPost("/surfacing-decisions/batch", async (
     var userId = GetCurrentUserId(user);
     var created = await surfacingDecisionService.AddEventsAsync(userId ?? Guid.Empty, dtos);
     return Results.Ok(created);
+});
+
+authenticatedApi.MapGet("/goal-milestones/goal/{goalId}", async (
+    ClaimsPrincipal user,
+    string goalId,
+    IGoalMilestoneService goalMilestoneService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var parsedGoalId = Guid.Parse(goalId);
+
+    var milestones = await goalMilestoneService.GetMilestonesForGoalAsync(userId ?? Guid.Empty, parsedGoalId);
+    return Results.Ok(milestones);
+});
+
+authenticatedApi.MapPost("/goal-milestones", async (
+    ClaimsPrincipal user,
+    GoalMilestoneDto dto,
+    IGoalMilestoneService goalMilestoneService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var created = await goalMilestoneService.AddMilestoneAsync(userId ?? Guid.Empty, dto);
+    return Results.Ok(created);
+});
+
+authenticatedApi.MapPut("goal-milestones/{id}", async (
+    ClaimsPrincipal user,
+    string id,
+    GoalMilestoneDto dto,
+    IGoalMilestoneService goalMilestoneService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var milestoneId = Guid.Parse(id);
+
+    var updated = await goalMilestoneService.UpdateMilestoneAsync(userId ?? Guid.Empty, milestoneId, dto);
+    return Results.Ok(updated);
+});
+
+authenticatedApi.MapDelete("goal-milestones/{id}", async (
+    ClaimsPrincipal user,
+    string id,
+    IGoalMilestoneService goalMilestoneService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var milestoneId = Guid.Parse(id);
+
+    await goalMilestoneService.DeleteMilestoneAsync(userId ?? Guid.Empty, milestoneId);
+    return Results.NoContent();
+});
+
+authenticatedApi.MapPut("goal-milestones/goal/{goalId}/reorder", async (
+    ClaimsPrincipal user,
+    string goalId,
+    List<GoalMilestoneDto> milestones,
+    IGoalMilestoneService goalMilestoneService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var parsedGoalId = Guid.Parse(goalId);
+
+    var updated = await goalMilestoneService.ReorderMilestonesAsync(userId ?? Guid.Empty, parsedGoalId, milestones);
+    return Results.Ok(updated);
 });
 
 app.Run();

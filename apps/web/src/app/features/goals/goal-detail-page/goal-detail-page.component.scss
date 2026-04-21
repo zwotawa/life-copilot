@@ -155,3 +155,190 @@
   color: #475569;
   background: #e2e8f0;
 }
+
+.goal-milestones {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border: 1px solid #d8dee9;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.goal-milestones__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.goal-milestones__title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.goal-milestones__count {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+  background: #eef2ff;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+}
+
+.goal-milestones__composer {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.goal-milestones__input {
+  flex: 1;
+}
+
+.goal-milestones__loading,
+.goal-milestones__empty {
+  padding: 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-style: italic;
+}
+
+.goal-milestones__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.goal-milestone {
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.goal-milestone--active {
+  border-color: #93c5fd;
+  background: linear-gradient(to bottom, #ffffff, #eff6ff);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.08);
+}
+
+.goal-milestone--completed {
+  border-color: #bbf7d0;
+  background: linear-gradient(to bottom, #ffffff, #f0fdf4);
+}
+
+.goal-milestone__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 0.6rem;
+}
+
+.goal-milestone__header-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.goal-milestone__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.goal-milestone__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.goal-milestone__status {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.goal-milestone__status--active {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.goal-milestone__status--completed {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.goal-milestone__status--not-started {
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.goal-milestone__meta {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.goal-milestone__notes {
+  font-size: 0.95rem;
+  color: #334155;
+  line-height: 1.55;
+  margin-bottom: 0.75rem;
+  white-space: pre-wrap;
+}
+
+.goal-milestone__reorder {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.goal-milestone__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.goal-milestone__edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.goal-milestone__edit-field {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .goal-milestones {
+    padding: 1rem;
+  }
+
+  .goal-milestones__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .goal-milestones__composer {
+    flex-direction: column;
+  }
+
+  .goal-milestone__header {
+    flex-direction: column;
+  }
+
+  .goal-milestone__reorder {
+    align-self: flex-end;
+  }
+}
