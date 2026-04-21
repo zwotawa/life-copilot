@@ -12,15 +12,21 @@ import { Loadable } from 'src/app/core/models/loadable.model';
 import { GoalMilestoneStoreService } from 'src/app/core/services/goal-milestone-store.service';
 import { createGoalMilestone } from 'src/app/core/utils/create-goal-milestone';
 import { GoalMilestone } from 'src/app/core/models/goal-milestone.model';
+import { GoalTinyTaskStoreService } from 'src/app/core/services/goal-tiny-task-store.service';
+import { GoalTinyTask } from 'src/app/core/models/goal-tiny-task.model';
+import { createGoalTinyTask } from 'src/app/core/utils/create-goal-tiny-task';
 
 interface GoalDetailViewModel {
   goalState: Loadable<Goal>;
   progressEventsState: Loadable<GoalProgressEvent[]>;
   milestonesState: Loadable<GoalMilestone[]>;
+  tinyTasksState: Loadable<GoalTinyTask[]>;
 
   goal: Goal | null;
   progressEvents: GoalProgressEvent[];
   milestones: GoalMilestone[];
+  activeMilestone: GoalMilestone | null;
+  tinyTasks: GoalTinyTask[];
 
   isNewGoal: boolean;
   pageLoading: boolean;
@@ -46,8 +52,16 @@ export class GoalDetailPageComponent {
   public editingMilestoneTitle = '';
   public editingMilestoneNotes = '';
 
+  public newTinyTaskTitle = '';
+  public isSavingTinyTask = false;
+  public deletingTinyTaskIds = new Set<string>();
+  public tinyTaskError: string | null = null;
+
   private readonly milestoneReloadSubject = new BehaviorSubject<void>(undefined);
   public readonly milestoneReload$ = this.milestoneReloadSubject.asObservable();
+
+  private readonly tinyTaskReloadSubject = new BehaviorSubject<void>(undefined);
+  public readonly tinyTaskReload$ = this.tinyTaskReloadSubject.asObservable();
 
   public canDeactivate(): boolean {
     if (!this.goalFormComponent) {
@@ -170,45 +184,98 @@ export class GoalDetailPageComponent {
     shareReplay(1)
   );
 
+  public readonly activeMilestone$: Observable<GoalMilestone | null> = this.milestonesState$.pipe(
+    map(milestonesState => {
+      const milestones = milestonesState.data ?? [];
+      return milestones.find(m => m.status === 'active') ?? null;
+    }),
+    shareReplay(1)
+  );
+
+  public readonly tinyTasksState$: Observable<Loadable<GoalTinyTask[]>> = combineLatest([
+    this.activeMilestone$,
+    this.tinyTaskReload$
+  ]).pipe(
+    switchMap(([activeMilestone]) => {
+      if (!activeMilestone?.id) {
+        return of({
+          loading: false,
+          data: [],
+          error: null
+        });
+      }
+
+      return this.goalTinyTaskStoreService.getTasksForMilestone(activeMilestone.id).pipe(
+        map(tasks => ({
+          loading: false,
+          data: [...tasks].sort((a, b) => a.order - b.order),
+          error: null
+        })),
+        startWith({
+          loading: true,
+          data: null,
+          error: null
+        }),
+        catchError(() =>
+          of({
+            loading: false,
+            data: [],
+            error: 'Could not load tiny tasks.'
+          })
+        )
+      );
+    }),
+    shareReplay(1)
+  );
+
   public readonly vm$: Observable<GoalDetailViewModel> = combineLatest([
-  this.goalId$,
-  this.goalState$,
-  this.progressEventsState$,
-  this.milestonesState$
-]).pipe(
-  map(([goalId, goalState, progressEventsState, milestonesState]) => {
-    const pageErrorMessages = [
-      goalState.error,
-      progressEventsState.error,
-      milestonesState.error,
-      this.milestoneError
-    ].filter((message): message is string => !!message);
+    this.goalId$,
+    this.goalState$,
+    this.progressEventsState$,
+    this.milestonesState$,
+    this.activeMilestone$,
+    this.tinyTasksState$
+  ]).pipe(
+    map(([goalId, goalState, progressEventsState, milestonesState, activeMilestone, tinyTasksState]) => {
+      const pageErrorMessages = [
+        goalState.error,
+        progressEventsState.error,
+        milestonesState.error,
+        tinyTasksState.error,
+        this.milestoneError,
+        this.tinyTaskError
+      ].filter((message): message is string => !!message);
 
-    return {
-      goalState,
-      progressEventsState,
-      milestonesState,
+      return {
+        goalState,
+        progressEventsState,
+        milestonesState,
+        tinyTasksState,
 
-      goal: goalState.data,
-      progressEvents: progressEventsState.data ?? [],
-      milestones: milestonesState.data ?? [],
+        goal: goalState.data,
+        progressEvents: progressEventsState.data ?? [],
+        milestones: milestonesState.data ?? [],
+        activeMilestone,
+        tinyTasks: tinyTasksState.data ?? [],
 
-      isNewGoal: goalId === 'new',
-      pageLoading:
-        goalState.loading ||
-        progressEventsState.loading ||
-        milestonesState.loading,
-      pageErrorMessages
-    };
-  }),
-  shareReplay(1)
-);
+        isNewGoal: goalId === 'new',
+        pageLoading:
+          goalState.loading ||
+          progressEventsState.loading ||
+          milestonesState.loading ||
+          tinyTasksState.loading,
+        pageErrorMessages
+      };
+    }),
+    shareReplay(1)
+  );
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly goalStoreService: GoalStoreService,
     private readonly goalProgressStoreService: GoalProgressStoreService,
-    private readonly goalMilestoneStoreService: GoalMilestoneStoreService
+    private readonly goalMilestoneStoreService: GoalMilestoneStoreService,
+    private goalTinyTaskStoreService: GoalTinyTaskStoreService
   ) {
 
    }
@@ -452,6 +519,82 @@ export class GoalDetailPageComponent {
     this.moveMilestone(goal, milestone, milestones, 1);
   }
 
+  public addTinyTask(goal: Goal | null, activeMilestone: GoalMilestone | null, tinyTasks: GoalTinyTask[]): void {
+    const title = this.newTinyTaskTitle.trim();
+
+    if (!goal?.id || !activeMilestone?.id || !title || this.isSavingTinyTask) {
+      return;
+    }
+
+    this.isSavingTinyTask = true;
+    this.tinyTaskError = null;
+
+    const task = createGoalTinyTask(
+      goal.id,
+      activeMilestone.id,
+      title,
+      tinyTasks.length
+    );
+
+    this.goalTinyTaskStoreService.addTask(task).subscribe({
+      next: () => {
+        this.newTinyTaskTitle = '';
+        this.isSavingTinyTask = false;
+        this.tinyTaskReloadSubject.next();
+      },
+      error: () => {
+        this.tinyTaskError = 'Could not add tiny task.';
+        this.isSavingTinyTask = false;
+      }
+    });
+  }
+
+  public completeTinyTask(task: GoalTinyTask): void {
+    if (this.isSavingTinyTask) {
+      return;
+    }
+
+    this.isSavingTinyTask = true;
+    this.tinyTaskError = null;
+
+    const updatedTask: GoalTinyTask = {
+      ...task,
+      status: 'completed',
+      completedAt: new Date().toISOString()
+    };
+
+    this.goalTinyTaskStoreService.updateTask(updatedTask).subscribe({
+      next: () => {
+        this.isSavingTinyTask = false;
+        this.tinyTaskReloadSubject.next();
+      },
+      error: () => {
+        this.tinyTaskError = 'Could not complete tiny task.';
+        this.isSavingTinyTask = false;
+      }
+    });
+  }
+
+  public deleteTinyTask(task: GoalTinyTask): void {
+    if (this.deletingTinyTaskIds.has(task.id)) {
+      return;
+    }
+
+    this.deletingTinyTaskIds.add(task.id);
+    this.tinyTaskError = null;
+
+    this.goalTinyTaskStoreService.deleteTask(task.id).subscribe({
+      next: () => {
+        this.deletingTinyTaskIds.delete(task.id);
+        this.tinyTaskReloadSubject.next();
+      },
+      error: () => {
+        this.tinyTaskError = 'Could not delete tiny task.';
+        this.deletingTinyTaskIds.delete(task.id);
+      }
+    });
+  }
+
   private moveMilestone(
     goal: Goal | null,
     milestone: GoalMilestone,
@@ -500,5 +643,13 @@ export class GoalDetailPageComponent {
 
   public isEditingMilestone(milestoneId: string): boolean {
     return this.editingMilestoneId === milestoneId;
+  }
+
+  public trackByTinyTaskId(index: number, task: GoalTinyTask): string {
+    return task.id;
+  }
+
+  public isDeletingTinyTask(taskId: string): boolean {
+    return this.deletingTinyTaskIds.has(taskId);
   }
 }

@@ -320,6 +320,101 @@
   width: 100%;
 }
 
+.goal-tiny-tasks {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.goal-tiny-tasks__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.goal-tiny-tasks__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.goal-tiny-tasks__count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+}
+
+.goal-tiny-tasks__composer {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.goal-tiny-tasks__input {
+  flex: 1;
+}
+
+.goal-tiny-tasks__loading,
+.goal-tiny-tasks__empty {
+  padding: 0.75rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-style: italic;
+}
+
+.goal-tiny-tasks__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.goal-tiny-task {
+  padding: 0.85rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.goal-tiny-task--completed {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  opacity: 0.8;
+}
+
+.goal-tiny-task__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+}
+
+.goal-tiny-task__meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.goal-tiny-task__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .goal-tiny-tasks__composer {
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 640px) {
   .goal-milestones {
     padding: 1rem;

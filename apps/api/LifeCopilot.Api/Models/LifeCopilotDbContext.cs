@@ -1,4 +1,5 @@
 using LifeCopilot.Api.GoalMilestones;
+using LifeCopilot.Api.GoalTinyTasks;
 using LifeCopilot.Api.Models;
 using LifeCopilot.Api.Surfacing;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ public class LifeCopilotDbContext : DbContext
     public DbSet<GoalProgressEventEntity> GoalProgressEvents => Set<GoalProgressEventEntity>();
     public DbSet<SurfacingDecisionEventEntity> SurfacingDecisionEvents => Set<SurfacingDecisionEventEntity>();
     public DbSet<GoalMilestoneEntity> GoalMilestones => Set<GoalMilestoneEntity>();
+    public DbSet<GoalTinyTaskEntity> GoalTinyTasks => Set<GoalTinyTaskEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -223,6 +225,16 @@ public class LifeCopilotDbContext : DbContext
             entity.Property(x => x.Status).IsRequired();
 
             entity.HasIndex(x => new { x.UserId, x.GoalId, x.Order });
+        });
+
+        modelBuilder.Entity<GoalTinyTaskEntity>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Title).IsRequired();
+            entity.Property(x => x.Status).IsRequired();
+
+            entity.HasIndex(x => new { x.UserId, x.MilestoneId, x.Order });
         });
     }
 }

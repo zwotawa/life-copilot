@@ -15,6 +15,7 @@ using LifeCopilot.Api.Common;
 using Microsoft.AspNetCore.Diagnostics;
 using LifeCopilot.Api.Surfacing;
 using LifeCopilot.Api.GoalMilestones;
+using LifeCopilot.Api.GoalTinyTasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,6 +107,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<PasswordHasher<UserEntity>>();
 builder.Services.AddScoped<ISurfacingDecisionService, SurfacingDecisionService>();
 builder.Services.AddScoped<IGoalMilestoneService, GoalMilestoneService>();
+builder.Services.AddScoped<IGoalTinyTaskService, GoalTinyTaskService>();
 
 var app = builder.Build();
 
@@ -1160,6 +1162,53 @@ authenticatedApi.MapPut("goal-milestones/goal/{goalId}/reorder", async (
 
     var updated = await goalMilestoneService.ReorderMilestonesAsync(userId ?? Guid.Empty, parsedGoalId, milestones);
     return Results.Ok(updated);
+});
+
+authenticatedApi.MapGet("/goal-tiny-tasks/milestone/{milestoneId}", async (
+    ClaimsPrincipal user,
+    string milestoneId,
+    IGoalTinyTaskService goalTinyTaskService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var parsedMilestoneId = Guid.Parse(milestoneId);
+
+    var tasks = await goalTinyTaskService.GetTasksForMilestoneAsync(userId ?? Guid.Empty, parsedMilestoneId);
+    return Results.Ok(tasks);
+});
+
+authenticatedApi.MapPost("/goal-tiny-tasks", async (
+    ClaimsPrincipal user,
+    GoalTinyTaskDto dto,
+    IGoalTinyTaskService goalTinyTaskService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var created = await goalTinyTaskService.AddTaskAsync(userId ?? Guid.Empty, dto);
+    return Results.Ok(created);
+});
+
+authenticatedApi.MapPut("/goal-tiny-tasks/{id}", async (
+    ClaimsPrincipal user,
+    string id,
+    GoalTinyTaskDto dto,
+    IGoalTinyTaskService goalTinyTaskService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var taskId = Guid.Parse(id);
+
+    var updated = await goalTinyTaskService.UpdateTaskAsync(userId ?? Guid.Empty, taskId, dto);
+    return Results.Ok(updated);
+});
+
+authenticatedApi.MapDelete("/goal-tiny-tasks/{id}", async (
+    ClaimsPrincipal user,
+    string id,
+    IGoalTinyTaskService goalTinyTaskService) =>
+{
+    var userId = GetCurrentUserId(user);
+    var taskId = Guid.Parse(id);
+
+    await goalTinyTaskService.DeleteTaskAsync(userId ?? Guid.Empty, taskId);
+    return Results.NoContent();
 });
 
 app.Run();

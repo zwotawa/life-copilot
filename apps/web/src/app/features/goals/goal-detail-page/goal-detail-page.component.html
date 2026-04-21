@@ -160,6 +160,86 @@
         {{ milestone.notes }}
       </div>
 
+      <div
+        class="goal-tiny-tasks"
+        *ngIf="milestone.status === 'active' && vm.activeMilestone?.id === milestone.id"
+      >
+        <div class="goal-tiny-tasks__header">
+          <h4 class="goal-tiny-tasks__title">Tiny Tasks</h4>
+          <div class="goal-tiny-tasks__count">
+            {{ vm.tinyTasks.length }} task{{ vm.tinyTasks.length === 1 ? '' : 's' }}
+          </div>
+        </div>
+
+        <div class="goal-tiny-tasks__composer">
+          <mat-form-field appearance="outline" class="goal-tiny-tasks__input">
+            <mat-label>New tiny task</mat-label>
+            <input
+              matInput
+              [(ngModel)]="newTinyTaskTitle"
+              name="newTinyTaskTitle"
+              placeholder="Add the next tiny step..."
+            />
+          </mat-form-field>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="addTinyTask(vm.goal, vm.activeMilestone, vm.tinyTasks)"
+            [disabled]="!newTinyTaskTitle.trim() || isSavingTinyTask"
+          >
+            Add Task
+          </button>
+        </div>
+
+        <div class="goal-tiny-tasks__loading" *ngIf="vm.tinyTasksState.loading">
+          Loading tiny tasks...
+        </div>
+
+        <div class="goal-tiny-tasks__empty" *ngIf="!vm.tinyTasksState.loading && vm.tinyTasks.length === 0">
+          No tiny tasks yet. Add one to define the next concrete move.
+        </div>
+
+        <div class="goal-tiny-tasks__list" *ngIf="!vm.tinyTasksState.loading && vm.tinyTasks.length > 0">
+          <article
+            class="goal-tiny-task"
+            *ngFor="let task of vm.tinyTasks; trackBy: trackByTinyTaskId"
+            [class.goal-tiny-task--completed]="task.status === 'completed'"
+          >
+            <div class="goal-tiny-task__title">
+              {{ task.title }}
+            </div>
+
+            <div class="goal-tiny-task__meta" *ngIf="task.completedAt">
+              Completed {{ task.completedAt | date:'mediumDate' }}
+            </div>
+
+            <div class="goal-tiny-task__actions">
+              <button
+                mat-stroked-button
+                color="primary"
+                type="button"
+                (click)="completeTinyTask(task)"
+                [disabled]="task.status === 'completed' || isSavingTinyTask"
+              >
+                Complete
+              </button>
+
+              <button
+                mat-button
+                color="warn"
+                type="button"
+                (click)="deleteTinyTask(task)"
+                [disabled]="isDeletingTinyTask(task.id)"
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        </div>
+      </div>
+
       <div class="goal-milestone__actions">
         <button
           mat-stroked-button

@@ -52,6 +52,8 @@ import { SurfacingDecisionRepository } from './core/repositories/surfacing-decis
 import { ApiSurfacingDecisionService } from './core/services/api-surfacing-decision.service';
 import { GoalMilestoneRepository } from './core/repositories/goal-milestone.repository';
 import { ApiGoalMilestoneService } from './core/services/api/api-goal-milestone.service';
+import { GoalTinyTaskRepository } from './core/repositories/goal-tiny-task.repository';
+import { ApiGoalTinyTaskService } from './core/services/api/api-goal-tiny-task.service';
 
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
@@ -107,6 +109,7 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     {provide: GoalProgressRepository, useClass: ApiGoalProgressRepository},
     {provide: SurfacingDecisionRepository, useExisting: ApiSurfacingDecisionService},
     { provide: GoalMilestoneRepository, useExisting: ApiGoalMilestoneService },
+    { provide: GoalTinyTaskRepository, useExisting: ApiGoalTinyTaskService },
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,
