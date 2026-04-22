@@ -595,6 +595,37 @@ export class GoalDetailPageComponent {
     });
   }
 
+  public getCompletedTinyTaskCount(tasks: GoalTinyTask[]): number {
+    return tasks.filter(task => task.status === 'completed').length;
+  }
+
+  public getRemainingTinyTaskCount(tasks: GoalTinyTask[]): number {
+    return tasks.filter(task => task.status !== 'completed').length;
+  }
+
+  public getTinyTaskCompletionPercent(tasks: GoalTinyTask[]): number {
+    if (tasks.length === 0) {
+      return 0;
+    }
+
+    return Math.round((this.getCompletedTinyTaskCount(tasks) / tasks.length) * 100);
+  }
+
+  public shouldShowMilestoneReadyForReview(
+    activeMilestone: GoalMilestone | null,
+    tasks: GoalTinyTask[]
+  ): boolean {
+    if (!activeMilestone || activeMilestone.status !== 'active') {
+      return false;
+    }
+
+    if (tasks.length === 0) {
+      return false;
+    }
+
+    return this.getRemainingTinyTaskCount(tasks) === 0;
+  }
+
   private moveMilestone(
     goal: Goal | null,
     milestone: GoalMilestone,
@@ -639,6 +670,18 @@ export class GoalDetailPageComponent {
         this.isSavingMilestone = false;
       }
     });
+  }
+
+  public getCompletedMilestoneCount(milestones: GoalMilestone[]): number {
+    return milestones.filter(m => m.status === 'completed').length;
+  }
+
+  public getMilestoneCompletionPercent(milestones: GoalMilestone[]): number {
+    if (milestones.length === 0) {
+      return 0;
+    }
+
+    return Math.round((this.getCompletedMilestoneCount(milestones) / milestones.length) * 100);
   }
 
   public isEditingMilestone(milestoneId: string): boolean {

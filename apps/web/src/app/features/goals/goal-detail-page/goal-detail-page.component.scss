@@ -228,6 +228,13 @@
   border-color: #93c5fd;
   background: linear-gradient(to bottom, #ffffff, #eff6ff);
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.08);
+
+  .goal-milestone__title {
+    font-size: 1rem;
+    font-weight: 8000;
+    color: #6184d7;
+    line-height: 1.4;
+  }
 }
 
 .goal-milestone--completed {
@@ -435,5 +442,111 @@
 
   .goal-milestone__reorder {
     align-self: flex-end;
+  }
+}
+
+.goal-milestones__summary {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+}
+
+.goal-milestones__summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.goal-milestones__summary-stat {
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.goal-milestones__summary-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.goal-milestones__summary-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.goal-milestones__progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.goal-milestones__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(to right, #60a5fa, #2563eb);
+}
+
+.goal-tiny-tasks__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.goal-tiny-tasks__summary-stat {
+  padding: 0.7rem 0.8rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.goal-tiny-tasks__summary-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.2rem;
+}
+
+.goal-tiny-tasks__summary-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.goal-tiny-tasks__progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.goal-tiny-tasks__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(to right, #34d399, #059669);
+}
+
+.goal-tiny-tasks__review-cue {
+  margin-bottom: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .goal-milestones__summary-stats,
+  .goal-tiny-tasks__summary {
+    grid-template-columns: 1fr;
   }
 }

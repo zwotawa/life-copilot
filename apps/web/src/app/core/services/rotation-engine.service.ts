@@ -389,7 +389,7 @@ private toRotationItem(
     }
 
     if (executionContext?.activeMilestoneTitle?.trim()) {
-      return `Break down the next step for milestone: ${executionContext.activeMilestoneTitle.trim()}`;
+      return `Add the next tiny task for milestone: ${executionContext.activeMilestoneTitle.trim()} — or mark it complete if it’s done`;
     }
 
     return 'Break this goal into a milestone and a tiny next step';

@@ -73,6 +73,38 @@
       </div>
     </div>
 
+    <div class="goal-milestones__summary" *ngIf="vm.milestones.length > 0">
+  <div class="goal-milestones__summary-stats">
+    <div class="goal-milestones__summary-stat">
+      <div class="goal-milestones__summary-label">Milestones completed</div>
+      <div class="goal-milestones__summary-value">
+        {{ getCompletedMilestoneCount(vm.milestones) }} / {{ vm.milestones.length }}
+      </div>
+    </div>
+
+    <div class="goal-milestones__summary-stat">
+      <div class="goal-milestones__summary-label">Current milestone</div>
+      <div class="goal-milestones__summary-value">
+        {{ vm.activeMilestone?.title || 'No active milestone' }}
+      </div>
+    </div>
+
+    <div class="goal-milestones__summary-stat">
+      <div class="goal-milestones__summary-label">Progress</div>
+      <div class="goal-milestones__summary-value">
+        {{ getMilestoneCompletionPercent(vm.milestones) }}%
+      </div>
+    </div>
+  </div>
+
+  <div class="goal-milestones__progress-bar">
+      <div
+        class="goal-milestones__progress-fill"
+        [style.width.%]="getMilestoneCompletionPercent(vm.milestones)"
+      ></div>
+    </div>
+  </div>
+
     <div class="goal-milestones__composer">
       <mat-form-field appearance="outline" class="goal-milestones__input">
         <mat-label>New milestone</mat-label>
@@ -169,6 +201,43 @@
           <div class="goal-tiny-tasks__count">
             {{ vm.tinyTasks.length }} task{{ vm.tinyTasks.length === 1 ? '' : 's' }}
           </div>
+        </div>
+
+        <div class="goal-tiny-tasks__summary" *ngIf="vm.activeMilestone?.id === milestone.id">
+          <div class="goal-tiny-tasks__summary-stat">
+            <div class="goal-tiny-tasks__summary-label">Completed</div>
+            <div class="goal-tiny-tasks__summary-value">
+              {{ getCompletedTinyTaskCount(vm.tinyTasks) }} / {{ vm.tinyTasks.length }}
+            </div>
+          </div>
+
+          <div class="goal-tiny-tasks__summary-stat">
+            <div class="goal-tiny-tasks__summary-label">Remaining</div>
+            <div class="goal-tiny-tasks__summary-value">
+              {{ getRemainingTinyTaskCount(vm.tinyTasks) }}
+            </div>
+          </div>
+
+          <div class="goal-tiny-tasks__summary-stat">
+            <div class="goal-tiny-tasks__summary-label">Progress</div>
+            <div class="goal-tiny-tasks__summary-value">
+              {{ getTinyTaskCompletionPercent(vm.tinyTasks) }}%
+            </div>
+          </div>
+        </div>
+
+        <div class="goal-tiny-tasks__progress-bar" *ngIf="vm.tinyTasks.length > 0">
+          <div
+            class="goal-tiny-tasks__progress-fill"
+            [style.width.%]="getTinyTaskCompletionPercent(vm.tinyTasks)"
+          ></div>
+        </div>
+
+        <div
+          class="goal-tiny-tasks__review-cue"
+          *ngIf="shouldShowMilestoneReadyForReview(vm.activeMilestone, vm.tinyTasks)"
+        >
+          All current tiny tasks are complete. Add another tiny task or mark this milestone complete.
         </div>
 
         <div class="goal-tiny-tasks__composer">
