@@ -178,15 +178,13 @@ export class PlanningWorkflowService {
               const decisionEvents =
                 this.buildDailyGenerationDecisionEvents(generatedItems);
 
-              console.log('daily generation decisionEvents', decisionEvents);
-
               if (decisionEvents.length === 0) {
                 return;
               }
 
               this.surfacingDecisionRepository.addEvents(decisionEvents).subscribe({
-                next: () => console.log('daily generation events saved'),
-                error: err => console.error('daily generation events failed', err)
+                next: () => {},
+                error: err => {}
               });
             }),
             map(() => latestRotation)
@@ -242,7 +240,11 @@ export class PlanningWorkflowService {
                 source: 'daily_rotation',
                 sourceItemId: target.id
               }).pipe(
-                switchMap(() => persistUpdatedItems())
+                switchMap(() => {
+                  return this.completeLinkedTinyTask(target).pipe(
+                    switchMap(() => persistUpdatedItems())
+                  );
+                })
               )
             })
           );
@@ -256,7 +258,9 @@ export class PlanningWorkflowService {
             }
 
             return this.goalProgressStoreService.deleteEvent(existingEvent.id).pipe(
-              switchMap(() => persistUpdatedItems())
+              switchMap(() => this.uncompleteLinkedTinyTask(target).pipe(
+                switchMap(() => persistUpdatedItems())
+              ))
             )
           })
         )
@@ -657,6 +661,52 @@ private loadTinyTasksForMilestones(milestones: GoalMilestone[]): Observable<Goal
     milestoneIds.map(milestoneId => this.goalTinyTaskStoreService.getTasksForMilestone(milestoneId))
   ).pipe(
     map(results => results.flat())
+  );
+}
+
+private completeLinkedTinyTask(item: DailyRotationItem): Observable<void> {
+  if (!item.tinyTaskId || !item.milestoneId) {
+    return of(void 0);
+  }
+
+  return this.goalTinyTaskStoreService.getTasksForMilestone(item.milestoneId!).pipe(
+    map(tasks => tasks.find(task => task.id === item.tinyTaskId) ?? null),
+    switchMap(task => {
+      if (!task || task.status === 'completed') {
+        return of(void 0);
+      }
+
+      return this.goalTinyTaskStoreService.updateTask({
+        ...task,
+        status: 'completed',
+        completedAt: new Date().toISOString()
+      }).pipe(
+        map(() => void 0)
+      );
+    })
+  );
+}
+
+private uncompleteLinkedTinyTask(item: DailyRotationItem): Observable<void> {
+  if (!item.tinyTaskId || !item.milestoneId) {
+    return of(void 0);
+  }
+
+  return this.goalTinyTaskStoreService.getTasksForMilestone(item.milestoneId!).pipe(
+    map(tasks => tasks.find(task => task.id === item.tinyTaskId) ?? null),
+    switchMap(task => {
+      if (!task || task.status !== 'completed') {
+        return of(void 0);
+      }
+
+      return this.goalTinyTaskStoreService.updateTask({
+        ...task,
+        status: 'not_started',
+        completedAt: null
+      }).pipe(
+        map(() => void 0)
+      );
+    })
   );
 }
 

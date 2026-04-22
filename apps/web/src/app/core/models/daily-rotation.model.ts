@@ -16,4 +16,7 @@ export interface DailyRotationItem {
   completed: boolean;
   surfacingScore?: number | null;
   surfacingReasons?: string[];
+
+  milestoneId?: string | null;
+  tinyTaskId?: string | null;
 }

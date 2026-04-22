@@ -12,4 +12,6 @@ public class DailyRotationItemDto
     public bool Completed { get; set; }
     public double? SurfacingScore { get; set; }
     public List<string>? SurfacingReasons { get; set; }
+    public string? MilestoneId { get; init; }
+    public string? TinyTaskId { get; init; }
 }

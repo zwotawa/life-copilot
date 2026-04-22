@@ -220,7 +220,9 @@ private toRotationItem(
     surfacingScore: candidate?.score ?? null,
     surfacingReasons: candidate
       ? this.formatSurfacingReasons(candidate.reasons).slice(0, 3)
-      : []
+      : [],
+    milestoneId: executionContext?.activeMilestoneId ?? null,
+    tinyTaskId: executionContext?.nextTinyTaskId ?? null
   };
 }
 

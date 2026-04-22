@@ -7,31 +7,33 @@ import { GoalExecutionContext } from '../models/goal-execution-context.model';
   providedIn: 'root'
 })
 export class GoalExecutionContextService {
-  public buildExecutionContextByGoalId(
-    milestones: GoalMilestone[],
-    tinyTasks: GoalTinyTask[]
-  ): Record<string, GoalExecutionContext> {
-    const contextByGoalId: Record<string, GoalExecutionContext> = {};
+    public buildExecutionContextByGoalId(
+        milestones: GoalMilestone[],
+        tinyTasks: GoalTinyTask[]
+    ): Record<string, GoalExecutionContext> {
+        const contextByGoalId: Record<string, GoalExecutionContext> = {};
 
-    const activeMilestones = milestones.filter(m => m.status === 'active');
+        const activeMilestones = milestones.filter(m => m.status === 'active');
 
-    for (const milestone of activeMilestones) {
-      const milestoneTasks = tinyTasks
-        .filter(task =>
-          task.goalId === milestone.goalId &&
-          task.milestoneId === milestone.id &&
-          task.status !== 'completed'
-        )
-        .sort((a, b) => a.order - b.order);
+        for (const milestone of activeMilestones) {
+            const milestoneTasks = tinyTasks
+            .filter(task =>
+                task.goalId === milestone.goalId &&
+                task.milestoneId === milestone.id &&
+                task.status !== 'completed'
+            )
+            .sort((a, b) => a.order - b.order);
 
-      const nextTinyTask = milestoneTasks[0] ?? null;
+            const nextTinyTask = milestoneTasks[0] ?? null;
 
-      contextByGoalId[milestone.goalId] = {
-        activeMilestoneTitle: milestone.title,
-        nextTinyTaskTitle: nextTinyTask?.title ?? null
-      };
+            contextByGoalId[milestone.goalId] = {
+            activeMilestoneId: milestone.id,
+            activeMilestoneTitle: milestone.title,
+            nextTinyTaskId: nextTinyTask?.id ?? null,
+            nextTinyTaskTitle: nextTinyTask?.title ?? null
+            };
+        }
+
+        return contextByGoalId;
     }
-
-    return contextByGoalId;
-  }
 }
