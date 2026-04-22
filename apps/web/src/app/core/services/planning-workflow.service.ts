@@ -11,6 +11,12 @@ import { GoalInsightsService } from './goal-insights.service';
 import { SurfacingDecisionRepository } from '../repositories/surfacing-decision.repository';
 import { SurfacingDecisionEvent } from '../models/surfacing-decision-event.model';
 import { createSurfacingDecisionEvent } from '../utils/create-surfacing-decision-event';
+import { GoalMilestoneStoreService } from './goal-milestone-store.service';
+import { GoalTinyTaskStoreService } from './goal-tiny-task-store.service';
+import { GoalExecutionContextService } from './goal-execution-context.service';
+import { GoalMilestone } from '../models/goal-milestone.model';
+import { GoalTinyTask } from '../models/goal-tiny-task.model';
+import { Goal } from '../models/goal.model';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +31,10 @@ export class PlanningWorkflowService {
     private dailyCompletionHistoryStoreService: DailyCompletionHistoryStoreService,
     private goalProgressStoreService: GoalProgressStoreService,
     private goalInsightsService: GoalInsightsService,
-    private readonly surfacingDecisionRepository: SurfacingDecisionRepository
+    private readonly surfacingDecisionRepository: SurfacingDecisionRepository,
+    private goalMilestoneStoreService: GoalMilestoneStoreService,
+    private goalTinyTaskStoreService: GoalTinyTaskStoreService,
+    private goalExecutionContextService: GoalExecutionContextService,
   ) { }
 
   public getOrCreateDailyRotation(): Observable<DailyRotationItem[]> {
@@ -52,45 +61,60 @@ export class PlanningWorkflowService {
 
 
   private regenerateDailyRotation(): Observable<DailyRotationItem[]> {
-  const today = this.getTodayKey();
+    const today = this.getTodayKey();
 
-  return combineLatest([
-    this.goalStoreService.getGoals(),
-    this.weeklyReviewStoreService.getCurrentWeeklyReview(),
-    this.goalProgressStoreService.getAllEvents()
-  ]).pipe(
-    switchMap(([goals, weeklyReview, progressEvents]) => {
-      const evidenceByGoalId =
-        this.goalInsightsService.buildEvidenceByGoalId(progressEvents);
+    return combineLatest([
+      this.goalStoreService.getGoals(),
+      this.weeklyReviewStoreService.getCurrentWeeklyReview(),
+      this.goalProgressStoreService.getAllEvents()
+    ]).pipe(
+      switchMap(([goals, weeklyReview, progressEvents]) => {
+        const evidenceByGoalId =
+          this.goalInsightsService.buildEvidenceByGoalId(progressEvents);
 
-      return this.dailyRotationStoreService.generateDailyRotationForDate(
-        today,
-        goals,
-        weeklyReview,
-        evidenceByGoalId
-      ).pipe(
-        switchMap(newRotationItems =>
-          this.saveDailyCompletionSummary(newRotationItems).pipe(
-            tap(() => {
-              const decisionEvents =
-                this.buildDailyGenerationDecisionEvents(newRotationItems);
+        return this.loadMilestonesForGoals(goals).pipe(
+          switchMap(milestones =>
+            this.loadTinyTasksForMilestones(milestones).pipe(
+              switchMap(tinyTasks => {
+                const executionContextByGoalId =
+                  this.goalExecutionContextService.buildExecutionContextByGoalId(
+                    milestones,
+                    tinyTasks
+                  );
 
-              if (decisionEvents.length === 0) {
-                return;
-              }
+                return this.dailyRotationStoreService.generateDailyRotationForDate(
+                  today,
+                  goals,
+                  weeklyReview,
+                  evidenceByGoalId,
+                  executionContextByGoalId
+                ).pipe(
+                  switchMap(newRotationItems =>
+                    this.saveDailyCompletionSummary(newRotationItems).pipe(
+                      tap(() => {
+                        const decisionEvents =
+                          this.buildDailyGenerationDecisionEvents(newRotationItems);
 
-              this.surfacingDecisionRepository.addEvents(decisionEvents).subscribe({
-                next: () => {},
-                error: () => {}
-              });
-            }),
-            map(() => newRotationItems)
+                        if (decisionEvents.length === 0) {
+                          return;
+                        }
+
+                        this.surfacingDecisionRepository.addEvents(decisionEvents).subscribe({
+                          next: () => {},
+                          error: () => {}
+                        });
+                      }),
+                      map(() => newRotationItems)
+                    )
+                  )
+                );
+              })
+            )
           )
-        )
-      );
-    })
-  );
-}
+        );
+      })
+    );
+  }
 
 
   //wrapper functions for wording clarity
@@ -269,54 +293,54 @@ export class PlanningWorkflowService {
   }
 
   public generateMoreDailyOptions(): Observable<DailyRotationItem[]> {
-  const today = this.getTodayKey();
+    const today = this.getTodayKey();
 
-  return combineLatest([
-    this.dailyRotationStoreService.loadRotationItemsForDate(today),
-    this.buildFreshRotationCandidates()
-  ]).pipe(
-    switchMap(([currentItems, freshItems]) => {
-      const usedGoalIds = new Set(
-        currentItems
-          .filter(item => !!item.goalId)
-          .map(item => item.goalId as string)
-      );
+    return combineLatest([
+      this.dailyRotationStoreService.loadRotationItemsForDate(today),
+      this.buildFreshRotationCandidates()
+    ]).pipe(
+      switchMap(([currentItems, freshItems]) => {
+        const usedGoalIds = new Set(
+          currentItems
+            .filter(item => !!item.goalId)
+            .map(item => item.goalId as string)
+        );
 
-      const additionalItems = this.pickAdditionalDailyItems(
-        freshItems,
-        usedGoalIds,
-        3
-      );
+        const additionalItems = this.pickAdditionalDailyItems(
+          freshItems,
+          usedGoalIds,
+          3
+        );
 
-      if (additionalItems.length === 0) {
-        return of(currentItems);
-      }
+        if (additionalItems.length === 0) {
+          return of(currentItems);
+        }
 
-      const updatedItems = [...currentItems, ...additionalItems];
+        const updatedItems = [...currentItems, ...additionalItems];
 
-      return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
-        switchMap(latestRotation =>
-          this.saveDailyCompletionSummary(latestRotation).pipe(
-            tap(() => {
-              const decisionEvents =
-                this.buildDailyGenerationDecisionEvents(additionalItems);
+        return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
+          switchMap(latestRotation =>
+            this.saveDailyCompletionSummary(latestRotation).pipe(
+              tap(() => {
+                const decisionEvents =
+                  this.buildDailyGenerationDecisionEvents(additionalItems);
 
-              if (decisionEvents.length === 0) {
-                return;
-              }
+                if (decisionEvents.length === 0) {
+                  return;
+                }
 
-              this.surfacingDecisionRepository.addEvents(decisionEvents).subscribe({
-                next: () => {},
-                error: () => {}
-              });
-            }),
-            map(() => latestRotation)
+                this.surfacingDecisionRepository.addEvents(decisionEvents).subscribe({
+                  next: () => {},
+                  error: () => {}
+                });
+              }),
+              map(() => latestRotation)
+            )
           )
-        )
-      );
-    })
-  );
-}
+        );
+      })
+    );
+  }
 
   private getTodayKey(): string {
     return new Date().toISOString().slice(0, 10);
@@ -451,10 +475,30 @@ private buildFreshRotationCandidates(): Observable<DailyRotationItem[]> {
     this.weeklyReviewStoreService.getCurrentWeeklyReview(),
     this.goalProgressStoreService.getAllEvents()
   ]).pipe(
-    map(([goals, review, progressEvents]) => {
-      const evidenceByGoalId = this.goalInsightsService.buildEvidenceByGoalId(progressEvents);
+    switchMap(([goals, review, progressEvents]) => {
+      const evidenceByGoalId =
+        this.goalInsightsService.buildEvidenceByGoalId(progressEvents);
 
-      return this.rotationEngineService.generateDailyRotation(goals, review, evidenceByGoalId);
+      return this.loadMilestonesForGoals(goals).pipe(
+        switchMap(milestones =>
+          this.loadTinyTasksForMilestones(milestones).pipe(
+            map(tinyTasks => {
+              const executionContextByGoalId =
+                this.goalExecutionContextService.buildExecutionContextByGoalId(
+                  milestones,
+                  tinyTasks
+                );
+
+              return this.rotationEngineService.generateDailyRotation(
+                goals,
+                review,
+                evidenceByGoalId,
+                executionContextByGoalId
+              );
+            })
+          )
+        )
+      );
     })
   );
 }
@@ -582,6 +626,38 @@ private pickAdditionalDailyItems(
   }
 
   return selected;
+}
+
+private loadMilestonesForGoals(goals: Goal[]): Observable<GoalMilestone[]> {
+  const goalIds = goals
+    .filter(goal => !!goal.id)
+    .map(goal => goal.id);
+
+  if (goalIds.length === 0) {
+    return of([]);
+  }
+
+  return combineLatest(
+    goalIds.map(goalId => this.goalMilestoneStoreService.getMilestonesForGoal(goalId))
+  ).pipe(
+    map(results => results.flat())
+  );
+}
+
+private loadTinyTasksForMilestones(milestones: GoalMilestone[]): Observable<GoalTinyTask[]> {
+  const milestoneIds = milestones
+    .filter(milestone => !!milestone.id)
+    .map(milestone => milestone.id);
+
+  if (milestoneIds.length === 0) {
+    return of([]);
+  }
+
+  return combineLatest(
+    milestoneIds.map(milestoneId => this.goalTinyTaskStoreService.getTasksForMilestone(milestoneId))
+  ).pipe(
+    map(results => results.flat())
+  );
 }
 
 

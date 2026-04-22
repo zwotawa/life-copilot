@@ -3,6 +3,7 @@ import { Goal } from '../models/goal.model';
 import { DailyRotationItem } from '../models/daily-rotation.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { GoalBehaviorEvidence, GoalSurfacingResult, GoalSurfacingService, SuggestedDailyCategory } from './goal-surfacing.service';
+import { GoalExecutionContext } from '../models/goal-execution-context.model';
 
 interface ScoredGoalCandidate {
   goal: Goal;
@@ -47,7 +48,8 @@ export class RotationEngineService {
   public generateDailyRotation(
   goals: Goal[],
   weeklyReview: WeeklyReviewState,
-  evidenceByGoalId: Record<string, GoalBehaviorEvidence>
+  evidenceByGoalId: Record<string, GoalBehaviorEvidence>,
+  executionContextByGoalId: Record<string, GoalExecutionContext> = {}
 ): DailyRotationItem[] {
   const activeGoals = goals.filter(goal => goal.status === 'active');
 
@@ -188,20 +190,23 @@ export class RotationEngineService {
   );
 
   const dailyRotationItems: DailyRotationItem[] = [
-    this.toRotationItem('responsible', responsibleGoal),
-    this.toRotationItem('momentum', momentumGoal),
-    this.toRotationItem('maintenance', maintenanceGoal),
-    this.toRotationItem('interesting', interestingGoal),
-    this.toRotationItem('fallback', fallbackGoal)
+    this.toRotationItem('responsible', executionContextByGoalId, responsibleGoal),
+    this.toRotationItem('momentum', executionContextByGoalId, momentumGoal),
+    this.toRotationItem('maintenance', executionContextByGoalId, maintenanceGoal),
+    this.toRotationItem('interesting', executionContextByGoalId, interestingGoal),
+    this.toRotationItem('fallback', executionContextByGoalId, fallbackGoal)
   ];
   return dailyRotationItems;
 }
 
 private toRotationItem(
   category: DailyRotationItem['category'],
+  executionContextByGoalId: Record<string, GoalExecutionContext> = {},
   candidate?: ScoredGoalCandidate | null
 ): DailyRotationItem {
   const today = new Date().toISOString();
+
+  const executionContext = candidate?.goal.id ? executionContextByGoalId[candidate?.goal.id] : null;
 
   return {
     id: `${category}-${candidate?.goal.id ?? 'none'}-${Date.now()}-${Math.random()}`,
@@ -209,7 +214,7 @@ private toRotationItem(
     category,
     goalId: candidate?.goal.id ?? null,
     goalTitle: candidate?.goal.title ?? 'No goal selected',
-    actionText: candidate?.goal.nextTinyAction ?? 'Define the next tiny action',
+    actionText: this.getDailyActionText(executionContext),
     sessionSize: candidate?.goal.typicalSessionSize ?? null,
     completed: false,
     surfacingScore: candidate?.score ?? null,
@@ -372,5 +377,19 @@ private toRotationItem(
         ? [...surfacing.reasons, roleReason]
         : surfacing.reasons
     };
+  }
+
+  private getDailyActionText(
+    executionContext: GoalExecutionContext | null
+  ): string {
+    if (executionContext?.nextTinyTaskTitle?.trim()) {
+      return executionContext.nextTinyTaskTitle.trim();
+    }
+
+    if (executionContext?.activeMilestoneTitle?.trim()) {
+      return `Break down the next step for milestone: ${executionContext.activeMilestoneTitle.trim()}`;
+    }
+
+    return 'Break this goal into a milestone and a tiny next step';
   }
 }
