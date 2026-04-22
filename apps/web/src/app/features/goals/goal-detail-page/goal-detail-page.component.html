@@ -276,35 +276,109 @@
             *ngFor="let task of vm.tinyTasks; trackBy: trackByTinyTaskId"
             [class.goal-tiny-task--completed]="task.status === 'completed'"
           >
-            <div class="goal-tiny-task__title">
-              {{ task.title }}
-            </div>
+            <ng-container *ngIf="!isEditingTinyTask(task.id); else editTinyTaskBlock">
+              <div class="goal-tiny-task__header">
+                <div class="goal-tiny-task__title-group">
+                  <div class="goal-tiny-task__title">
+                    {{ task.title }}
+                  </div>
 
-            <div class="goal-tiny-task__meta" *ngIf="task.completedAt">
-              Completed {{ task.completedAt | date:'mediumDate' }}
-            </div>
+                  <div class="goal-tiny-task__meta">
+                    Step {{ task.order + 1 }}
+                    <ng-container *ngIf="task.completedAt">
+                      · Completed {{ task.completedAt | date:'mediumDate' }}
+                    </ng-container>
+                  </div>
+                </div>
 
-            <div class="goal-tiny-task__actions">
-              <button
-                mat-stroked-button
-                color="primary"
-                type="button"
-                (click)="completeTinyTask(task)"
-                [disabled]="task.status === 'completed' || isSavingTinyTask"
-              >
-                Complete
-              </button>
+                <div class="goal-tiny-task__reorder">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="moveTinyTaskUp(task, vm.tinyTasks)"
+                    [disabled]="task.order === 0 || isSavingTinyTask"
+                    aria-label="Move tiny task up"
+                  >
+                    <mat-icon>arrow_upward</mat-icon>
+                  </button>
 
-              <button
-                mat-button
-                color="warn"
-                type="button"
-                (click)="deleteTinyTask(task)"
-                [disabled]="isDeletingTinyTask(task.id)"
-              >
-                Delete
-              </button>
-            </div>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    (click)="moveTinyTaskDown(task, vm.tinyTasks)"
+                    [disabled]="task.order === vm.tinyTasks.length - 1 || isSavingTinyTask"
+                    aria-label="Move tiny task down"
+                  >
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <div class="goal-tiny-task__actions">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="startEditingTinyTask(task)"
+                  [disabled]="isSavingTinyTask"
+                >
+                  Edit
+                </button>
+
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  type="button"
+                  (click)="completeTinyTask(task)"
+                  [disabled]="task.status === 'completed' || isSavingTinyTask"
+                >
+                  Complete
+                </button>
+
+                <button
+                  mat-button
+                  color="warn"
+                  type="button"
+                  (click)="deleteTinyTask(task)"
+                  [disabled]="isDeletingTinyTask(task.id)"
+                >
+                  Delete
+                </button>
+              </div>
+            </ng-container>
+
+            <ng-template #editTinyTaskBlock>
+              <div class="goal-tiny-task__edit">
+                <mat-form-field appearance="outline" class="goal-tiny-task__edit-field">
+                  <mat-label>Tiny task</mat-label>
+                  <input
+                    matInput
+                    [(ngModel)]="editingTinyTaskTitle"
+                    name="editingTinyTaskTitle"
+                  />
+                </mat-form-field>
+
+                <div class="goal-tiny-task__actions">
+                  <button
+                    mat-raised-button
+                    color="primary"
+                    type="button"
+                    (click)="saveTinyTaskEdits(task)"
+                    [disabled]="!editingTinyTaskTitle.trim() || isSavingTinyTask"
+                  >
+                    Save
+                  </button>
+
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="cancelEditingTinyTask()"
+                    [disabled]="isSavingTinyTask"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </ng-template>
           </article>
         </div>
       </div>

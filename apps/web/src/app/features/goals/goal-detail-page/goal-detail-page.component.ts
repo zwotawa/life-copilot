@@ -56,6 +56,8 @@ export class GoalDetailPageComponent {
   public isSavingTinyTask = false;
   public deletingTinyTaskIds = new Set<string>();
   public tinyTaskError: string | null = null;
+  public editingTinyTaskId: string | null = null;
+  public editingTinyTaskTitle = '';
 
   private readonly milestoneReloadSubject = new BehaviorSubject<void>(undefined);
   public readonly milestoneReload$ = this.milestoneReloadSubject.asObservable();
@@ -694,5 +696,114 @@ export class GoalDetailPageComponent {
 
   public isDeletingTinyTask(taskId: string): boolean {
     return this.deletingTinyTaskIds.has(taskId);
+  }
+
+  public startEditingTinyTask(task: GoalTinyTask): void {
+    this.editingTinyTaskId = task.id;
+    this.editingTinyTaskTitle = task.title;
+  }
+
+  public cancelEditingTinyTask(): void {
+    this.editingTinyTaskId = null;
+    this.editingTinyTaskTitle = '';
+  }
+
+  public isEditingTinyTask(taskId: string): boolean {
+    return this.editingTinyTaskId === taskId;
+  }
+
+  public saveTinyTaskEdits(task: GoalTinyTask): void {
+    if (!this.editingTinyTaskId || this.isSavingTinyTask) {
+      return;
+    }
+
+    const title = this.editingTinyTaskTitle.trim();
+
+    if (!title) {
+      this.tinyTaskError = 'Tiny task title is required.';
+      return;
+    }
+
+    this.isSavingTinyTask = true;
+    this.tinyTaskError = null;
+
+    const updatedTask: GoalTinyTask = {
+      ...task,
+      title
+    };
+
+    this.goalTinyTaskStoreService.updateTask(updatedTask).subscribe({
+      next: () => {
+        this.isSavingTinyTask = false;
+        this.cancelEditingTinyTask();
+        this.tinyTaskReloadSubject.next();
+      },
+      error: () => {
+        this.tinyTaskError = 'Could not save tiny task changes.';
+        this.isSavingTinyTask = false;
+      }
+    });
+  }
+
+  public moveTinyTaskUp(task: GoalTinyTask, tasks: GoalTinyTask[]): void {
+    this.moveTinyTask(task, tasks, -1);
+  }
+
+  public moveTinyTaskDown(task: GoalTinyTask, tasks: GoalTinyTask[]): void {
+    this.moveTinyTask(task, tasks, 1);
+  }
+
+  private moveTinyTask(
+    task: GoalTinyTask,
+    tasks: GoalTinyTask[],
+    direction: -1 | 1
+  ): void {
+    if (this.isSavingTinyTask) {
+      return;
+    }
+
+    const sorted = [...tasks].sort((a, b) => a.order - b.order);
+    const currentIndex = sorted.findIndex(t => t.id === task.id);
+
+    if (currentIndex < 0) {
+      return;
+    }
+
+    const targetIndex = currentIndex + direction;
+    if (targetIndex < 0 || targetIndex >= sorted.length) {
+      return;
+    }
+
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(currentIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+
+    const updatedTasks = reordered.map((item, index) => ({
+      ...item,
+      order: index
+    }));
+
+    this.isSavingTinyTask = true;
+    this.tinyTaskError = null;
+
+    this.saveReorderedTinyTasks(updatedTasks, 0);
+  }
+
+  private saveReorderedTinyTasks(tasks: GoalTinyTask[], index: number): void {
+    if (index >= tasks.length) {
+      this.isSavingTinyTask = false;
+      this.tinyTaskReloadSubject.next();
+      return;
+    }
+
+    this.goalTinyTaskStoreService.updateTask(tasks[index]).subscribe({
+      next: () => {
+        this.saveReorderedTinyTasks(tasks, index + 1);
+      },
+      error: () => {
+        this.tinyTaskError = 'Could not reorder tiny tasks.';
+        this.isSavingTinyTask = false;
+      }
+    });
   }
 }
