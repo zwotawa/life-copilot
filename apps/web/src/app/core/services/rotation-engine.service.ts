@@ -392,6 +392,6 @@ private toRotationItem(
       return `Add the next tiny task for milestone: ${executionContext.activeMilestoneTitle.trim()} — or mark it complete if it’s done`;
     }
 
-    return 'Break this goal into a milestone and a tiny next step';
+    return 'Break this goal into a milestone and a tiny next step. Use Open Goal to add the next tiny task in the milestone section.';
   }
 }

@@ -175,9 +175,13 @@ export class DailyRotationPageComponent {
         this.replacingItemIds.delete(item.id);
       })
     ).subscribe({
-      next: replacementItems => {
-        this.rotationItemsSubject.next(replacementItems);
-        this.notificationService.success('Item replaced.');
+      next: replacementResponse => {
+        this.rotationItemsSubject.next(replacementResponse.items);
+        if (replacementResponse.replaced) {
+          this.notificationService.success(`Replaced ${item.goalTitle} with ${replacementResponse.messageOrTitle}`);
+        } else {
+          this.notificationService.success(`Replacement: ${replacementResponse.replaced} ${replacementResponse.messageOrTitle}`);
+        }
       },
       error: () => {
         this.replaceError = 'Could not replace this item.';

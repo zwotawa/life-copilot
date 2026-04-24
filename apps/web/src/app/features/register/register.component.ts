@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { NgModel } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth.service';
@@ -19,11 +20,15 @@ export class RegisterComponent implements OnInit {
     registerRequest: RegisterRequest = <RegisterRequest>{};
     error = '';
     loading = false;
+    @ViewChild('password') passwordInput!: NgModel;
 
   ngOnInit(): void {
   }
 
   public register(): void {
+    if(this.passwordInput.invalid){
+      return;
+    }
     this.loading = true;
     this.authService.register(this.registerRequest).subscribe({
       next: () => {

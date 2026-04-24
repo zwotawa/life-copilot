@@ -18,6 +18,12 @@ import { GoalMilestone } from '../models/goal-milestone.model';
 import { GoalTinyTask } from '../models/goal-tiny-task.model';
 import { Goal } from '../models/goal.model';
 
+export interface ReplacementResponse {
+  items: DailyRotationItem[],
+  messageOrTitle: string,
+  replaced: boolean
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -350,7 +356,7 @@ export class PlanningWorkflowService {
     return new Date().toISOString().slice(0, 10);
   }
 
-   public replaceRotationItem(itemId: string): Observable<DailyRotationItem[]> {
+   public replaceRotationItem(itemId: string): Observable<ReplacementResponse> {
     const today = this.getTodayKey();
 
     return combineLatest([
@@ -360,7 +366,12 @@ export class PlanningWorkflowService {
       switchMap(([currentItems, freshItems]) => {
         const itemToReplace = currentItems.find(item => item.id === itemId);
         if (!itemToReplace) {
-          return of(currentItems);
+          const replacementResponse = {
+            items: currentItems,
+            messageOrTitle: 'Could not find item being replaced.',
+            replaced: false
+          }
+          return of(replacementResponse);
         }
 
         const replacement = this.pickReplacementCandidate(
@@ -371,7 +382,12 @@ export class PlanningWorkflowService {
         );
 
         if (!replacement) {
-          return of(currentItems);
+          const replacementResponse = {
+            items: currentItems,
+            messageOrTitle: 'Could not find a suitable replacement.',
+            replaced: false
+          }
+          return of(replacementResponse);
         }
 
         const updatedItems = currentItems.map(item =>
@@ -389,7 +405,14 @@ export class PlanningWorkflowService {
                 error: () => {}
               });
             }),
-            map(() => latestRotation)
+            map(() => {
+              return {
+                items: latestRotation,
+                messageOrTitle: replacement.goalTitle,
+                replaced: true
+              }
+
+            })
           ))
         );
       })
