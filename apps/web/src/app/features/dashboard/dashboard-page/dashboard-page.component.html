@@ -344,9 +344,9 @@
         </div>
       </section>
 
-      <div class="dashboard-card">
+      <section class="dashboard-card">
         <div class="dashboard-card__header">
-          <h3>Execution Snapshot</h3>
+          <h2>Execution Snapshot</h2>
         </div>
 
         <div class="dashboard-card__body" *ngIf="vm.executionSnapshot as executionSnapshot; else executionSnapshotFallback">
@@ -385,7 +385,7 @@
             {{ vm.executionSnapshotState.error }}
           </div>
         </ng-template>
-      </div>
+      </section>
 
       <section class="dashboard-card">
         <div class="dashboard-card__header">
@@ -444,6 +444,112 @@
           <a mat-stroked-button routerLink="/weekly">Weekly</a>
           <a mat-stroked-button routerLink="/daily">Daily</a>
         </div>
+      </section>
+
+      <section class="dashboard-card" *ngIf="vm.roadmapInsights as roadmap">
+        <div class="dashboard-card__header">
+          <h2>Roadmap Progress</h2>
+          <a routerLink="/goals" class="dashboard-card__link">Open Goals</a>
+        </div>
+
+        <div class="dashboard-card__section">
+          <div class="dashboard-roadmap-stats">
+            <div class="dashboard-roadmap-stat">
+              <div class="dashboard-roadmap-stat__label">Goals in progress</div>
+              <div class="dashboard-roadmap-stat__value">
+                {{ roadmap.goalsWithActiveMilestonesCount }}
+              </div>
+            </div>
+
+            <div class="dashboard-roadmap-stat">
+              <div class="dashboard-roadmap-stat__label">Milestones completed</div>
+              <div class="dashboard-roadmap-stat__value">
+                {{ roadmap.completedMilestonesCount }}
+              </div>
+            </div>
+
+            <div class="dashboard-roadmap-stat">
+              <div class="dashboard-roadmap-stat__label">Tiny tasks completed</div>
+              <div class="dashboard-roadmap-stat__value">
+                {{ roadmap.completedTinyTasksCount }}
+              </div>
+            </div>
+
+            <div class="dashboard-roadmap-stat">
+              <div class="dashboard-roadmap-stat__label">Need planning</div>
+              <div class="dashboard-roadmap-stat__value">
+                {{ roadmap.goalsNeedingPlanningCount }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-card__section" *ngIf="roadmap.activeGoalSnapshots.length > 0; else emptyRoadmapState">
+          <div class="dashboard-card__label">Active roadmap snapshots</div>
+
+          <div class="dashboard-roadmap-list">
+            <article
+              class="dashboard-roadmap-item"
+              *ngFor="let item of roadmap.activeGoalSnapshots; trackBy: trackByRoadmapGoalId"
+            >
+              <div class="dashboard-roadmap-item__header">
+                <div>
+                  <div class="dashboard-roadmap-item__title">{{ item.goalTitle }}</div>
+                  <div class="dashboard-roadmap-item__meta">
+                    {{ item.activeMilestoneTitle || 'No active milestone' }}
+                  </div>
+                </div>
+
+                <a
+                  mat-stroked-button
+                  *ngIf="item.goalId"
+                  [routerLink]="['/goals', item.goalId]"
+                >
+                  Open
+                </a>
+              </div>
+
+              <div class="dashboard-roadmap-item__submeta">
+                {{ item.completedMilestoneCount }} of {{ item.totalMilestoneCount }} milestones complete
+              </div>
+
+              <div class="dashboard-roadmap-item__submeta">
+                {{ getRoadmapTaskProgressLabel(item) }}
+              </div>
+
+              <div
+                class="dashboard-roadmap-item__planning-cue"
+                *ngIf="item.needsPlanning"
+              >
+                <ng-container [ngSwitch]="item.planningState">
+                  <span *ngSwitchCase="'no_tasks'">
+                    This active milestone has no tiny tasks yet. Add the next tiny task.
+                  </span>
+
+                  <span *ngSwitchCase="'all_tasks_complete'">
+                    All current tiny tasks are complete. Add another tiny task or mark the milestone complete.
+                  </span>
+                </ng-container>
+              </div>
+
+              <div
+                class="dashboard-roadmap-item__progress-bar"
+                *ngIf="item.totalTinyTaskCount > 0"
+              >
+                <div
+                  class="dashboard-roadmap-item__progress-fill"
+                  [style.width.%]="getRoadmapTaskProgressPercent(item)"
+                ></div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <ng-template #emptyRoadmapState>
+          <div class="dashboard-empty">
+            No active milestone progress yet.
+          </div>
+        </ng-template>
       </section>
     </div>
   </div>

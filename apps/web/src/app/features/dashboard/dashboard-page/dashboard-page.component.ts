@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Observable, combineLatest, of } from 'rxjs';
-import { catchError, map, shareReplay, startWith } from 'rxjs/operators';
+import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 
 import { Goal } from 'src/app/core/models/goal.model';
 import { DailyRotationItem } from 'src/app/core/models/daily-rotation.model';
@@ -22,6 +22,12 @@ import { GoalInsightsSnapshot } from 'src/app/core/models/goal-insights.model';
 import { GoalInsightsService } from 'src/app/core/services/goal-insights.service';
 import { GoalProgressEvent } from 'src/app/core/models/goal-progress-event.model';
 import { GoalProgressStoreService } from 'src/app/core/services/goal-progress-store.service';
+import { GoalMilestoneStoreService } from 'src/app/core/services/goal-milestone-store.service';
+import { GoalRoadmapInsightsService } from 'src/app/core/services/goal-roadmap-insights.service';
+import { GoalTinyTaskStoreService } from 'src/app/core/services/goal-tiny-task-store.service';
+import { GoalMilestone } from 'src/app/core/models/goal-milestone.model';
+import { GoalTinyTask } from 'src/app/core/models/goal-tiny-task.model';
+import { GoalRoadmapInsights, GoalRoadmapProgressItem } from 'src/app/core/models/goal-roadmap-insights.model';
 
 interface GoalFreshnessView {
   goal: Goal;
@@ -69,6 +75,9 @@ interface DashboardViewModel {
   untouchedGoalCount: number;
 
   goalInsights: GoalInsightsSnapshot;
+
+  roadmapInsightsState: Loadable<GoalRoadmapInsights>;
+  roadmapInsights: GoalRoadmapInsights | null;
 
   pageLoading: boolean;
   pageErrorMessages: string[];
@@ -118,13 +127,64 @@ export class DashboardPageComponent {
       shareReplay(1)
     );
 
+    public readonly roadmapInsightsState$: Observable<Loadable<GoalRoadmapInsights>> =
+      this.goalsState$.pipe(
+        switchMap(goalState => {
+          const goals = goalState.data ?? [];
+
+          if (goals.length === 0) {
+            return of({
+              loading: false,
+              data: {
+                goalsWithActiveMilestonesCount: 0,
+                completedMilestonesCount: 0,
+                completedTinyTasksCount: 0,
+                goalsNeedingPlanningCount: 0,
+                activeGoalSnapshots: []
+              },
+              error: null
+            });
+          }
+
+          return this.loadMilestonesForGoals(goals).pipe(
+            switchMap(milestones =>
+              this.loadTinyTasksForMilestones(milestones).pipe(
+                map(tinyTasks => ({
+                  loading: false,
+                  data: this.goalRoadmapInsightsService.getInsights(
+                    goals,
+                    milestones,
+                    tinyTasks
+                  ),
+                  error: null
+                }))
+              )
+            ),
+            startWith({
+              loading: true,
+              data: null,
+              error: null
+            }),
+            catchError(() =>
+              of({
+                loading: false,
+                data: null,
+                error: 'Could not load roadmap progress.'
+              })
+            )
+          );
+        }),
+        shareReplay(1)
+      );
+
   public readonly vm$: Observable<DashboardViewModel> = combineLatest([
     this.goalsState$,
     this.reviewState$,
     this.dailyRotationState$,
     this.inboxState$,
     this.executionSnapshotState$,
-    this.progressEventsState$
+    this.progressEventsState$,
+    this.roadmapInsightsState$
   ]).pipe(
     map(([
       goalsState, 
@@ -132,7 +192,8 @@ export class DashboardPageComponent {
       dailyRotationState, 
       inboxState, 
       executionSnapshotState, 
-      progressEventsState
+      progressEventsState,
+      roadmapInsightsState
     ]) => {
       const goals = goalsState.data ?? [];
       const review = reviewState.data;
@@ -140,6 +201,7 @@ export class DashboardPageComponent {
       const inboxSummary = inboxState.data;
       const executionSnapshot = executionSnapshotState.data;
       const activeGoals = goals.filter(goal => goal.status === 'active');
+      const roadmapInsights = roadmapInsightsState.data ?? null;
 
       const selectedAnchorGoals = review
         ? activeGoals.filter(goal => review.anchorGoalIds.includes(goal.id))
@@ -190,6 +252,7 @@ export class DashboardPageComponent {
         inboxState.error,
         executionSnapshotState.error,
         progressEventsState.error,
+        roadmapInsightsState.error
       ].filter((message): message is string => !!message);
 
       return {
@@ -229,12 +292,16 @@ export class DashboardPageComponent {
         untouchedGoalCount,
         goalInsights,
 
+        roadmapInsights,
+        roadmapInsightsState,
+
         pageLoading:
           goalsState.loading ||
           reviewState.loading ||
           dailyRotationState.loading ||
           inboxState.loading ||
-          executionSnapshotState.loading,
+          executionSnapshotState.loading ||
+          roadmapInsightsState.loading,
 
         pageErrorMessages
       };
@@ -250,7 +317,10 @@ export class DashboardPageComponent {
     private readonly planningWorkflowService: PlanningWorkflowService,
     private readonly dashboardInsightService: DashboardInsightService,
     private readonly goalInsightsService: GoalInsightsService,
-    private readonly goalProgressStoreService: GoalProgressStoreService
+    private readonly goalProgressStoreService: GoalProgressStoreService,
+    private readonly goalMilestoneStoreService: GoalMilestoneStoreService,
+    private readonly goalTinyTaskStoreService: GoalTinyTaskStoreService,
+    private readonly goalRoadmapInsightsService: GoalRoadmapInsightsService,
   ) {}
 
   public getCategoryLabel(category: DailyRotationItem['category']): string {
@@ -317,6 +387,26 @@ export class DashboardPageComponent {
     };
   }
 
+  public getRoadmapTaskProgressLabel(item: GoalRoadmapProgressItem): string {
+    if (item.totalTinyTaskCount === 0) {
+      return 'No tiny tasks yet';
+    }
+
+    return `${item.completedTinyTaskCount} of ${item.totalTinyTaskCount} tiny tasks complete`;
+  }
+
+  public getRoadmapTaskProgressPercent(item: GoalRoadmapProgressItem): number {
+    if (item.totalTinyTaskCount === 0) {
+      return 0;
+    }
+
+    return Math.round((item.completedTinyTaskCount / item.totalTinyTaskCount) * 100);
+  }
+
+  public trackByRoadmapGoalId(index: number, item: GoalRoadmapProgressItem): string {
+    return item.goalId;
+  }
+
   private buildInboxSummary(entries: InboxEntry[]): InboxSummaryView {
     const activeEntries = entries.filter(
       entry => entry.status !== 'archived' && entry.status !== 'deferred'
@@ -332,5 +422,37 @@ export class DashboardPageComponent {
         .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
         .slice(0, 3)
     };
+  }
+
+  private loadMilestonesForGoals(goals: Goal[]): Observable<GoalMilestone[]> {
+    const goalIds = goals
+      .filter(goal => !!goal.id)
+      .map(goal => goal.id);
+
+    if (goalIds.length === 0) {
+      return of([]);
+    }
+
+    return combineLatest(
+      goalIds.map(goalId => this.goalMilestoneStoreService.getMilestonesForGoal(goalId))
+    ).pipe(
+      map(results => results.flat())
+    );
+  }
+
+  private loadTinyTasksForMilestones(milestones: GoalMilestone[]): Observable<GoalTinyTask[]> {
+    const milestoneIds = milestones
+      .filter(milestone => !!milestone.id)
+      .map(milestone => milestone.id);
+
+    if (milestoneIds.length === 0) {
+      return of([]);
+    }
+
+    return combineLatest(
+      milestoneIds.map(milestoneId => this.goalTinyTaskStoreService.getTasksForMilestone(milestoneId))
+    ).pipe(
+      map(results => results.flat())
+    );
   }
 }
