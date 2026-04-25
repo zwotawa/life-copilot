@@ -134,6 +134,19 @@
           · {{ cadenceHint }}
         </ng-container>
       </div>
+      <div class="goal-hint goal-hint--secondary" *ngIf="vm.roadmapStatus as roadmapStatus">
+        {{ getRoadmapSummary(goal.id, roadmapStatus) }}
+      </div>
+
+      <div
+        *ngIf="vm.roadmapStatus as roadmapStatus"
+      >
+        <ng-container *ngIf="getRoadmapPlanningCue(goal.id, roadmapStatus) as planningCue">
+          <ng-container class="goal-hint goal-hint--roadmap-warning" *ngIf="planningCue">
+            {{ planningCue }}
+          </ng-container>
+        </ng-container>
+      </div>
     </ng-container>
 
     <ng-template #surfacingDebugBlock>
@@ -230,6 +243,20 @@
                 {{ getFreshnessLabel(goal) }}
                 <ng-container *ngIf="getTouchCadenceHint(goal) as cadenceHint">
                   · {{ cadenceHint }}
+                </ng-container>
+              </div>
+              <div class="goal-hint goal-hint--secondary" *ngIf="vm.roadmapStatus as roadmapStatus">
+                {{ getRoadmapSummary(goal.id, roadmapStatus) }}
+              </div>
+
+              <div
+                class="goal-hint goal-hint--roadmap-warning"
+                *ngIf="vm.roadmapStatus as roadmapStatus"
+              >
+                <ng-container *ngIf="getRoadmapPlanningCue(goal.id, roadmapStatus) as planningCue">
+                  <ng-container *ngIf="planningCue">
+                    {{ planningCue }}
+                  </ng-container>
                 </ng-container>
               </div>
               <div class="goal-debug" *ngIf="showSurfacingDebug && getSurfacingResult(goal) as surfacing">

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
-import { finalize, map, shareReplay, startWith } from 'rxjs/operators';
+import { catchError, finalize, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 
 import { Goal } from 'src/app/core/models/goal.model';
 import { Loadable } from 'src/app/core/models/loadable.model';
@@ -18,6 +18,12 @@ import { GoalInsightsService } from 'src/app/core/services/goal-insights.service
 import { SurfacingDecisionRepository } from 'src/app/core/repositories/surfacing-decision.repository';
 import { createSurfacingDecisionEvent } from 'src/app/core/utils/create-surfacing-decision-event';
 import { SurfacingDecisionEvent } from 'src/app/core/models/surfacing-decision-event.model';
+import { GoalMilestoneStoreService } from 'src/app/core/services/goal-milestone-store.service';
+import { GoalRoadmapStatusService } from 'src/app/core/services/goal-roadmap-status.service';
+import { GoalTinyTaskStoreService } from 'src/app/core/services/goal-tiny-task-store.service';
+import { GoalMilestone } from 'src/app/core/models/goal-milestone.model';
+import { GoalTinyTask } from 'src/app/core/models/goal-tiny-task.model';
+import { GoalRoadmapStatus } from 'src/app/core/models/goal-roadmap-status.model';
 
 interface WeeklyReviewViewModel {
   goalsState: Loadable<Goal[]>;
@@ -38,6 +44,10 @@ interface WeeklyReviewViewModel {
   selectedMaintenanceGoals: Goal[];
   selectedInfrastructureGoal: Goal | null;
   selectedCreativeGoal: Goal | null;
+
+  roadmapStatusState: Loadable<Record<string, GoalRoadmapStatus>>;
+  roadmapStatus: Record<string, GoalRoadmapStatus>;
+
 
   hasUnsavedChanges: boolean;
 
@@ -71,6 +81,46 @@ export class WeeklyReviewPageComponent {
   private readonly progressEventsState$: Observable<Loadable<GoalProgressEvent[]>> =
     toLoadable(this.goalProgressStoreService.getAllEvents(), 'Could not load progress evidence.');
 
+  public readonly roadmapStatusState$: Observable<Loadable<Record<string, GoalRoadmapStatus>>> =
+  this.goalsState$.pipe(
+    switchMap(goalsState => {
+      const goals = goalsState.data ?? [];
+
+      if (goals.length === 0) {
+        return of({
+          loading: false,
+          data: {},
+          error: null
+        });
+      }
+
+      return this.loadMilestonesForGoals(goals).pipe(
+        switchMap(milestones =>
+          this.loadTinyTasksForMilestones(milestones).pipe(
+            map(tinyTasks => ({
+              loading: false,
+              data: this.goalRoadmapStatusService.buildStatusByGoalId(goals, milestones, tinyTasks),
+              error: null
+            }))
+          )
+        ),
+        startWith({
+          loading: true,
+          data: null,
+          error: null
+        }),
+        catchError(() =>
+          of({
+            loading: false,
+            data: {},
+            error: 'Could not load roadmap status.'
+          })
+        )
+      );
+    }),
+    shareReplay(1)
+  );
+
   public isSaving = false;
   public saveError: string | null = null;
 
@@ -82,9 +132,10 @@ export class WeeklyReviewPageComponent {
     this.reviewState$,
     this.insightsState$,
     this.reviewDraft$,
-    this.progressEventsState$
+    this.progressEventsState$,
+    this.roadmapStatusState$
   ]).pipe(
-    map(([goalsState, reviewState, insightsState, reviewDraft, progressEventsState]) => {
+    map(([goalsState, reviewState, insightsState, reviewDraft, progressEventsState, roadmapStatusState]) => {
       const goals = goalsState.data ?? [];
       const review = reviewDraft ?? reviewState.data ?? null;
       const weeklyInsights = insightsState.data ?? null;
@@ -175,6 +226,7 @@ export class WeeklyReviewPageComponent {
         reviewState.error,
         insightsState.error,
         progressEventsState.error,
+        roadmapStatusState.error,
         this.saveError,
         this.resetError
       ].filter((message): message is string => !!message);
@@ -199,13 +251,17 @@ export class WeeklyReviewPageComponent {
         selectedInfrastructureGoal,
         selectedCreativeGoal,
 
+        roadmapStatusState,
+        roadmapStatus: roadmapStatusState.data ?? {},
+
         hasUnsavedChanges: this.hasUnsavedChanges,
 
         pageLoading:
           goalsState.loading ||
           reviewState.loading ||
           insightsState.loading ||
-          progressEventsState.loading,
+          progressEventsState.loading ||
+          roadmapStatusState.loading,
 
         pageErrorMessages
       };
@@ -221,7 +277,10 @@ export class WeeklyReviewPageComponent {
     private notificationService: NotificationService,
     private goalProgressStoreService: GoalProgressStoreService,
     private goalInsightsService: GoalInsightsService,
-    private readonly surfacingDecisionRepository: SurfacingDecisionRepository
+    private readonly surfacingDecisionRepository: SurfacingDecisionRepository,
+    private readonly goalMilestoneStoreService: GoalMilestoneStoreService,
+    private readonly goalTinyTaskStoreService: GoalTinyTaskStoreService,
+    private readonly goalRoadmapStatusService: GoalRoadmapStatusService,
     ) {
     this.loadInitialReviewDraft();
   }
@@ -705,5 +764,74 @@ export class WeeklyReviewPageComponent {
     return goals.filter(goal =>
       !this.isGoalSelectedElsewhere(goal.id, currentSection, review)
     );
+  }
+
+  private loadMilestonesForGoals(goals: Goal[]): Observable<GoalMilestone[]> {
+    const goalIds = goals.filter(goal => !!goal.id).map(goal => goal.id);
+
+    if (goalIds.length === 0) {
+      return of([]);
+    }
+
+    return combineLatest(
+      goalIds.map(goalId => this.goalMilestoneStoreService.getMilestonesForGoal(goalId))
+    ).pipe(
+      map(results => results.flat())
+    );
+  }
+
+  private loadTinyTasksForMilestones(milestones: GoalMilestone[]): Observable<GoalTinyTask[]> {
+    const milestoneIds = milestones.filter(m => !!m.id).map(m => m.id);
+
+    if (milestoneIds.length === 0) {
+      return of([]);
+    }
+
+    return combineLatest(
+      milestoneIds.map(milestoneId => this.goalTinyTaskStoreService.getTasksForMilestone(milestoneId))
+    ).pipe(
+      map(results => results.flat())
+    );
+  }
+
+  public getRoadmapStatus(goalId: string, roadmapStatus: Record<string, GoalRoadmapStatus>): GoalRoadmapStatus | null {
+    return roadmapStatus[goalId] ?? null;
+  }
+
+  public getRoadmapSummary(goalId: string, roadmapStatus: Record<string, GoalRoadmapStatus>): string {
+    const status = roadmapStatus[goalId];
+    if (!status) {
+      return 'No roadmap started yet';
+    }
+
+    if (!status.hasActiveMilestone) {
+      return status.totalMilestoneCount > 0
+        ? `${status.completedMilestoneCount} of ${status.totalMilestoneCount} milestones complete`
+        : 'No roadmap started yet';
+    }
+
+    const milestonePart = `${status.completedMilestoneCount} of ${status.totalMilestoneCount} milestones complete`;
+
+    if (status.totalTinyTaskCount === 0) {
+      return `${milestonePart} · Active milestone: ${status.activeMilestoneTitle}`;
+    }
+
+    return `${milestonePart} · ${status.completedTinyTaskCount} of ${status.totalTinyTaskCount} tiny tasks complete`;
+  }
+
+  public getRoadmapPlanningCue(goalId: string, roadmapStatus: Record<string, GoalRoadmapStatus>): string {
+    const status = roadmapStatus[goalId];
+    if (!status?.needsPlanning) {
+      return '';
+    }
+
+    switch (status.planningState) {
+      case 'no_tasks':
+        return 'Needs planning: active milestone has no tiny tasks yet.';
+      case 'all_tasks_complete':
+        return 'Needs review: all current tiny tasks are complete.';
+      default:
+        return '';
+    }
   }
 }
