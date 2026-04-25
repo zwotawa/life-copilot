@@ -589,3 +589,19 @@
     align-self: flex-end;
   }
 }
+
+.goal-progress__context {
+  font-size: 0.85rem;
+  color: #475569;
+  margin-bottom: 0.4rem;
+}
+
+.goal-progress__type--tiny-task-completed {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.goal-progress__type--tiny-task-uncompleted {
+  color: #9a3412;
+  background: #ffedd5;
+}

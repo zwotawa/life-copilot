@@ -1022,7 +1022,11 @@ authenticatedApi.MapPost("/goal-progress", async (
         TaskText = req.TaskText,
         Notes = req.Notes,
         Source = req.Source,
-        SourceItemId = req.SourceItemId
+        SourceItemId = req.SourceItemId,
+        MilestoneId = TryParseGuid(req.MilestoneId),
+        MilestoneTitle = req.MilestoneTitle,
+        TinyTaskId = TryParseGuid(req.TinyTaskId),
+        TinyTaskTitle = req.TinyTaskTitle,
     };
 
     db.GoalProgressEvents.Add(entity);
@@ -1369,7 +1373,16 @@ static GoalProgressEventDto ToGoalProgressEventDto(GoalProgressEventEntity entit
     TaskText = entity.TaskText,
     Notes = entity.Notes,
     Source = entity.Source,
-    SourceItemId = entity.SourceItemId
+    SourceItemId = entity.SourceItemId,
+    MilestoneId = entity.MilestoneId?.ToString(),
+    MilestoneTitle = entity.MilestoneTitle,
+    TinyTaskId = entity.TinyTaskId?.ToString(),
+    TinyTaskTitle = entity.TinyTaskTitle,
 };
+
+static Guid? TryParseGuid(string? value)
+{
+    return Guid.TryParse(value, out var parsed) ? parsed : null;
+}
 
 public partial class Program { }

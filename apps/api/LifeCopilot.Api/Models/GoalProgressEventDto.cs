@@ -11,4 +11,8 @@ public class GoalProgressEventDto
     public string? Notes { get; set; }
     public string? Source { get; set; }
     public string? SourceItemId { get; set; }
+    public string? MilestoneId { get; init; }
+    public string? MilestoneTitle { get; init; }
+    public string? TinyTaskId { get; init; }
+    public string? TinyTaskTitle { get; init; }
 }

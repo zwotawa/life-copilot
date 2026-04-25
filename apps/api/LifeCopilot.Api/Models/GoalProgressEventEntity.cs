@@ -16,4 +16,8 @@ public class GoalProgressEventEntity
 
     public string? Source { get; set; }
     public string? SourceItemId { get; set; }
+    public Guid? MilestoneId { get; set; }
+    public string? MilestoneTitle { get; set; }
+    public Guid? TinyTaskId { get; set; }
+    public string? TinyTaskTitle { get; set; }
 }

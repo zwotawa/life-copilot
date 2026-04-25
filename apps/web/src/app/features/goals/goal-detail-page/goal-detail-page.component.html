@@ -48,6 +48,15 @@
             {{ event.notes }}
           </div>
 
+          <div class="goal-progress__context" *ngIf="event.milestoneTitle || event.tinyTaskTitle">
+            <div *ngIf="event.milestoneTitle">
+              Milestone: {{ event.milestoneTitle }}
+            </div>
+            <div *ngIf="event.tinyTaskTitle">
+              Tiny task: {{ event.tinyTaskTitle }}
+            </div>
+          </div>
+
           <div class="goal-progress__source" *ngIf="event.source">
             Source: {{ event.source }}
           </div>
@@ -113,6 +122,7 @@
           [(ngModel)]="newMilestoneTitle"
           name="newMilestoneTitle"
           placeholder="Add the next milestone..."
+          (keydown.enter)="addMilestone(vm.goal, vm.milestones)"
         />
       </mat-form-field>
 
@@ -248,6 +258,7 @@
               [(ngModel)]="newTinyTaskTitle"
               name="newTinyTaskTitle"
               placeholder="Add the next tiny step..."
+              (keydown.enter)="addTinyTask(vm.goal, vm.activeMilestone, vm.tinyTasks)"
             />
           </mat-form-field>
 

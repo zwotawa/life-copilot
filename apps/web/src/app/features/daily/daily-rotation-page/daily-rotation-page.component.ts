@@ -180,7 +180,7 @@ export class DailyRotationPageComponent {
         if (replacementResponse.replaced) {
           this.notificationService.success(`Replaced ${item.goalTitle} with ${replacementResponse.messageOrTitle}`);
         } else {
-          this.notificationService.success(`Replacement: ${replacementResponse.replaced} ${replacementResponse.messageOrTitle}`);
+          this.notificationService.success(replacementResponse.messageOrTitle);
         }
       },
       error: () => {

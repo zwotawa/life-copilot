@@ -17,6 +17,7 @@ import { GoalExecutionContextService } from './goal-execution-context.service';
 import { GoalMilestone } from '../models/goal-milestone.model';
 import { GoalTinyTask } from '../models/goal-tiny-task.model';
 import { Goal } from '../models/goal.model';
+import { GoalProgressEvent } from '../models/goal-progress-event.model';
 
 export interface ReplacementResponse {
   items: DailyRotationItem[],
@@ -256,19 +257,26 @@ export class PlanningWorkflowService {
           );
         }
 
-         //if unmarking the goal complete find the progress event and reverse it by deletion
-        return this.goalProgressStoreService.getEventBySourceItemId(target.id).pipe(
-          switchMap(existingEvent => {
-            if (!existingEvent) {
+        //mark as uncompleted
+        return this.uncompleteLinkedTinyTask(target).pipe(
+          switchMap( () => {
+            if (!target.goalId) {
               return persistUpdatedItems();
             }
-
-            return this.goalProgressStoreService.deleteEvent(existingEvent.id).pipe(
-              switchMap(() => this.uncompleteLinkedTinyTask(target).pipe(
+            
+            return this.goalProgressStoreService.addEvent({
+                id: `progress-${Date.now()}`,
+                goalId: target.goalId,
+                date: today,
+                createdAt: new Date().toISOString(),
+                type: 'daily_task_uncompleted',
+                taskText: target.actionText,
+                source: 'daily_rotation',
+                sourceItemId: target.id
+              }).pipe(
                 switchMap(() => persistUpdatedItems())
-              ))
-            )
-          })
+              )
+      })
         )
       })
     );
@@ -704,7 +712,17 @@ private completeLinkedTinyTask(item: DailyRotationItem): Observable<void> {
         status: 'completed',
         completedAt: new Date().toISOString()
       }).pipe(
-        map(() => void 0)
+        switchMap(() => {
+          const progressEvent = this.buildTinyTaskCompletedProgressEvent(item, task, null);
+
+          if (!progressEvent) {
+            return of(void 0);
+          }
+
+          return this.goalProgressStoreService.addEvent(progressEvent).pipe(
+            map(() => void 0)
+          );
+        })
       );
     })
   );
@@ -727,10 +745,70 @@ private uncompleteLinkedTinyTask(item: DailyRotationItem): Observable<void> {
         status: 'not_started',
         completedAt: null
       }).pipe(
-        map(() => void 0)
+        switchMap(() => {
+          const progressEvent = this.buildTinyTaskUncompletedProgressEvent(item, task, null);
+
+          if (!progressEvent) {
+            return of(void 0);
+          }
+       
+          return this.goalProgressStoreService.addEvent(progressEvent).pipe(
+            map(() => void 0)
+          );
+        })
       );
     })
   );
+}
+
+private buildTinyTaskCompletedProgressEvent(
+  item: DailyRotationItem,
+  tinyTask: GoalTinyTask,
+  milestone: GoalMilestone | null
+): GoalProgressEvent | null {
+  if (!item.goalId) {
+    return null;
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    goalId: item.goalId,
+    type: 'tiny_task_completed',
+    date: this.getTodayKey(),
+    createdAt: new Date().toISOString(),
+    source: 'daily_rotation',
+    sourceItemId: item.id,
+    taskText: tinyTask.title,
+    tinyTaskId: tinyTask.id,
+    tinyTaskTitle: tinyTask.title,
+    milestoneId: milestone?.id ?? item.milestoneId ?? null,
+    milestoneTitle: milestone?.title ?? null
+  };
+}
+
+private buildTinyTaskUncompletedProgressEvent(
+  item: DailyRotationItem,
+  tinyTask: GoalTinyTask,
+  milestone: GoalMilestone | null
+): GoalProgressEvent | null {
+  if (!item.goalId) {
+    return null;
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    goalId: item.goalId,
+    type: 'tiny_task_uncompleted',
+    date: this.getTodayKey(),
+    createdAt: new Date().toISOString(),
+    source: 'daily_rotation',
+    sourceItemId: item.id,
+    taskText: tinyTask.title,
+    tinyTaskId: tinyTask.id,
+    tinyTaskTitle: tinyTask.title,
+    milestoneId: milestone?.id ?? item.milestoneId ?? null,
+    milestoneTitle: milestone?.title ?? null
+  };
 }
 
 

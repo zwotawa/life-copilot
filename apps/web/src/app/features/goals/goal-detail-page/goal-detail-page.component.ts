@@ -1,7 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
-import { catchError, distinctUntilChanged, filter, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, map, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Goal } from 'src/app/core/models/goal.model';
 import { GoalProgressEvent } from 'src/app/core/models/goal-progress-event.model';
@@ -65,6 +65,9 @@ export class GoalDetailPageComponent {
   private readonly tinyTaskReloadSubject = new BehaviorSubject<void>(undefined);
   public readonly tinyTaskReload$ = this.tinyTaskReloadSubject.asObservable();
 
+  private readonly progressEventReloadSubject = new BehaviorSubject<void>(undefined);
+  public readonly progressEventReload$ = this.progressEventReloadSubject.asObservable();
+
   public canDeactivate(): boolean {
     if (!this.goalFormComponent) {
       return true;
@@ -113,8 +116,11 @@ export class GoalDetailPageComponent {
     shareReplay(1)
   );
 
-  public readonly progressEventsState$: Observable<Loadable<GoalProgressEvent[]>> = this.goalState$.pipe(
-    switchMap(goalState => {
+  public readonly progressEventsState$: Observable<Loadable<GoalProgressEvent[]>> = combineLatest([
+    this.goalState$,
+    this.progressEventReload$
+  ]).pipe(
+    switchMap(([goalState]) => {
       const goal = goalState.data;
 
       if (!goal?.id) {
@@ -288,6 +294,10 @@ export class GoalDetailPageComponent {
         return 'Daily task completed';
       case 'daily_task_uncompleted':
         return 'Daily task uncompleted';
+      case 'tiny_task_completed':
+        return 'Tiny task completed';
+      case 'tiny_task_uncompleted':
+        return 'Tiny task uncompleted';
       case 'milestone_completed':
         return 'Milestone completed';
       case 'note':
@@ -300,21 +310,25 @@ export class GoalDetailPageComponent {
   }
 
   public getEventTypeClass(type: string): string {
-    switch (type) {
-      case 'daily_task_completed':
-        return 'goal-progress__type--completed';
-      case 'daily_task_uncompleted':
-        return 'goal-progress__type--uncompleted';
-      case 'milestone_completed':
-        return 'goal-progress__type--milestone';
-      case 'note':
-        return 'goal-progress__type--note';
-      case 'status_changed':
-        return 'goal-progress__type--status';
-      default:
-        return 'goal-progress__type--default';
-    }
+  switch (type) {
+    case 'daily_task_completed':
+      return 'goal-progress__type--completed';
+    case 'daily_task_uncompleted':
+      return 'goal-progress__type--uncompleted';
+    case 'tiny_task_completed':
+      return 'goal-progress__type--tiny-task-completed';
+    case 'tiny_task_uncompleted':
+      return 'goal-progress__type--tiny-task-uncompleted';
+    case 'milestone_completed':
+      return 'goal-progress__type--milestone';
+    case 'note':
+      return 'goal-progress__type--note';
+    case 'status_changed':
+      return 'goal-progress__type--status';
+    default:
+      return 'goal-progress__type--default';
   }
+}
 
   public trackByEventId(index: number, event: GoalProgressEvent): string {
     return event.id;
@@ -415,16 +429,31 @@ export class GoalDetailPageComponent {
       return m;
     });
 
-    this.goalMilestoneStoreService.reorderMilestones(goal.id, updates).subscribe({
+
+
+    this.goalMilestoneStoreService.reorderMilestones(goal.id, updates).pipe(
+      catchError(() => {
+        this.milestoneError = 'Could not complete milestone.';
+        this.isSavingMilestone = false;
+        return of([]);
+      }),
+      tap(() => {
+        const progressEvent = this.buildMilestoneCompletedProgressEvent(goal.id, milestone);
+
+        this.goalProgressStoreService.addEvent(progressEvent).subscribe({
+          next: () => {
+            this.progressEventReloadSubject.next();
+          },
+          error: () => {}
+        });
+      })
+    ).subscribe({
       next: () => {
         this.isSavingMilestone = false;
         this.milestoneReloadSubject.next();
-      },
-      error: () => {
-        this.milestoneError = 'Could not complete milestone.';
-        this.isSavingMilestone = false;
       }
-    });
+    }
+    );
   }
 
   public deleteMilestone(milestone: GoalMilestone): void {
@@ -805,5 +834,27 @@ export class GoalDetailPageComponent {
         this.isSavingTinyTask = false;
       }
     });
+  }
+
+  private buildMilestoneCompletedProgressEvent(
+    goalId: string,
+    milestone: GoalMilestone
+  ): GoalProgressEvent {
+    return {
+      id: crypto.randomUUID(),
+      goalId,
+      type: 'milestone_completed',
+      date: this.getTodayKey(),
+      createdAt: new Date().toISOString(),
+      source: 'goal_detail',
+      sourceItemId: milestone.id,
+      taskText: milestone.title,
+      milestoneId: milestone.id,
+      milestoneTitle: milestone.title
+    };
+  }
+
+  private getTodayKey(): string {
+    return new Date().toISOString().slice(0, 10);
   }
 }
