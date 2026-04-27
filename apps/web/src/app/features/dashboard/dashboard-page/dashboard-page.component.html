@@ -530,6 +530,17 @@
                     All current tiny tasks are complete. Add another tiny task or mark the milestone complete.
                   </span>
                 </ng-container>
+
+                <div class="dashboard-roadmap-item__planning-actions">
+                  <a
+                    mat-stroked-button
+                    color="primary"
+                    [routerLink]="['/goals', item.goalId]"
+                    fragment="milestones"
+                  >
+                    Open Goal
+                  </a>
+                </div>
               </div>
 
               <div

@@ -436,3 +436,13 @@
     flex-direction: column;
   }
 }
+
+.dashboard-roadmap-item__planning-actions {
+  margin-top: 0.6rem;
+}
+
+.dashboard-roadmap-item__planning-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}

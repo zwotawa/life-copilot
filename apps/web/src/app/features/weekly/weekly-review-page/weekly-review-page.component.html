@@ -138,15 +138,27 @@
         {{ getRoadmapSummary(goal.id, roadmapStatus) }}
       </div>
 
-      <div
-        *ngIf="vm.roadmapStatus as roadmapStatus"
-      >
-        <ng-container *ngIf="getRoadmapPlanningCue(goal.id, roadmapStatus) as planningCue">
-          <ng-container class="goal-hint goal-hint--roadmap-warning" *ngIf="planningCue">
+      <ng-container *ngIf="vm.roadmapStatus as roadmapStatus">
+        <div
+          class="goal-hint goal-hint--roadmap-warning"
+          *ngIf="getRoadmapPlanningCue(goal.id, roadmapStatus) as planningCue"
+        >
+          <div class="goal-hint__warning-text">
             {{ planningCue }}
-          </ng-container>
-        </ng-container>
-      </div>
+          </div>
+
+          <a
+            mat-stroked-button
+            color="primary"
+            class="goal-hint__warning-action"
+            [routerLink]="['/goals', goal.id]"
+            fragment="milestones"
+            (click)="$event.stopPropagation()"
+          >
+            Open Goal
+          </a>
+        </div>
+      </ng-container>
     </ng-container>
 
     <ng-template #surfacingDebugBlock>

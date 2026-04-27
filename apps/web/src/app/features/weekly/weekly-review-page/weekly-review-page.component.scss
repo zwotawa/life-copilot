@@ -276,3 +276,17 @@ mat-form-field {
   border-radius: 10px;
   display: inline-block;
 }
+
+.goal-hint__warning-text {
+  margin-bottom: 0.4rem;
+}
+
+.goal-hint__warning-action {
+  margin-top: 0.1rem;
+}
+
+.goal-hint--roadmap-warning {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}

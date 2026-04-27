@@ -612,6 +612,10 @@ export class WeeklyReviewPageComponent {
     ];
   }
 
+  public getGoalMilestonesLink(goalId: string): any[] {
+    return ['/goals', goalId];
+  }
+
   private loadInitialReviewDraft(): void {
     this.reviewState$.subscribe({
       next: state => {

@@ -148,9 +148,11 @@
     <div class="goal-milestones__list" *ngIf="!vm.milestonesState.loading && vm.milestones.length > 0">
   <article
     class="goal-milestone"
+    id="milestones"
     *ngFor="let milestone of vm.milestones; trackBy: trackByMilestoneId"
     [class.goal-milestone--active]="milestone.status === 'active'"
     [class.goal-milestone--completed]="milestone.status === 'completed'"
+    [class.goal-milestones--highlighted]="highlightMilestones"
   >
     <ng-container *ngIf="!isEditingMilestone(milestone.id); else editMilestoneBlock">
       <div class="goal-milestone__header">

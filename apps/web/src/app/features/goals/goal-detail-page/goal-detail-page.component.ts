@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
@@ -38,7 +38,7 @@ interface GoalDetailViewModel {
   templateUrl: './goal-detail-page.component.html',
   styleUrls: ['./goal-detail-page.component.scss']
 })
-export class GoalDetailPageComponent {
+export class GoalDetailPageComponent implements AfterViewInit {
   @ViewChild(GoalFormComponent)
   private goalFormComponent?: GoalFormComponent;
 
@@ -58,6 +58,9 @@ export class GoalDetailPageComponent {
   public tinyTaskError: string | null = null;
   public editingTinyTaskId: string | null = null;
   public editingTinyTaskTitle = '';
+
+  private hasScrolledToMilestones = false;
+  public highlightMilestones = false;
 
   private readonly milestoneReloadSubject = new BehaviorSubject<void>(undefined);
   public readonly milestoneReload$ = this.milestoneReloadSubject.asObservable();
@@ -284,9 +287,27 @@ export class GoalDetailPageComponent {
     private readonly goalProgressStoreService: GoalProgressStoreService,
     private readonly goalMilestoneStoreService: GoalMilestoneStoreService,
     private goalTinyTaskStoreService: GoalTinyTaskStoreService
-  ) {
+  ) {}
 
-   }
+  ngAfterViewInit(): void {
+    combineLatest([this.route.fragment, this.vm$]).subscribe(([fragment, vm]) => {
+      if (fragment === 'milestones' && vm.goal?.id && !this.hasScrolledToMilestones) {
+        setTimeout(() => {
+          const element = document.getElementById('milestones');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            this.hasScrolledToMilestones = true;
+
+            this.highlightMilestones = true;
+
+            setTimeout(() => {
+              this.highlightMilestones = false;
+            }, 1800);
+          }
+        }, 0);
+      }
+    });
+  }
 
   public formatEventType(type: string): string {
     switch (type) {
