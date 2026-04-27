@@ -3,6 +3,8 @@ import { DailyRotationStoreService } from './daily-rotation-store.service';
 import { WeeklyInsightService } from './weekly-insights.service';
 import { DashboardExecutionSnapshot } from '../models/dashboard-execution-snapshot.model';
 import { combineLatest, map, Observable } from 'rxjs';
+import { get } from 'http';
+import { getLocalDateKey } from 'src/app/shared/utility/get-today-key';
 
 @Injectable({
   providedIn: 'root'
@@ -40,6 +42,6 @@ export class DashboardInsightService {
   }
 
   private getTodayKey(): string {
-    return new Date().toISOString().slice(0, 10);
+    return getLocalDateKey();
   }
 }

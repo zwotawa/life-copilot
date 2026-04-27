@@ -15,6 +15,8 @@ import { GoalMilestone } from 'src/app/core/models/goal-milestone.model';
 import { GoalTinyTaskStoreService } from 'src/app/core/services/goal-tiny-task-store.service';
 import { GoalTinyTask } from 'src/app/core/models/goal-tiny-task.model';
 import { createGoalTinyTask } from 'src/app/core/utils/create-goal-tiny-task';
+import { get } from 'http';
+import { getLocalDateKey } from 'src/app/shared/utility/get-today-key';
 
 interface GoalDetailViewModel {
   goalState: Loadable<Goal>;
@@ -876,6 +878,6 @@ export class GoalDetailPageComponent implements AfterViewInit {
   }
 
   private getTodayKey(): string {
-    return new Date().toISOString().slice(0, 10);
+    return getLocalDateKey();
   }
 }

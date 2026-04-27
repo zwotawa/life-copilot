@@ -18,6 +18,8 @@ import { GoalMilestone } from '../models/goal-milestone.model';
 import { GoalTinyTask } from '../models/goal-tiny-task.model';
 import { Goal } from '../models/goal.model';
 import { GoalProgressEvent } from '../models/goal-progress-event.model';
+import { get } from 'http';
+import { getLocalDateKey } from 'src/app/shared/utility/get-today-key';
 
 export interface ReplacementResponse {
   items: DailyRotationItem[],
@@ -361,7 +363,7 @@ export class PlanningWorkflowService {
   }
 
   private getTodayKey(): string {
-    return new Date().toISOString().slice(0, 10);
+    return getLocalDateKey();
   }
 
    public replaceRotationItem(itemId: string): Observable<ReplacementResponse> {

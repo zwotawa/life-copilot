@@ -4,6 +4,8 @@ import { LocalStorageService } from "./local-storage.service";
 import { StorageKeyService } from "./storage-key.service";
 import { DailyRotationItem } from "../../models/daily-rotation.model";
 import { Observable, of } from "rxjs";
+import { get } from "http";
+import { getLocalDateKey } from "src/app/shared/utility/get-today-key";
 
 type DailyRotationMap = Record<string, DailyRotationItem[]>;
 
@@ -71,7 +73,7 @@ export class LocalDailyRotationRepository extends DailyRotationRepository {
                 const firstDate =
                     parsed.length > 0 && typeof parsed[0]?.date === 'string'
                     ? parsed[0].date
-                    : new Date().toISOString().slice(0, 10);
+                    : getLocalDateKey();
 
                     return { [firstDate]: parsed };
            }
