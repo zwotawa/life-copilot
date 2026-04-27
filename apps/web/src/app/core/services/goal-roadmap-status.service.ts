@@ -18,44 +18,48 @@ export class GoalRoadmapStatusService {
     for (const goal of goals) {
       const goalMilestones = milestones.filter(m => m.goalId === goal.id);
       const activeMilestone = goalMilestones.find(m => m.status === 'active') ?? null;
+      const hasAnyMilestones = goalMilestones.length > 0;
+      let activeTasks: GoalTinyTask[] = [];
+      let completedTinyTaskCount = 0;
+      let remainingTinyTaskCount = 0;
 
       if (!activeMilestone) {
-        statusByGoalId[goal.id] = {
-          hasActiveMilestone: false,
-          activeMilestoneTitle: null,
-          completedMilestoneCount: goalMilestones.filter(m => m.status === 'completed').length,
-          totalMilestoneCount: goalMilestones.length,
-          completedTinyTaskCount: 0,
-          totalTinyTaskCount: 0,
-          needsPlanning: false,
-          planningState: 'no_active_milestone'
-        };
-        continue;
+        activeTasks = [];
+        completedTinyTaskCount = 0;
+        remainingTinyTaskCount = 0;
+      } else {
+        activeTasks = tinyTasks
+          .filter(task => task.milestoneId === activeMilestone.id)
+          .sort((a, b) => a.order - b.order);
+  
+        completedTinyTaskCount = activeTasks.filter(task => task.status === 'completed').length;
+        remainingTinyTaskCount = activeTasks.filter(task => task.status !== 'completed').length;
       }
 
-      const activeTasks = tinyTasks
-        .filter(task => task.milestoneId === activeMilestone.id)
-        .sort((a, b) => a.order - b.order);
-
-      const completedTinyTaskCount = activeTasks.filter(task => task.status === 'completed').length;
-      const remainingTinyTaskCount = activeTasks.filter(task => task.status !== 'completed').length;
+      const hasActiveMilestone = !!activeMilestone;
 
       const planningState =
-        activeTasks.length === 0
-          ? 'no_tasks'
-          : remainingTinyTaskCount === 0
-            ? 'all_tasks_complete'
-            : 'has_remaining_tasks';
+        !activeMilestone
+          ? 'no_active_milestone'
+          : activeTasks.length === 0
+            ? 'no_tasks'
+            : remainingTinyTaskCount === 0
+              ? 'all_tasks_complete'
+              : 'has_remaining_tasks';
 
       statusByGoalId[goal.id] = {
-        hasActiveMilestone: true,
-        activeMilestoneTitle: activeMilestone.title,
+        hasActiveMilestone,
+        activeMilestoneTitle: activeMilestone?.title ?? null,
         completedMilestoneCount: goalMilestones.filter(m => m.status === 'completed').length,
         totalMilestoneCount: goalMilestones.length,
         completedTinyTaskCount,
         totalTinyTaskCount: activeTasks.length,
-        needsPlanning: planningState !== 'has_remaining_tasks',
-        planningState
+        needsPlanning: planningState === 'no_tasks' || planningState === 'all_tasks_complete',
+        planningState,
+
+        hasAnyMilestones,
+        missingRoadmap: !hasAnyMilestones,
+        missingNextAction: planningState === 'no_tasks' || planningState === 'all_tasks_complete'
       };
     }
 
