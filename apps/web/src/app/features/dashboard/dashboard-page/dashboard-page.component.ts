@@ -315,7 +315,8 @@ export class DashboardPageComponent {
         inboxState.error,
         executionSnapshotState.error,
         progressEventsState.error,
-        roadmapInsightsState.error
+        roadmapInsightsState.error,
+        roadmapStatusState.error
       ].filter((message): message is string => !!message);
 
       return {
@@ -364,7 +365,8 @@ export class DashboardPageComponent {
           dailyRotationState.loading ||
           inboxState.loading ||
           executionSnapshotState.loading ||
-          roadmapInsightsState.loading,
+          roadmapInsightsState.loading ||
+          roadmapStatusState.loading,
 
         pageErrorMessages
       };
