@@ -204,6 +204,46 @@
         {{ milestone.notes }}
       </div>
 
+      <div class="goal-milestone__actions">
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="startEditingMilestone(milestone)"
+          [disabled]="isSavingMilestone"
+        >
+          Edit
+        </button>
+
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="setActiveMilestone(vm.goal, milestone, vm.milestones)"
+          [disabled]="milestone.status === 'active' || milestone.status === 'completed' || isSavingMilestone"
+        >
+          Set Active
+        </button>
+
+        <button
+          mat-stroked-button
+          color="primary"
+          type="button"
+          (click)="completeMilestone(vm.goal, milestone, vm.milestones)"
+          [disabled]="milestone.status === 'completed' || isSavingMilestone"
+        >
+          Complete
+        </button>
+
+        <button
+          mat-button
+          color="warn"
+          type="button"
+          (click)="deleteMilestone(milestone)"
+          [disabled]="isDeletingMilestone(milestone.id)"
+        >
+          Delete
+        </button>
+      </div>
+
       <div
         class="goal-tiny-tasks"
         *ngIf="milestone.status === 'active' && vm.activeMilestone?.id === milestone.id"
@@ -396,45 +436,7 @@
         </div>
       </div>
 
-      <div class="goal-milestone__actions">
-        <button
-          mat-stroked-button
-          type="button"
-          (click)="startEditingMilestone(milestone)"
-          [disabled]="isSavingMilestone"
-        >
-          Edit
-        </button>
-
-        <button
-          mat-stroked-button
-          type="button"
-          (click)="setActiveMilestone(vm.goal, milestone, vm.milestones)"
-          [disabled]="milestone.status === 'active' || milestone.status === 'completed' || isSavingMilestone"
-        >
-          Set Active
-        </button>
-
-        <button
-          mat-stroked-button
-          color="primary"
-          type="button"
-          (click)="completeMilestone(vm.goal, milestone, vm.milestones)"
-          [disabled]="milestone.status === 'completed' || isSavingMilestone"
-        >
-          Complete
-        </button>
-
-        <button
-          mat-button
-          color="warn"
-          type="button"
-          (click)="deleteMilestone(milestone)"
-          [disabled]="isDeletingMilestone(milestone.id)"
-        >
-          Delete
-        </button>
-      </div>
+      
     </ng-container>
 
     <ng-template #editMilestoneBlock>
