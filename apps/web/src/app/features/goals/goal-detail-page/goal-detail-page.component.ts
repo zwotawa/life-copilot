@@ -371,7 +371,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
               this.highlightMilestones = false;
             }, 1800);
           }
-        }, 0);
+        }, 100);
       }
     });
   }
