@@ -82,6 +82,66 @@
       </div>
     </div>
 
+    <ng-container *ngIf="vm.roadmapStatusAndGuidance as roadmapStatusAndGuidance">
+      <section
+        *ngIf="
+          roadmapStatusAndGuidance &&
+          roadmapStatusAndGuidance.status.planningState !== 'has_remaining_tasks'
+        "
+        class="roadmap-guidance-card"
+      >
+        <div class="roadmap-guidance-card__main">
+    <div class="roadmap-guidance-card__icon" aria-hidden="true">
+      <mat-icon>tips_and_updates</mat-icon>
+    </div>
+
+    <div class="roadmap-guidance-card__content">
+      <h3 class="roadmap-guidance-card__title">
+        {{ roadmapStatusAndGuidance.guidance.title }}
+      </h3>
+
+      <p class="roadmap-guidance-card__message">
+        {{ roadmapStatusAndGuidance.guidance.message }}
+      </p>
+    </div>
+  </div>
+
+        <div class="roadmap-guidance-card__actions">
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="focusAddMilestone()"
+            *ngIf="roadmapStatusAndGuidance.status.planningState === 'no_active_milestone'"
+          >
+            Add Milestone
+          </button>
+
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="focusAddTinyTask()"
+            *ngIf="
+              roadmapStatusAndGuidance.status.planningState === 'no_tasks' ||
+              roadmapStatusAndGuidance.status.planningState === 'all_tasks_complete'
+            "
+          >
+            Add Tiny Task
+          </button>
+
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="completeMilestone(vm.goal, vm.activeMilestone, vm.milestones)"
+            *ngIf="roadmapStatusAndGuidance.status.planningState === 'all_tasks_complete'"
+          >
+            Mark Milestone Complete
+          </button>
+        </div>
+      </section>
+    </ng-container>
+
     <div class="goal-milestones__summary" *ngIf="vm.milestones.length > 0">
   <div class="goal-milestones__summary-stats">
     <div class="goal-milestones__summary-stat">
@@ -115,7 +175,7 @@
   </div>
 
     <div class="goal-milestones__composer">
-      <mat-form-field appearance="outline" class="goal-milestones__input">
+      <mat-form-field appearance="outline" class="goal-milestones__input" >
         <mat-label>New milestone</mat-label>
         <input
           matInput
@@ -123,6 +183,7 @@
           name="newMilestoneTitle"
           placeholder="Add the next milestone..."
           (keydown.enter)="addMilestone(vm.goal, vm.milestones)"
+          id="add-milestone-input"
         />
       </mat-form-field>
 
@@ -293,7 +354,7 @@
         </div>
 
         <div class="goal-tiny-tasks__composer">
-          <mat-form-field appearance="outline" class="goal-tiny-tasks__input">
+          <mat-form-field appearance="outline" class="goal-tiny-tasks__input" >
             <mat-label>New tiny task</mat-label>
             <input
               matInput
@@ -301,6 +362,7 @@
               name="newTinyTaskTitle"
               placeholder="Add the next tiny step..."
               (keydown.enter)="addTinyTask(vm.goal, vm.activeMilestone, vm.tinyTasks)"
+              id="add-tiny-task-input"
             />
           </mat-form-field>
 

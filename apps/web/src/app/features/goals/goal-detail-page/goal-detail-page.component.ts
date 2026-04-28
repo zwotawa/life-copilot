@@ -15,24 +15,34 @@ import { GoalMilestone } from 'src/app/core/models/goal-milestone.model';
 import { GoalTinyTaskStoreService } from 'src/app/core/services/goal-tiny-task-store.service';
 import { GoalTinyTask } from 'src/app/core/models/goal-tiny-task.model';
 import { createGoalTinyTask } from 'src/app/core/utils/create-goal-tiny-task';
-import { get } from 'http';
 import { getLocalDateKey } from 'src/app/shared/utility/get-today-key';
+import { RoadmapGuidance } from 'src/app/core/models/roadmap-guidance.model';
+import { GoalRoadmapStatusService } from 'src/app/core/services/goal-roadmap-status.service';
+import { getGuidanceForStatus } from 'src/app/shared/utility/roadmap-guidance-helper';
+import { GoalRoadmapStatus, RoadmapGoalStatus } from 'src/app/core/models/goal-roadmap-status.model';
 
 interface GoalDetailViewModel {
   goalState: Loadable<Goal>;
   progressEventsState: Loadable<GoalProgressEvent[]>;
   milestonesState: Loadable<GoalMilestone[]>;
   tinyTasksState: Loadable<GoalTinyTask[]>;
+  roadmapStatusAndGuidanceState: Loadable<RoadmapStatusAndGuidance>;
 
   goal: Goal | null;
   progressEvents: GoalProgressEvent[];
   milestones: GoalMilestone[];
   activeMilestone: GoalMilestone | null;
   tinyTasks: GoalTinyTask[];
+  roadmapStatusAndGuidance: RoadmapStatusAndGuidance | null;
 
   isNewGoal: boolean;
   pageLoading: boolean;
   pageErrorMessages: string[];
+}
+
+interface RoadmapStatusAndGuidance {
+  status: GoalRoadmapStatus;
+  guidance: RoadmapGuidance;
 }
 
 @Component({
@@ -241,20 +251,73 @@ export class GoalDetailPageComponent implements AfterViewInit {
     shareReplay(1)
   );
 
+  public readonly roadmapStatusAndGuidanceState$: Observable<Loadable<RoadmapStatusAndGuidance>> = combineLatest([
+    this.goalState$,
+    this.milestonesState$,
+    this.tinyTasksState$
+  ]).pipe(
+    map(([goalState, milestonesState, tinyTasksState]) => {
+      // Logic to determine roadmap guidance based on goal, milestones, and tiny tasks state
+      if (goalState.loading || milestonesState.loading || tinyTasksState.loading) {
+        return {
+          loading: true,
+          data: null,
+          error: null
+        };
+      }
+
+      if (goalState.error || milestonesState.error || tinyTasksState.error) {
+        return {
+          loading: false,
+          data: null,
+          error: goalState.error ?? milestonesState.error ?? tinyTasksState.error
+        };
+      }
+
+      const goal = goalState.data;
+      const milestones = milestonesState.data ?? [];
+      const tinyTasks = tinyTasksState.data ?? [];
+
+      if (!goal) {
+        return {
+          loading: false,
+          data: null,
+          error: 'Goal not found'
+        };
+      }
+
+      const status = this.goalroadmapStatusService.buildStatusByGoalId([goal], milestones, tinyTasks)[goal.id];
+
+      const guidance = getGuidanceForStatus(status.planningState);
+
+
+      return {
+        loading: false,
+        data: {
+          status,
+          guidance
+        },
+        error: null
+      };
+    })
+  );
+
   public readonly vm$: Observable<GoalDetailViewModel> = combineLatest([
     this.goalId$,
     this.goalState$,
     this.progressEventsState$,
     this.milestonesState$,
     this.activeMilestone$,
-    this.tinyTasksState$
+    this.tinyTasksState$,
+    this.roadmapStatusAndGuidanceState$
   ]).pipe(
-    map(([goalId, goalState, progressEventsState, milestonesState, activeMilestone, tinyTasksState]) => {
+    map(([goalId, goalState, progressEventsState, milestonesState, activeMilestone, tinyTasksState, roadmapStatusAndGuidanceState]) => {
       const pageErrorMessages = [
         goalState.error,
         progressEventsState.error,
         milestonesState.error,
         tinyTasksState.error,
+        roadmapStatusAndGuidanceState.error,
         this.milestoneError,
         this.tinyTaskError
       ].filter((message): message is string => !!message);
@@ -264,19 +327,20 @@ export class GoalDetailPageComponent implements AfterViewInit {
         progressEventsState,
         milestonesState,
         tinyTasksState,
-
+        roadmapStatusAndGuidanceState,
         goal: goalState.data,
         progressEvents: progressEventsState.data ?? [],
         milestones: milestonesState.data ?? [],
         activeMilestone,
         tinyTasks: tinyTasksState.data ?? [],
-
+        roadmapStatusAndGuidance: roadmapStatusAndGuidanceState.data,
         isNewGoal: goalId === 'new',
         pageLoading:
           goalState.loading ||
           progressEventsState.loading ||
           milestonesState.loading ||
-          tinyTasksState.loading,
+          tinyTasksState.loading ||
+          roadmapStatusAndGuidanceState.loading,
         pageErrorMessages
       };
     }),
@@ -288,7 +352,8 @@ export class GoalDetailPageComponent implements AfterViewInit {
     private readonly goalStoreService: GoalStoreService,
     private readonly goalProgressStoreService: GoalProgressStoreService,
     private readonly goalMilestoneStoreService: GoalMilestoneStoreService,
-    private goalTinyTaskStoreService: GoalTinyTaskStoreService
+    private goalTinyTaskStoreService: GoalTinyTaskStoreService,
+    private goalroadmapStatusService: GoalRoadmapStatusService
   ) {}
 
   ngAfterViewInit(): void {
@@ -417,8 +482,8 @@ export class GoalDetailPageComponent implements AfterViewInit {
     });
   }
 
-  public completeMilestone(goal: Goal | null, milestone: GoalMilestone, milestones: GoalMilestone[]): void {
-    if (!goal?.id || this.isSavingMilestone) {
+  public completeMilestone(goal: Goal | null, milestone: GoalMilestone | null, milestones: GoalMilestone[]): void {
+    if (!goal?.id || this.isSavingMilestone || !milestone) {
       return;
     }
 
@@ -803,6 +868,22 @@ export class GoalDetailPageComponent implements AfterViewInit {
 
   public moveTinyTaskDown(task: GoalTinyTask, tasks: GoalTinyTask[]): void {
     this.moveTinyTask(task, tasks, 1);
+  }
+
+  public focusAddMilestone(): void {
+    const element = document.getElementById('add-milestone-input');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.focus();
+    }
+  }
+
+  public focusAddTinyTask(): void {
+    const element = document.getElementById('add-tiny-task-input');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.focus();
+    }
   }
 
   private moveTinyTask(
