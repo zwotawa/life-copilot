@@ -521,15 +521,9 @@
                 class="dashboard-roadmap-item__planning-cue"
                 *ngIf="item.needsPlanning"
               >
-                <ng-container [ngSwitch]="item.planningState">
-                  <span *ngSwitchCase="'no_tasks'">
-                    This active milestone has no tiny tasks yet. Add the next tiny task.
-                  </span>
-
-                  <span *ngSwitchCase="'all_tasks_complete'">
-                    All current tiny tasks are complete. Add another tiny task or mark the milestone complete.
-                  </span>
-                </ng-container>
+                <div class="dashboard-roadmap-item__planning-cue-text">
+                  {{ getGuidanceForRoadmapStatus(item.planningState) }}
+                </div>
 
                 <div class="dashboard-roadmap-item__planning-actions">
                   <a
@@ -540,6 +534,14 @@
                   >
                     Open Goal
                   </a>
+                  <button
+                    mat-stroked-button
+                    color="primary"
+                    [routerLink]="['/goals', item.goalId]"
+                    fragment="milestones"
+                  >
+                    Plan Next Step
+                  </button>
                 </div>
               </div>
 

@@ -29,7 +29,9 @@ import { GoalMilestone } from 'src/app/core/models/goal-milestone.model';
 import { GoalTinyTask } from 'src/app/core/models/goal-tiny-task.model';
 import { GoalRoadmapInsights, GoalRoadmapProgressItem } from 'src/app/core/models/goal-roadmap-insights.model';
 import { GoalRoadmapStatusService } from 'src/app/core/services/goal-roadmap-status.service';
-import { GoalRoadmapStatus } from 'src/app/core/models/goal-roadmap-status.model';
+import { GoalRoadmapStatus, RoadmapGoalStatus } from 'src/app/core/models/goal-roadmap-status.model';
+import { getGuidanceForStatus } from 'src/app/shared/utility/roadmap-guidance-helper';
+
 
 interface GoalFreshnessView {
   goal: Goal;
@@ -444,6 +446,13 @@ export class DashboardPageComponent {
   public findGoalById(goalId: string | null, goals: Goal[]): Goal | null {
     if (!goalId) return null;
     return goals.find(goal => goal.id === goalId) ?? null;
+  }
+
+  public getGuidanceForRoadmapStatus(status: RoadmapGoalStatus | null): string {
+    if (!status) {
+      return '';
+    }
+    return getGuidanceForStatus(status).message;
   }
 
   private toGoalFreshnessView(goal: Goal): GoalFreshnessView {

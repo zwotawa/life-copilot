@@ -1,3 +1,5 @@
+import { RoadmapGoalStatus } from "./goal-roadmap-status.model";
+
 export interface GoalRoadmapProgressItem {
   goalId: string;
   goalTitle: string;
@@ -7,7 +9,7 @@ export interface GoalRoadmapProgressItem {
   completedTinyTaskCount: number;
   totalTinyTaskCount: number;
   needsPlanning: boolean;
-  planningState: 'no_tasks' | 'all_tasks_complete' | 'has_remaining_tasks';
+  planningState: RoadmapGoalStatus;
 }
 
 export interface GoalRoadmapInsights {

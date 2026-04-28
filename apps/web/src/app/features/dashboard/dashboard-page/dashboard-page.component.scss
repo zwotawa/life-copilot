@@ -439,6 +439,9 @@
 
 .dashboard-roadmap-item__planning-actions {
   margin-top: 0.6rem;
+  gap: 0.5rem;
+  display: flex;
+  flex-direction: row;
 }
 
 .dashboard-roadmap-item__planning-cue {

@@ -24,6 +24,7 @@ import { GoalTinyTaskStoreService } from 'src/app/core/services/goal-tiny-task-s
 import { GoalMilestone } from 'src/app/core/models/goal-milestone.model';
 import { GoalTinyTask } from 'src/app/core/models/goal-tiny-task.model';
 import { GoalRoadmapStatus } from 'src/app/core/models/goal-roadmap-status.model';
+import { getGuidanceForStatus } from 'src/app/shared/utility/roadmap-guidance-helper';
 
 interface WeeklyReviewViewModel {
   goalsState: Loadable<Goal[]>;
@@ -829,13 +830,6 @@ export class WeeklyReviewPageComponent {
       return '';
     }
 
-    switch (status.planningState) {
-      case 'no_tasks':
-        return 'Needs planning: active milestone has no tiny tasks yet.';
-      case 'all_tasks_complete':
-        return 'Needs review: all current tiny tasks are complete.';
-      default:
-        return '';
-    }
+    return getGuidanceForStatus(status.planningState).message;
   }
 }

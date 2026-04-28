@@ -147,6 +147,7 @@
             {{ planningCue }}
           </div>
 
+          <div class="weekly-warning-buttons">
           <a
             mat-stroked-button
             color="primary"
@@ -157,6 +158,15 @@
           >
             Open Goal
           </a>
+          <button
+            mat-stroked-button
+            color="primary"
+            [routerLink]="['/goals', goal.id]"
+            fragment="milestones"
+          >
+            Plan Next Step
+          </button>
+          </div>
         </div>
       </ng-container>
     </ng-container>
@@ -270,6 +280,7 @@
                     {{ planningCue }}
                   </div>
 
+                  <div class="weekly-warning-buttons">
                   <a
                     mat-stroked-button
                     color="primary"
@@ -280,6 +291,15 @@
                   >
                     Open Goal
                   </a>
+                  <button
+                    mat-stroked-button
+                    color="primary"
+                    [routerLink]="['/goals', goal.id]"
+                    fragment="milestones"
+                  >
+                    Plan Next Step
+                  </button>
+                  </div>
                 </div>
               </ng-container>
               <div class="goal-debug" *ngIf="showSurfacingDebug && getSurfacingResult(goal) as surfacing">

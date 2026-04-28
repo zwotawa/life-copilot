@@ -290,3 +290,10 @@ mat-form-field {
   flex-direction: column;
   align-items: flex-start;
 }
+
+.weekly-warning-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
