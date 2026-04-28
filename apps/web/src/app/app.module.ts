@@ -54,6 +54,7 @@ import { GoalMilestoneRepository } from './core/repositories/goal-milestone.repo
 import { ApiGoalMilestoneService } from './core/services/api/api-goal-milestone.service';
 import { GoalTinyTaskRepository } from './core/repositories/goal-tiny-task.repository';
 import { ApiGoalTinyTaskService } from './core/services/api/api-goal-tiny-task.service';
+import { MatMenuModule } from '@angular/material/menu';
 
 
 export function initializeAuth(authService: AuthService): () => Promise<void> {
@@ -97,7 +98,9 @@ export function initializeAuth(authService: AuthService): () => Promise<void> {
     MatCheckboxModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatToolbarModule,
+    MatMenuModule
   ],
   providers: [
     {provide: AuthService, useClass: ApiAuthService},

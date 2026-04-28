@@ -1,17 +1,60 @@
-<mat-toolbar color="primary" class="nav">
-  <a class="brand" routerLink="/">
+<mat-toolbar color="primary" class="app-toolbar">
+  <a class="app-toolbar__brand" routerLink="/">
     Life Copilot
   </a>
 
-  <a *ngIf="isSignedIn" routerLink="/daily" class="nav-link">Daily</a>
-  <a *ngIf="isSignedIn" routerLink="/weekly" class="nav-link">Weekly</a>
-  <a *ngIf="isSignedIn" routerLink="/inbox" class="nav-link">Inbox</a>
-  <a *ngIf="isSignedIn" routerLink="/goals" class="nav-link">Goals</a>
+  <span class="app-toolbar__spacer"></span>
 
-  <span class="spacer"></span>
+  <nav class="app-toolbar__nav" *ngIf="isSignedIn">
+    <a mat-button routerLink="/">Dashboard</a>
+    <a mat-button routerLink="/goals">Goals</a>
+    <a mat-button routerLink="/weekly">Weekly</a>
+    <a mat-button routerLink="/daily">Daily</a>
+    <a mat-button routerLink="/inbox">Inbox</a>
+    <button mat-button type="button" (click)="logout()">Logout</button>
+  </nav>
 
-  <button *ngIf="isSignedIn" mat-button (click)="logout()">Log out</button>
+  <button
+    mat-icon-button
+    class="app-toolbar__menu-button"
+    [matMenuTriggerFor]="mobileMenu"
+    aria-label="Open navigation menu"
+    *ngIf="isSignedIn"
+  >
+    <mat-icon>menu</mat-icon>
+  </button>
 
+  <mat-menu #mobileMenu="matMenu">
+    <a mat-menu-item routerLink="/">
+      <mat-icon>dashboard</mat-icon>
+      <span>Dashboard</span>
+    </a>
+
+    <a mat-menu-item routerLink="/goals">
+      <mat-icon>flag</mat-icon>
+      <span>Goals</span>
+    </a>
+
+    <a mat-menu-item routerLink="/weekly">
+      <mat-icon>event_note</mat-icon>
+      <span>Weekly</span>
+    </a>
+
+    <a mat-menu-item routerLink="/daily">
+      <mat-icon>today</mat-icon>
+      <span>Daily</span>
+    </a>
+
+    <a mat-menu-item routerLink="/inbox">
+      <mat-icon>inbox</mat-icon>
+      <span>Inbox</span>
+    </a>
+
+    <button mat-menu-item type="button" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Logout</span>
+    </button>
+  </mat-menu>
 </mat-toolbar>
 
 <div class="page">
