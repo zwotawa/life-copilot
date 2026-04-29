@@ -140,6 +140,54 @@
           </button>
         </div>
       </section>
+      <section
+        class="planning-assistant-panel"
+        *ngIf="
+          roadmapStatusAndGuidance.suggestions?.length &&
+          roadmapStatusAndGuidance.status.planningState !== 'has_remaining_tasks'
+        "
+      >
+        <div class="planning-assistant-panel__header">
+          <div>
+            <h4 class="planning-assistant-panel__title">
+              Planning Assistant
+            </h4>
+
+            <p class="planning-assistant-panel__subtitle">
+              Choose a starter option, then edit it if needed.
+            </p>
+          </div>
+        </div>
+
+        <div class="planning-assistant-panel__list">
+          <article
+            class="planning-suggestion"
+            *ngFor="let suggestion of roadmapStatusAndGuidance.suggestions"
+          >
+            <div class="planning-suggestion__content">
+              <div class="planning-suggestion__title">
+                {{ suggestion.title }}
+              </div>
+
+              <div
+                class="planning-suggestion__description"
+                *ngIf="suggestion.description"
+              >
+                {{ suggestion.description }}
+              </div>
+            </div>
+
+            <button
+              mat-stroked-button
+              color="primary"
+              type="button"
+              (click)="applyPlanningSuggestion(suggestion, vm.goal, vm.activeMilestone, vm.milestones, vm.tinyTasks)"
+            >
+              {{ suggestion.actionLabel }}
+            </button>
+          </article>
+        </div>
+      </section>
     </ng-container>
 
     <div class="goal-milestones__summary" *ngIf="vm.milestones.length > 0">

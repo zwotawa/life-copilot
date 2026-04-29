@@ -20,6 +20,8 @@ import { RoadmapGuidance } from 'src/app/core/models/roadmap-guidance.model';
 import { GoalRoadmapStatusService } from 'src/app/core/services/goal-roadmap-status.service';
 import { getGuidanceForStatus } from 'src/app/shared/utility/roadmap-guidance-helper';
 import { GoalRoadmapStatus, RoadmapGoalStatus } from 'src/app/core/models/goal-roadmap-status.model';
+import { PlanningSuggestion } from 'src/app/core/models/planning-suggestion.model';
+import { getPlanningSuggestionsForState } from 'src/app/shared/utility/roadmap-planning-suggestions.utils';
 
 interface GoalDetailViewModel {
   goalState: Loadable<Goal>;
@@ -43,6 +45,7 @@ interface GoalDetailViewModel {
 interface RoadmapStatusAndGuidance {
   status: GoalRoadmapStatus;
   guidance: RoadmapGuidance;
+  suggestions: PlanningSuggestion[];
 }
 
 @Component({
@@ -290,12 +293,15 @@ export class GoalDetailPageComponent implements AfterViewInit {
 
       const guidance = getGuidanceForStatus(status.planningState);
 
+      const suggestions = getPlanningSuggestionsForState(status.planningState);
+
 
       return {
         loading: false,
         data: {
           status,
-          guidance
+          guidance,
+          suggestions
         },
         error: null
       };
@@ -638,7 +644,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
     this.moveMilestone(goal, milestone, milestones, 1);
   }
 
-  public addTinyTask(goal: Goal | null, activeMilestone: GoalMilestone | null, tinyTasks: GoalTinyTask[]): void {
+  public addTinyTask(goal: Goal | null, activeMilestone: GoalMilestone | null | undefined, tinyTasks: GoalTinyTask[]): void {
     const title = this.newTinyTaskTitle.trim();
 
     if (!goal?.id || !activeMilestone?.id || !title || this.isSavingTinyTask) {
@@ -743,6 +749,40 @@ export class GoalDetailPageComponent implements AfterViewInit {
     }
 
     return this.getRemainingTinyTaskCount(tasks) === 0;
+  }
+
+  public applyPlanningSuggestion(
+    suggestion: PlanningSuggestion,
+    goal: Goal | null | undefined,
+    activeMilestone: GoalMilestone | null | undefined,
+    milestones: GoalMilestone[],
+    tinyTasks: GoalTinyTask[]
+  ): void {
+    if (!goal) {
+      return;
+    }
+
+    if (suggestion.id === 'complete-milestone' && activeMilestone) {
+      this.completeMilestone(goal, activeMilestone, milestones);
+      return;
+    }
+
+    if (suggestion.type === 'milestone') {
+      this.newMilestoneTitle = suggestion.title;
+      this.addMilestone(goal, milestones);
+      return;
+    }
+
+    if (suggestion.type === 'tiny_task' && activeMilestone) {
+      this.newTinyTaskTitle = suggestion.title;
+      this.addTinyTask(goal, activeMilestone, tinyTasks);
+      return;
+    }
+
+    if (suggestion.id === 'write-progress-note') {
+      this.newTinyTaskTitle = 'Write a short progress note';
+      this.addTinyTask(goal, activeMilestone, tinyTasks);
+    }
   }
 
   private moveMilestone(
