@@ -1,7 +1,7 @@
 import { Component, ViewChild, AfterViewInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
-import { catchError, distinctUntilChanged, filter, map, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, map, scan, shareReplay, startWith, switchMap, take, tap } from 'rxjs/operators';
 
 import { Goal } from 'src/app/core/models/goal.model';
 import { GoalProgressEvent } from 'src/app/core/models/goal-progress-event.model';
@@ -33,7 +33,7 @@ interface GoalDetailViewModel {
   goal: Goal | null;
   progressEvents: GoalProgressEvent[];
   milestones: GoalMilestone[];
-  activeMilestone: GoalMilestone | null;
+  activeMilestone: GoalMilestone | null | undefined;
   tinyTasks: GoalTinyTask[];
   roadmapStatusAndGuidance: RoadmapStatusAndGuidance | null;
 
@@ -76,6 +76,8 @@ export class GoalDetailPageComponent implements AfterViewInit {
 
   private hasScrolledToMilestones = false;
   public highlightMilestones = false;
+
+  public selectedGoalDetailTabIndex = 0;
 
   private readonly milestoneReloadSubject = new BehaviorSubject<void>(undefined);
   public readonly milestoneReload$ = this.milestoneReloadSubject.asObservable();
@@ -173,57 +175,99 @@ export class GoalDetailPageComponent implements AfterViewInit {
   );
 
  public readonly milestonesState$: Observable<Loadable<GoalMilestone[]>> = combineLatest([
-    this.goalState$,
-    this.milestoneReload$
-  ]).pipe(
-    switchMap(([goalState]) => {
-      const goal = goalState.data;
+  this.goalState$,
+  this.milestoneReload$
+]).pipe(
+  switchMap(([goalState]) => {
+    const goal = goalState.data;
 
-      if (!goal?.id) {
-        return of({
+    if (goalState.loading && !goal) {
+      return of({
+        loading: true,
+        data: null,
+        error: null
+      });
+    }
+
+    if (goalState.error) {
+      return of({
+        loading: false,
+        data: null,
+        error: goalState.error
+      });
+    }
+
+    if (!goal?.id) {
+      return of({
+        loading: false,
+        data: [],
+        error: null
+      });
+    }
+
+    return this.goalMilestoneStoreService.getMilestonesForGoal(goal.id).pipe(
+      map(milestones => ({
+        loading: false,
+        data: [...milestones].sort((a, b) => a.order - b.order),
+        error: null
+      })),
+      startWith({
+        loading: true,
+        data: null,
+        error: null
+      }),
+      catchError(() =>
+        of({
           loading: false,
           data: [],
-          error: null
-        });
-      }
+          error: 'Could not load milestones.'
+        })
+      )
+    );
+  }),
+  scan((previous, current) => {
+    if (current.loading && previous.data) {
+      return {
+        ...current,
+        data: previous.data
+      };
+    }
 
-      return this.goalMilestoneStoreService.getMilestonesForGoal(goal.id).pipe(
-        map(milestones => ({
-          loading: false,
-          data: [...milestones].sort((a, b) => a.order - b.order),
-          error: null
-        })),
-        startWith({
-          loading: true,
-          data: null,
-          error: null
-        }),
-        catchError(() =>
-          of({
-            loading: false,
-            data: [],
-            error: 'Could not load milestones.'
-          })
-        )
-      );
-    }),
-    shareReplay(1)
-  );
+    return current;
+  }, {
+    loading: true,
+    data: null,
+    error: null
+  } as Loadable<GoalMilestone[]>),
+  shareReplay(1)
+);
 
-  public readonly activeMilestone$: Observable<GoalMilestone | null> = this.milestonesState$.pipe(
-    map(milestonesState => {
-      const milestones = milestonesState.data ?? [];
-      return milestones.find(m => m.status === 'active') ?? null;
-    }),
-    shareReplay(1)
-  );
+  public readonly activeMilestone$: Observable<GoalMilestone | null | undefined> =
+    this.milestonesState$.pipe(
+      map(milestonesState => {
+        if (milestonesState.data === null) {
+          return undefined;
+        }
 
-  public readonly tinyTasksState$: Observable<Loadable<GoalTinyTask[]>> = combineLatest([
+        return milestonesState.data.find(m => m.status === 'active') ?? null;
+      }),
+      shareReplay(1)
+    );
+
+    public readonly tinyTasksState$: Observable<Loadable<GoalTinyTask[]>> = combineLatest([
     this.activeMilestone$,
     this.tinyTaskReload$
   ]).pipe(
     switchMap(([activeMilestone]) => {
-      if (!activeMilestone?.id) {
+      if (activeMilestone === undefined) {
+        return of({
+          loading: true,
+          data: null,
+          error: null
+        });
+      }
+
+      if (activeMilestone === null) {
         return of({
           loading: false,
           data: [],
@@ -254,14 +298,23 @@ export class GoalDetailPageComponent implements AfterViewInit {
     shareReplay(1)
   );
 
-  public readonly roadmapStatusAndGuidanceState$: Observable<Loadable<RoadmapStatusAndGuidance>> = combineLatest([
+  public readonly roadmapStatusAndGuidanceState$: Observable<Loadable<RoadmapStatusAndGuidance>> =
+  combineLatest([
     this.goalState$,
     this.milestonesState$,
     this.tinyTasksState$
   ]).pipe(
     map(([goalState, milestonesState, tinyTasksState]) => {
-      // Logic to determine roadmap guidance based on goal, milestones, and tiny tasks state
-      if (goalState.loading || milestonesState.loading || tinyTasksState.loading) {
+      const goal = goalState.data;
+      const milestones = milestonesState.data;
+      const tinyTasks = tinyTasksState.data;
+
+      const initialDataStillLoading =
+        !goal ||
+        milestones === null ||
+        tinyTasks === null;
+
+      if (initialDataStillLoading) {
         return {
           loading: true,
           data: null,
@@ -273,39 +326,46 @@ export class GoalDetailPageComponent implements AfterViewInit {
         return {
           loading: false,
           data: null,
-          error: goalState.error ?? milestonesState.error ?? tinyTasksState.error
-        };
-      }
-
-      const goal = goalState.data;
-      const milestones = milestonesState.data ?? [];
-      const tinyTasks = tinyTasksState.data ?? [];
-
-      if (!goal) {
-        return {
-          loading: false,
-          data: null,
-          error: 'Goal not found'
+          error:
+            goalState.error ??
+            milestonesState.error ??
+            tinyTasksState.error
         };
       }
 
       const status = this.goalroadmapStatusService.buildStatusByGoalId([goal], milestones, tinyTasks)[goal.id];
 
-      const guidance = getGuidanceForStatus(status.planningState);
+      const guidance = getGuidanceForStatus(
+        status.planningState
+      );
 
       const suggestions = getPlanningSuggestionsForState(status.planningState);
 
-
       return {
         loading: false,
+        error: null,
         data: {
           status,
           guidance,
           suggestions
-        },
-        error: null
+        }
       };
-    })
+    }),
+    scan((previous, current) => {
+      if (current.loading && previous.data) {
+        return {
+          ...current,
+          data: previous.data
+        };
+      }
+
+      return current;
+    }, {
+      loading: true,
+      data: null,
+      error: null
+    } as Loadable<RoadmapStatusAndGuidance>),
+    shareReplay({ bufferSize: 1, refCount: true })
   );
 
   public readonly vm$: Observable<GoalDetailViewModel> = combineLatest([
@@ -342,11 +402,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
         roadmapStatusAndGuidance: roadmapStatusAndGuidanceState.data,
         isNewGoal: goalId === 'new',
         pageLoading:
-          goalState.loading ||
-          progressEventsState.loading ||
-          milestonesState.loading ||
-          tinyTasksState.loading ||
-          roadmapStatusAndGuidanceState.loading,
+          goalState.loading || !goalState.data,
         pageErrorMessages
       };
     }),
@@ -363,21 +419,19 @@ export class GoalDetailPageComponent implements AfterViewInit {
   ) {}
 
   ngAfterViewInit(): void {
-    combineLatest([this.route.fragment, this.vm$]).subscribe(([fragment, vm]) => {
-      if (fragment === 'milestones' && vm.goal?.id && !this.hasScrolledToMilestones) {
+    this.route.fragment.pipe(take(1)).subscribe((fragment) => {
+      if (fragment === 'milestones') {
+        this.selectedGoalDetailTabIndex = 1;
+        this.highlightMilestones = true;
+
         setTimeout(() => {
-          const element = document.getElementById('milestones');
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            this.hasScrolledToMilestones = true;
+          this.highlightMilestones = false;
+        }, 1800);
+        return;
+      }
 
-            this.highlightMilestones = true;
-
-            setTimeout(() => {
-              this.highlightMilestones = false;
-            }, 1800);
-          }
-        }, 200);
+      if (fragment === 'progress') {
+        this.selectedGoalDetailTabIndex = 2;
       }
     });
   }
@@ -488,7 +542,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
     });
   }
 
-  public completeMilestone(goal: Goal | null, milestone: GoalMilestone | null, milestones: GoalMilestone[]): void {
+  public completeMilestone(goal: Goal | null, milestone: GoalMilestone | null | undefined, milestones: GoalMilestone[]): void {
     if (!goal?.id || this.isSavingMilestone || !milestone) {
       return;
     }
@@ -737,7 +791,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
   }
 
   public shouldShowMilestoneReadyForReview(
-    activeMilestone: GoalMilestone | null,
+    activeMilestone: GoalMilestone | null | undefined,
     tasks: GoalTinyTask[]
   ): boolean {
     if (!activeMilestone || activeMilestone.status !== 'active') {
@@ -1001,4 +1055,5 @@ export class GoalDetailPageComponent implements AfterViewInit {
   private getTodayKey(): string {
     return getLocalDateKey();
   }
+
 }

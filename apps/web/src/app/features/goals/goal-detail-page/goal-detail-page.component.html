@@ -6,75 +6,22 @@
       {{ error }}
     </div>
   </div>
-    <div class="goal-detail-page__error" *ngIf="milestoneError">
-      {{ milestoneError }}
-    </div>
+
 
   <ng-container *ngIf="vm.goal as goal; else goalFallback">
-    <app-goal-form [goal]="goal"></app-goal-form>
-
-    <section class="goal-progress" *ngIf="goal.id">
-      <div class="goal-progress__header">
-        <h3 class="goal-progress__title">Recent Progress</h3>
-        <div class="goal-progress__count" *ngIf="vm.progressEvents.length">
-          {{ vm.progressEvents.length }} event{{ vm.progressEvents.length === 1 ? '' : 's' }}
+    <mat-tab-group class="goal-detail-tabs" [(selectedIndex)]="selectedGoalDetailTabIndex">
+      <mat-tab label="Overview">
+        <div class="goal-detail-tab-panel">
+          <app-goal-form [goal]="goal"></app-goal-form>
         </div>
-      </div>
-
-      <div *ngIf="!vm.progressEventsState.loading && vm.progressEvents.length === 0" class="goal-progress__empty">
-        No progress recorded yet.
-      </div>
-
-      <div class="goal-progress__list" *ngIf="vm.progressEvents.length">
-        <article *ngFor="let event of vm.progressEvents; trackBy: trackByEventId" class="goal-progress__item">
-          <div class="goal-progress__meta-row">
-            <div
-              class="goal-progress__type"
-              [ngClass]="getEventTypeClass(event.type)"
-            >
-              {{ formatEventType(event.type) }}
-            </div>
-
-            <div class="goal-progress__timestamp">
-              {{ event.createdAt | date:'medium' }}
-            </div>
-          </div>
-
-          <div class="goal-progress__task" *ngIf="event.taskText">
-            {{ event.taskText }}
-          </div>
-
-          <div class="goal-progress__notes" *ngIf="event.notes">
-            {{ event.notes }}
-          </div>
-
-          <div class="goal-progress__context" *ngIf="event.milestoneTitle || event.tinyTaskTitle">
-            <div *ngIf="event.milestoneTitle">
-              Milestone: {{ event.milestoneTitle }}
-            </div>
-            <div *ngIf="event.tinyTaskTitle">
-              Tiny task: {{ event.tinyTaskTitle }}
-            </div>
-          </div>
-
-          <div class="goal-progress__source" *ngIf="event.source">
-            Source: {{ event.source }}
-          </div>
-        </article>
-      </div>
-    </section>
-  </ng-container>
-
-  <ng-template #goalFallback>
-    <div class="goal-empty" *ngIf="vm.goalState.loading">
-      Loading goal...
-    </div>
-    <div class="goal-error" *ngIf="vm.goalState.error">
-      {{ vm.goalState.error }}
-    </div>
-  </ng-template>
-
-  <section class="goal-milestones" *ngIf="vm.goal?.id" [class.goal-milestones--highlighted]="highlightMilestones" id="milestones">
+      </mat-tab>
+      <mat-tab label="Roadmap">
+        <mat-progress-bar *ngIf="vm.milestonesState.loading  && vm.milestones.length === 0" mode="indeterminate"></mat-progress-bar>
+        <div class="goal-detail-page__error" *ngIf="milestoneError">
+          {{ milestoneError }}
+        </div>
+        <div class="goal-detail-tab-panel">
+         <section class="goal-milestones" *ngIf="vm.goal?.id" [class.goal-milestones--highlighted]="highlightMilestones" id="milestones">
     <div class="goal-milestones__header">
       <h3 class="goal-milestones__title">Milestones</h3>
       <div class="goal-milestones__count">
@@ -83,28 +30,30 @@
     </div>
 
     <ng-container *ngIf="vm.roadmapStatusAndGuidance as roadmapStatusAndGuidance">
-      <section
+      <section 
+        class="roadmap-planning-block"
         *ngIf="
           roadmapStatusAndGuidance &&
           roadmapStatusAndGuidance.status.planningState !== 'has_remaining_tasks'
-        "
+        ">
+      <section
         class="roadmap-guidance-card"
       >
         <div class="roadmap-guidance-card__main">
-    <div class="roadmap-guidance-card__icon" aria-hidden="true">
-      <mat-icon>tips_and_updates</mat-icon>
-    </div>
+          <div class="roadmap-guidance-card__icon" aria-hidden="true">
+            <mat-icon>tips_and_updates</mat-icon>
+          </div>
 
-    <div class="roadmap-guidance-card__content">
-      <h3 class="roadmap-guidance-card__title">
-        {{ roadmapStatusAndGuidance.guidance.title }}
-      </h3>
+          <div class="roadmap-guidance-card__content">
+            <h3 class="roadmap-guidance-card__title">
+              {{ roadmapStatusAndGuidance.guidance.title }}
+            </h3>
 
-      <p class="roadmap-guidance-card__message">
-        {{ roadmapStatusAndGuidance.guidance.message }}
-      </p>
-    </div>
-  </div>
+            <p class="roadmap-guidance-card__message">
+              {{ roadmapStatusAndGuidance.guidance.message }}
+            </p>
+          </div>
+        </div>
 
         <div class="roadmap-guidance-card__actions">
           <button
@@ -142,10 +91,7 @@
       </section>
       <section
         class="planning-assistant-panel"
-        *ngIf="
-          roadmapStatusAndGuidance.suggestions?.length &&
-          roadmapStatusAndGuidance.status.planningState !== 'has_remaining_tasks'
-        "
+        *ngIf="roadmapStatusAndGuidance.suggestions?.length"
       >
         <div class="planning-assistant-panel__header">
           <div>
@@ -188,6 +134,7 @@
           </article>
         </div>
       </section>
+    </section>
     </ng-container>
 
     <div class="goal-milestones__summary" *ngIf="vm.milestones.length > 0">
@@ -246,7 +193,7 @@
       </button>
     </div>
 
-    <div class="goal-milestones__loading" *ngIf="vm.milestonesState.loading">
+    <div class="goal-milestones__loading" *ngIf="vm.milestonesState.loading && vm.milestones.length === 0">
       Loading milestones...
     </div>
 
@@ -254,7 +201,7 @@
       No milestones yet. Add one to start shaping this goal.
     </div>
 
-    <div class="goal-milestones__list" *ngIf="!vm.milestonesState.loading && vm.milestones.length > 0">
+    <div class="goal-milestones__list" *ngIf="vm.milestones.length > 0">
   <article
     class="goal-milestone"
     *ngFor="let milestone of vm.milestones; trackBy: trackByMilestoneId"
@@ -594,4 +541,75 @@
   </article>
 </div>
   </section>
+        </div>
+      </mat-tab>
+      <mat-tab label="Progress">
+        <div class="goal-detail-tab-panel">
+            <section class="goal-progress" *ngIf="goal.id">
+              <div class="goal-progress__header">
+                <h3 class="goal-progress__title">Recent Progress</h3>
+                <div class="goal-progress__count" *ngIf="vm.progressEvents.length">
+                  {{ vm.progressEvents.length }} event{{ vm.progressEvents.length === 1 ? '' : 's' }}
+                </div>
+              </div>
+
+              <div *ngIf="!vm.progressEventsState.loading && vm.progressEvents.length === 0" class="goal-progress__empty">
+                No progress recorded yet.
+              </div>
+
+              <div class="goal-progress__list" *ngIf="vm.progressEvents.length">
+                <article *ngFor="let event of vm.progressEvents; trackBy: trackByEventId" class="goal-progress__item">
+                  <div class="goal-progress__meta-row">
+                    <div
+                      class="goal-progress__type"
+                      [ngClass]="getEventTypeClass(event.type)"
+                    >
+                      {{ formatEventType(event.type) }}
+                    </div>
+
+                    <div class="goal-progress__timestamp">
+                      {{ event.createdAt | date:'medium' }}
+                    </div>
+                  </div>
+
+                  <div class="goal-progress__task" *ngIf="event.taskText">
+                    {{ event.taskText }}
+                  </div>
+
+                  <div class="goal-progress__notes" *ngIf="event.notes">
+                    {{ event.notes }}
+                  </div>
+
+                  <div class="goal-progress__context" *ngIf="event.milestoneTitle || event.tinyTaskTitle">
+                    <div *ngIf="event.milestoneTitle">
+                      Milestone: {{ event.milestoneTitle }}
+                    </div>
+                    <div *ngIf="event.tinyTaskTitle">
+                      Tiny task: {{ event.tinyTaskTitle }}
+                    </div>
+                  </div>
+
+                  <div class="goal-progress__source" *ngIf="event.source">
+                    Source: {{ event.source }}
+                  </div>
+                </article>
+              </div>
+            </section>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+
+
+  </ng-container>
+
+  <ng-template #goalFallback>
+    <div class="goal-empty" *ngIf="vm.goalState.loading">
+      Loading goal...
+    </div>
+    <div class="goal-error" *ngIf="vm.goalState.error">
+      {{ vm.goalState.error }}
+    </div>
+  </ng-template>
+
+ 
 </div>

@@ -837,3 +837,22 @@
     width: 100%;
   }
 }
+
+.goal-detail-tabs {
+  margin-top: 1rem;
+}
+
+.goal-detail-tab-panel {
+  padding-top: 1rem;
+}
+
+.roadmap-planning-block {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.roadmap-planning-block .roadmap-guidance-card,
+.roadmap-planning-block .planning-assistant-panel {
+  margin-bottom: 0;
+}
