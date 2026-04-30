@@ -133,3 +133,38 @@
     justify-content: flex-start;
   }
 }
+
+.goal-roadmap-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+
+  font-size: 0.75rem;
+  font-weight: 650;
+  line-height: 1;
+
+  border: 1px solid transparent;
+}
+
+.goal-roadmap-badge--ready {
+  color: #1b5e20;
+  background: rgba(46, 125, 50, 0.1);
+  border-color: rgba(46, 125, 50, 0.2);
+}
+
+.goal-roadmap-badge--planning {
+  color: #7a4b00;
+  background: rgba(245, 124, 0, 0.11);
+  border-color: rgba(245, 124, 0, 0.22);
+}
+
+.goal-roadmap-badge--review {
+  color: #4a3f8f;
+  background: rgba(63, 81, 181, 0.1);
+  border-color: rgba(63, 81, 181, 0.22);
+}
+
+.goal-card-action-button {
+  margin-left: 8px;}

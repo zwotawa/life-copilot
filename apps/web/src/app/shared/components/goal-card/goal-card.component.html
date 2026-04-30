@@ -57,6 +57,36 @@
       <span class="goal-card__meta-value">{{ getDisplayLabel(goal.excitement) }}</span>
     </div>
   </div>
+  <div>
+    <div
+      class="goal-roadmap-badge"
+      [ngClass]="getRoadmapBadgeClass(roadmapStatusByGoalId[goal.id].planningState)"
+      *ngIf="roadmapStatusByGoalId[goal.id] as roadmapStatus"
+    >
+      {{ getRoadmapBadgeLabel(roadmapStatus.planningState) }}
+    </div>
+    <ng-container *ngIf="roadmapStatusByGoalId[goal.id].planningState !== 'has_remaining_tasks'; else readyState">
+        <a
+          class="goal-card-action-button"
+          mat-stroked-button
+          color="primary"
+          [routerLink]="['/goals', goal.id]"
+          fragment="milestones"
+        >
+          Plan
+        </a>
+      </ng-container>
+      <ng-template #readyState>
+        <a
+          class="goal-card-action-button"
+          mat-stroked-button
+          [routerLink]="['/goals', goal.id]"
+          fragment="milestones"
+        >
+          Open Roadmap
+        </a>
+      </ng-template>
+  </div>
 
   <div class="goal-card__footer" *ngIf="goal.lastTouchedAt || goal.notes">
     <div class="goal-card__last-touched" *ngIf="goal.lastTouchedAt">
