@@ -9,7 +9,7 @@ import { Goal } from 'src/app/core/models/goal.model';
 })
 export class GoalCardComponent {
   @Input() goal!: Goal;
-  @Input() roadmapStatusByGoalId!: Record<string, GoalRoadmapStatus>;
+  @Input() roadmapStatusByGoalId: Record<string, GoalRoadmapStatus> = {};
 
   public getDisplayLabel(value: string): string {
   return value

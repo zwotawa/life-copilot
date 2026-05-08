@@ -58,14 +58,15 @@
     </div>
   </div>
   <div>
+    <ng-container *ngIf="roadmapStatusByGoalId[goal.id] as roadmapStatus; else roadmapLoading">
     <div
       class="goal-roadmap-badge"
-      [ngClass]="getRoadmapBadgeClass(roadmapStatusByGoalId[goal.id].planningState)"
-      *ngIf="roadmapStatusByGoalId[goal.id] as roadmapStatus"
+      [ngClass]="getRoadmapBadgeClass(roadmapStatus.planningState)"
+      
     >
       {{ getRoadmapBadgeLabel(roadmapStatus.planningState) }}
     </div>
-    <ng-container *ngIf="roadmapStatusByGoalId[goal.id].planningState !== 'has_remaining_tasks'; else readyState">
+    <ng-container *ngIf="roadmapStatus.planningState !== 'has_remaining_tasks'; else readyState">
         <a
           class="goal-card-action-button"
           mat-stroked-button
@@ -86,6 +87,12 @@
           Open Roadmap
         </a>
       </ng-template>
+    </ng-container>
+    <ng-template #roadmapLoading>
+      <div class="goal-roadmap-badge goal-roadmap-badge--loading">
+        Checking roadmap...
+      </div>
+    </ng-template>
   </div>
 
   <div class="goal-card__footer" *ngIf="goal.lastTouchedAt || goal.notes">
