@@ -1,7 +1,7 @@
 .daily-page {
   min-height: 100%;
   padding: 2rem 1rem 4rem;
-  background: #f6f8fb;
+  background: var(--app-bg);
 }
 
 .daily-page__container {
@@ -19,7 +19,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--app-text-subtle);
 }
 
 .daily-page__title {
@@ -27,14 +27,14 @@
   font-size: 2rem;
   line-height: 1.1;
   font-weight: 700;
-  color: #111827;
+  color: var(--app-text);
 }
 
 .daily-page__subtitle {
   margin: 0.5rem 0 0;
   font-size: 1rem;
   line-height: 1.45;
-  color: #667085;
+  color: var(--app-text-muted);
 }
 
 .daily-page__actions {
@@ -50,10 +50,10 @@
 
 .daily-card {
   padding: 1.25rem;
-  background: #ffffff;
-  border: 1px solid #e6ebf2;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 18px;
-  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  box-shadow: var(--app-shadow-soft);
   transition: opacity 0.2s ease, transform 0.2s ease;
   flex-grow: 1;
 }
@@ -76,7 +76,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--app-text-subtle);
 }
 
 .daily-card__title {
@@ -84,14 +84,14 @@
   font-size: 1.15rem;
   line-height: 1.3;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--app-text-heading);
 }
 
 .daily-card__description {
   margin: 0.4rem 0 0;
   font-size: 0.95rem;
   line-height: 1.45;
-  color: #667085;
+  color: var(--app-text-muted);
 }
 
 .daily-card__section {
@@ -105,13 +105,13 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--app-text-subtle);
 }
 
 .daily-card__value {
   font-size: 1rem;
   line-height: 1.5;
-  color: #1f2937;
+  color: var(--app-text-heading);
 }
 
 .daily-card__chip {
@@ -119,8 +119,8 @@
   align-items: center;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: #eef4ff;
-  color: #215a96;
+  background: var(--app-primary-soft);
+  color: var(--app-primary-text);
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -175,7 +175,7 @@
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
   border-radius: 12px;
-  background: #f5f7fb;
+  background: var(--app-surface-subtle);
 }
 
 .daily-progress-summary__text {
@@ -186,14 +186,14 @@
 .daily-progress-summary__bar {
   height: 10px;
   border-radius: 999px;
-  background: #dfe6f1;
+  background: var(--app-progress-track);
   overflow: hidden;
 }
 
 .daily-progress-summary__fill {
   height: 100%;
   border-radius: 999px;
-  background: #4f46e5;
+  background: var(--app-primary-text);
   transition: width 0.2s ease;
 }
 
@@ -205,8 +205,8 @@
 .daily-error {
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  background: rgba(211, 47, 47, 0.08);
-  color: #b3261e;
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text);
 }
 
 .daily-page__errors {

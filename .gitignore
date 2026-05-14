@@ -37,6 +37,8 @@ apps/web/.angular/cache
 /libpeerconnection.log
 testem.log
 /typings
+apps/web/ng-serve.err.log
+apps/web/ng-serve.log
 
 # System files
 .DS_Store

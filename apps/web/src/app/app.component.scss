@@ -1,6 +1,6 @@
 
 .nav-link {
-  color: white;
+  color: var(--app-surface);
   padding: 0 16px;
   text-decoration: none;
   font: 500 20px/32px Roboto, "Helvetica Neue", sans-serif; /* Example font */
@@ -8,7 +8,7 @@
 
 /* app.component.scss */
 .nav { position: sticky; top: 0; z-index: 10; }
-.brand { font-weight: 600; letter-spacing: 0.2px; text-decoration: none; color: white; font-size: 22px;  padding-right: 16px;}
+.brand { font-weight: 600; letter-spacing: 0.2px; text-decoration: none; color: var(--app-surface); font-size: 22px;  padding-right: 16px;}
 .spacer { flex: 1; }
 .meta { opacity: 0.9; font-size: 13px; }
 .logout-nav {display: flex;}
@@ -50,6 +50,10 @@
 .app-toolbar__nav a,
 .app-toolbar__nav button {
   white-space: nowrap;
+}
+
+.app-toolbar__theme-button {
+  flex: 0 0 auto;
 }
 
 .app-toolbar__menu-button {

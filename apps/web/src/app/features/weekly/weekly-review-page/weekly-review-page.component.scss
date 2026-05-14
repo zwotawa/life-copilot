@@ -1,7 +1,7 @@
 .weekly-page {
   min-height: 100%;
   padding: 2rem 1rem 4rem;
-  background: #f6f8fb;
+  background: var(--app-bg);
 }
 
 .weekly-page__container {
@@ -19,7 +19,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--app-text-subtle);
 }
 
 .weekly-page__title {
@@ -27,23 +27,23 @@
   font-size: 2rem;
   line-height: 1.1;
   font-weight: 700;
-  color: #111827;
+  color: var(--app-text);
 }
 
 .weekly-page__subtitle {
   margin: 0.5rem 0 0;
   font-size: 1rem;
   line-height: 1.45;
-  color: #667085;
+  color: var(--app-text-muted);
 }
 
 .weekly-section {
   margin-bottom: 1.25rem;
   padding: 1.25rem;
-  background: #ffffff;
-  border: 1px solid #e6ebf2;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 18px;
-  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  box-shadow: var(--app-shadow-soft);
 }
 
 .weekly-section__header {
@@ -54,12 +54,12 @@
   margin: 0 0 0.35rem;
   font-size: 1rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--app-text-heading);
 }
 
 .weekly-section__header p {
   margin: 0;
-  color: #667085;
+  color: var(--app-text-muted);
   line-height: 1.45;
 }
 
@@ -73,14 +73,14 @@
   align-items: flex-start;
   gap: 0.75rem;
   padding: 0.85rem 0.95rem;
-  border: 1px solid #e8edf3;
+  border: 1px solid var(--app-border);
   border-radius: 14px;
-  background: #fafbfd;
+  background: var(--app-surface-muted);
   cursor: pointer;
 }
 
 .weekly-goal-option:hover {
-  background: #f4f7fb;
+  background: var(--app-surface-subtle);
 }
 
 .weekly-goal-option input {
@@ -93,14 +93,14 @@
 
 .weekly-goal-option__title {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--app-text-heading);
   line-height: 1.35;
 }
 
 .weekly-goal-option__meta {
   margin-top: 0.2rem;
   font-size: 0.9rem;
-  color: #667085;
+  color: var(--app-text-muted);
 }
 
 .weekly-page__full,
@@ -140,10 +140,10 @@ mat-form-field {
   gap: 1rem;
   margin-bottom: 1.25rem;
   padding: 1.25rem;
-  background: #ffffff;
-  border: 1px solid #e6ebf2;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 18px;
-  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  box-shadow: var(--app-shadow-soft);
 }
 
 .weekly-summary__section {
@@ -155,7 +155,7 @@ mat-form-field {
 .weekly-summary__label {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #374151;
+  color: var(--app-text-heading);
 }
 
 .weekly-summary__chips {
@@ -169,15 +169,15 @@ mat-form-field {
   align-items: center;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: #eef4ff;
-  color: #215a96;
+  background: var(--app-primary-soft);
+  color: var(--app-primary-text);
   font-size: 0.85rem;
   font-weight: 500;
 }
 
 .weekly-summary__empty {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--app-text-subtle);
 }
 
 .weekly-goal-option--disabled {
@@ -190,19 +190,19 @@ mat-form-field {
 
 .goal-hint {
   font-size: 0.85rem;
-  color: rgba(0, 0, 0, 0.68);
+  color: var(--app-text-muted);
   margin-top: 4px;
 }
 
 .goal-hint--secondary {
-  color: rgba(0, 0, 0, 0.54);
+  color: var(--app-text-soft);
 }
 
 .weekly-error {
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  background: rgba(211, 47, 47, 0.08);
-  color: #b3261e;
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text);
 }
 
 .weekly-page__errors {
@@ -222,7 +222,7 @@ mat-form-field {
 }
 
 .weekly-page__status-unsaved {
-  color: #b26a00;
+  color: var(--app-warning-text);
   font-weight: 600;
 }
 
@@ -232,7 +232,7 @@ mat-form-field {
   margin-top: 0.5rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(0, 0, 0, 0.12);
   font-size: 0.85rem;
 }
 
@@ -255,7 +255,7 @@ mat-form-field {
 .goal-debug__factor {
   padding: 0.15rem 0.45rem;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--app-surface-subtle);
 }
 
 .goal-debug__freshness {
@@ -269,9 +269,9 @@ mat-form-field {
 }
 
 .goal-hint--roadmap-warning {
-  color: #9a3412;
-  background: #fff7ed;
-  border: 1px solid #fdba74;
+  color: var(--app-warning-text);
+  background: var(--app-warning-bg);
+  border: 1px solid var(--app-warning-border);
   padding: 0.35rem 0.55rem;
   border-radius: 10px;
   display: inline-block;

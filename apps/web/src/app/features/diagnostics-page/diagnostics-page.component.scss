@@ -30,10 +30,10 @@
 }
 
 .diagnostics-card {
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--app-border);
   border-radius: 1rem;
   padding: 1rem 1.25rem;
-  background: white;
+  background: var(--app-surface);
 }
 
 .diagnostics-card__header {
@@ -52,8 +52,8 @@
 .diagnostics-error {
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  background: rgba(211, 47, 47, 0.08);
-  color: #b3261e;
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text);
 }
 
 .diagnostics-page__errors {

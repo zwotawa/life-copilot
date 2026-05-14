@@ -1,7 +1,7 @@
 .dashboard-page {
   min-height: 100%;
   padding: 2rem 1rem 4rem;
-  background: #f6f8fb;
+  background: var(--app-bg);
 }
 
 .dashboard-page__container {
@@ -19,7 +19,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--app-text-subtle);
 }
 
 .dashboard-page__title {
@@ -27,14 +27,14 @@
   font-size: 2rem;
   line-height: 1.1;
   font-weight: 700;
-  color: #111827;
+  color: var(--app-text);
 }
 
 .dashboard-page__subtitle {
   margin: 0.5rem 0 0;
   font-size: 1rem;
   line-height: 1.45;
-  color: #667085;
+  color: var(--app-text-muted);
 }
 
 .dashboard-stats {
@@ -46,9 +46,9 @@
 
 .dashboard-stat-card,
 .dashboard-card {
-  background: #ffffff;
-  border: 1px solid #e6ebf2;
-  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-soft);
 }
 
 .dashboard-stat-card {
@@ -58,14 +58,14 @@
 
 .dashboard-stat-card__label {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--app-text-muted);
 }
 
 .dashboard-stat-card__value {
   margin-top: 0.35rem;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--app-text);
 }
 
 .dashboard-grid {
@@ -91,12 +91,12 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--app-text-heading);
 }
 
 .dashboard-card__link {
   font-size: 0.92rem;
-  color: #215a96;
+  color: var(--app-primary-text);
   text-decoration: none;
 }
 
@@ -114,7 +114,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--app-text-subtle);
 }
 
 .dashboard-chip-list {
@@ -128,14 +128,14 @@
   align-items: center;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: #eef4ff;
-  color: #215a96;
+  background: var(--app-primary-soft);
+  color: var(--app-primary-text);
   font-size: 0.85rem;
   font-weight: 500;
 }
 
 .dashboard-empty {
-  color: #6b7280;
+  color: var(--app-text-subtle);
   font-size: 0.92rem;
 }
 
@@ -146,9 +146,9 @@
 
 .dashboard-rotation-item {
   padding: 0.9rem 1rem;
-  border: 1px solid #e8edf3;
+  border: 1px solid var(--app-border);
   border-radius: 14px;
-  background: #fafbfd;
+  background: var(--app-surface-muted);
 }
 
 .dashboard-rotation-item__eyebrow {
@@ -157,18 +157,18 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--app-text-subtle);
 }
 
 .dashboard-rotation-item__title {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--app-text-heading);
   line-height: 1.35;
 }
 
 .dashboard-rotation-item__action {
   margin-top: 0.3rem;
-  color: #667085;
+  color: var(--app-text-muted);
   line-height: 1.45;
   font-size: 0.95rem;
 }
@@ -176,7 +176,7 @@
 .dashboard-list {
   margin: 0;
   padding-left: 1.1rem;
-  color: #1f2937;
+  color: var(--app-text-heading);
 }
 
 .dashboard-list li + li {
@@ -266,45 +266,45 @@
 .dashboard-stat-card__subvalue {
   margin-top: 6px;
   font-size: 12px;
-  color: #666;
+  color: var(--app-text-muted);
 }
 
 .dashboard-chip--fresh,
 .dashboard-list-item__meta--fresh,
 .dashboard-rotation-item__meta--fresh {
-  color: #2e7d32;
+  color: var(--app-success-text);
 }
 
 .dashboard-chip--neutral,
 .dashboard-list-item__meta--neutral,
 .dashboard-rotation-item__meta--neutral {
-  color: #616161;
+  color: var(--app-text-muted);
 }
 
 .dashboard-chip--stale,
 .dashboard-list-item__meta--stale,
 .dashboard-rotation-item__meta--stale {
-  color: #ef6c00;
+  color: var(--app-warning-text);
 }
 
 .dashboard-chip--overdue,
 .dashboard-list-item__meta--overdue,
 .dashboard-rotation-item__meta--overdue {
-  color: #c62828;
+  color: var(--app-danger-text);
 }
 
 .dashboard-chip--unknown,
 .dashboard-list-item__meta--unknown,
 .dashboard-rotation-item__meta--unknown {
-  color: #757575;
+  color: var(--app-text-soft);
   font-style: italic;
 }
 
 .dashboard-card {
   padding: 1rem;
   border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-soft);
 }
 
 .dashboard-card__header {
@@ -328,8 +328,8 @@
 .dashboard-error {
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  background: rgba(211, 47, 47, 0.08);
-  color: #b3261e;
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text);
   font-size: 0.95rem;
 }
 
@@ -347,22 +347,22 @@
 
 .dashboard-roadmap-stat {
   padding: 0.85rem 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--app-border);
   border-radius: 14px;
-  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  background: linear-gradient(to bottom, var(--app-surface), var(--app-surface-subtle));
 }
 
 .dashboard-roadmap-stat__label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--app-text-soft);
   margin-bottom: 0.25rem;
 }
 
 .dashboard-roadmap-stat__value {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--app-text-strong);
 }
 
 .dashboard-roadmap-list {
@@ -373,9 +373,9 @@
 
 .dashboard-roadmap-item {
   padding: 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--app-border);
   border-radius: 14px;
-  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  background: linear-gradient(to bottom, var(--app-surface), var(--app-surface-subtle));
 }
 
 .dashboard-roadmap-item__header {
@@ -389,17 +389,17 @@
 .dashboard-roadmap-item__title {
   font-size: 1rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--app-text-strong);
 }
 
 .dashboard-roadmap-item__meta {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--app-text-muted);
 }
 
 .dashboard-roadmap-item__submeta {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--app-text-soft);
   margin-bottom: 0.35rem;
 }
 
@@ -407,9 +407,9 @@
   margin: 0.5rem 0 0.75rem;
   padding: 0.75rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid #fdba74;
-  background: #fff7ed;
-  color: #9a3412;
+  border: 1px solid var(--app-warning-border);
+  background: var(--app-warning-bg);
+  color: var(--app-warning-text);
   font-size: 0.88rem;
   font-weight: 500;
 }
@@ -417,7 +417,7 @@
 .dashboard-roadmap-item__progress-bar {
   height: 8px;
   border-radius: 999px;
-  background: #e2e8f0;
+  background: var(--app-border);
   overflow: hidden;
 }
 

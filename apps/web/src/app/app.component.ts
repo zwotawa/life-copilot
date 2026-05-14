@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './core/auth/auth.service';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +13,8 @@ export class AppComponent {
 
   constructor(
     private authService: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly themeService: ThemeService
   ) {}
 
   public async logout(): Promise<void> {
@@ -23,5 +25,13 @@ export class AppComponent {
 
   public get isSignedIn(): boolean {
     return this.authService.isSignedIn();
+  }
+
+  public get isDarkMode(): boolean {
+    return this.themeService.isDarkMode;
+  }
+
+  public toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 }

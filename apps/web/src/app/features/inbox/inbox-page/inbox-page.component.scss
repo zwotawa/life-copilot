@@ -1,7 +1,7 @@
 .inbox-page {
   min-height: 100%;
   padding: 2rem 1rem 4rem;
-  background: #f6f8fb;
+  background: var(--app-bg);
 }
 
 .inbox-page__container {
@@ -19,7 +19,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: var(--app-text-subtle);
 }
 
 .inbox-page__title {
@@ -27,14 +27,14 @@
   font-size: 2rem;
   line-height: 1.1;
   font-weight: 700;
-  color: #111827;
+  color: var(--app-text);
 }
 
 .inbox-page__subtitle {
   margin: 0.5rem 0 0;
   font-size: 1rem;
   line-height: 1.45;
-  color: #667085;
+  color: var(--app-text-muted);
 }
 
 .inbox-stats {
@@ -46,30 +46,30 @@
 
 .inbox-stat-card {
   padding: 1rem 1.1rem;
-  background: #ffffff;
-  border: 1px solid #e6ebf2;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  box-shadow: var(--app-shadow-soft);
 }
 
 .inbox-stat-card__label {
   font-size: 0.85rem;
-  color: #667085;
+  color: var(--app-text-muted);
 }
 
 .inbox-stat-card__value {
   margin-top: 0.35rem;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--app-text);
 }
 
 .inbox-card {
   padding: 1.25rem;
-  background: #ffffff;
-  border: 1px solid #e6ebf2;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 18px;
-  box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  box-shadow: var(--app-shadow-soft);
 }
 
 .inbox-card + .inbox-card {
@@ -84,12 +84,12 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--app-text-heading);
 }
 
 .inbox-card__header p {
   margin: 0.35rem 0 0;
-  color: #667085;
+  color: var(--app-text-muted);
   line-height: 1.45;
 }
 
@@ -118,9 +118,9 @@ mat-form-field {
 
 .inbox-entry {
   padding: 1rem;
-  border: 1px solid #e8edf3;
+  border: 1px solid var(--app-border);
   border-radius: 14px;
-  background: #fafbfd;
+  background: var(--app-surface-muted);
 }
 
 .inbox-entry__header {
@@ -135,22 +135,22 @@ mat-form-field {
   align-items: center;
   padding: 0.3rem 0.65rem;
   border-radius: 999px;
-  background: #eef4ff;
-  color: #215a96;
+  background: var(--app-primary-soft);
+  color: var(--app-primary-text);
   font-size: 0.82rem;
   font-weight: 600;
 }
 
 .inbox-entry__date {
   font-size: 0.88rem;
-  color: #667085;
+  color: var(--app-text-muted);
 }
 
 .inbox-entry__text {
   margin-top: 0.75rem;
   font-size: 1rem;
   line-height: 1.5;
-  color: #1f2937;
+  color: var(--app-text-heading);
   white-space: pre-wrap;
 }
 
@@ -162,7 +162,7 @@ mat-form-field {
 }
 
 .inbox-empty {
-  color: #6b7280;
+  color: var(--app-text-subtle);
   font-size: 0.95rem;
   padding: 0.5rem 0;
 }
@@ -170,8 +170,8 @@ mat-form-field {
 .inbox-error {
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  background: rgba(211, 47, 47, 0.08);
-  color: #b3261e;
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text);
 }
 
 .inbox-page__errors {
