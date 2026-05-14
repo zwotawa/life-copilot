@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, scan, shareReplay, startWith, switchMap, take, tap } from 'rxjs/operators';
 
-import { Goal } from 'src/app/core/models/goal.model';
+import { Goal, GoalStatus } from 'src/app/core/models/goal.model';
 import { GoalProgressEvent } from 'src/app/core/models/goal-progress-event.model';
 import { GoalProgressStoreService } from 'src/app/core/services/goal-progress-store.service';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
@@ -36,6 +36,7 @@ interface GoalDetailViewModel {
   activeMilestone: GoalMilestone | null | undefined;
   tinyTasks: GoalTinyTask[];
   roadmapStatusAndGuidance: RoadmapStatusAndGuidance | null;
+  goalCloseoutSummary: GoalCloseoutSummary | null;
 
   isNewGoal: boolean;
   pageLoading: boolean;
@@ -46,6 +47,15 @@ interface RoadmapStatusAndGuidance {
   status: GoalRoadmapStatus;
   guidance: RoadmapGuidance;
   suggestions: PlanningSuggestion[];
+}
+
+interface GoalCloseoutSummary {
+  completedMilestonesCount: number;
+  totalMilestonesCount: number;
+  completedTinyTasksCount: number;
+  totalTinyTasksCount: number;
+  recentProgressCount: number;
+  activeMilestoneTitle: string | null;
 }
 
 @Component({
@@ -74,10 +84,15 @@ export class GoalDetailPageComponent implements AfterViewInit {
   public editingTinyTaskId: string | null = null;
   public editingTinyTaskTitle = '';
 
-  private hasScrolledToMilestones = false;
+  public isSavingGoalStatus = false;
+  public goalStatusError: string | null = null;
+
   public highlightMilestones = false;
 
   public selectedGoalDetailTabIndex = 0;
+
+  private readonly goalReloadSubject = new BehaviorSubject<void>(undefined);
+  public readonly goalReload$ = this.goalReloadSubject.asObservable();
 
   private readonly milestoneReloadSubject = new BehaviorSubject<void>(undefined);
   public readonly milestoneReload$ = this.milestoneReloadSubject.asObservable();
@@ -103,8 +118,11 @@ export class GoalDetailPageComponent implements AfterViewInit {
     shareReplay(1)
   );
 
-  public readonly goalState$: Observable<Loadable<Goal>> = this.goalId$.pipe(
-    switchMap(goalId => {
+  public readonly goalState$: Observable<Loadable<Goal>> = combineLatest([
+    this.goalId$,
+    this.goalReload$
+  ]).pipe(
+    switchMap(([goalId]) => {
       if (goalId === 'new') {
         return of({
           loading: false,
@@ -400,6 +418,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
         activeMilestone,
         tinyTasks: tinyTasksState.data ?? [],
         roadmapStatusAndGuidance: roadmapStatusAndGuidanceState.data,
+        goalCloseoutSummary: this.calculateGoalCloseoutSummary(milestonesState.data ?? [], tinyTasksState.data ?? [], progressEventsState.data ?? []),
         isNewGoal: goalId === 'new',
         pageLoading:
           goalState.loading || !goalState.data,
@@ -1054,6 +1073,57 @@ export class GoalDetailPageComponent implements AfterViewInit {
 
   private getTodayKey(): string {
     return getLocalDateKey();
+  }
+
+  private calculateGoalCloseoutSummary(milestones: GoalMilestone[], tinyTasks: GoalTinyTask[], progressEvents: GoalProgressEvent[]): GoalCloseoutSummary {
+    const completedMilestonesCount = milestones.filter(m => m.status === 'completed').length;
+    const totalMilestonesCount = milestones.length;
+    const completedTinyTasksCount = tinyTasks.filter(t => t.status === 'completed').length;
+    const totalTinyTasksCount = tinyTasks.length;
+    const recentProgressCount = progressEvents.filter(e => {
+      const eventDate = new Date(e.createdAt);
+      const now = new Date();
+      const diffInDays = (now.getTime() - eventDate.getTime()) / (1000 * 3600 * 24);
+      return diffInDays <= 7; // Consider progress in the last 7 days as recent
+    }).length;
+
+    const activeMilestone = milestones.find(m => m.status === 'active');
+
+    return {
+      completedMilestonesCount,
+      totalMilestonesCount,
+      completedTinyTasksCount,
+      totalTinyTasksCount,
+      recentProgressCount,
+      activeMilestoneTitle: activeMilestone ? activeMilestone.title : null
+    };
+  }
+
+  public updateGoalStatus(goal: Goal, status: GoalStatus): void {
+    if (this.isSavingGoalStatus) {
+      return;
+    }
+    const now = new Date().toISOString();
+
+
+    this.isSavingGoalStatus = true;
+
+    const updatedGoal: Goal = {
+      ...goal,
+      status,
+      updatedAt: now
+    };
+
+    this.goalStoreService.updateGoal(updatedGoal).subscribe({
+      next: () => {
+        this.isSavingGoalStatus = false;
+        this.goalReloadSubject.next();
+      },
+      error: () => {
+        this.isSavingGoalStatus = false;
+        this.goalStatusError = 'Could not update goal status.';
+      }
+    });
   }
 
 }

@@ -856,3 +856,124 @@
 .roadmap-planning-block .planning-assistant-panel {
   margin-bottom: 0;
 }
+
+.goal-closeout-panel {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(63, 81, 181, 0.055),
+      rgba(255, 255, 255, 0.96)
+    );
+
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.045);
+}
+
+.goal-closeout-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  margin-bottom: 1rem;
+}
+
+.goal-closeout-panel__header h3 {
+  margin: 0;
+
+  font-size: 1.05rem;
+  font-weight: 750;
+  line-height: 1.25;
+
+  color: rgba(0, 0, 0, 0.86);
+}
+
+.goal-closeout-panel__header p {
+  margin: 0;
+  max-width: 48rem;
+
+  font-size: 0.92rem;
+  line-height: 1.45;
+
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.goal-closeout-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+
+  margin: 1rem 0 1.125rem;
+}
+
+.goal-closeout-panel__stats > div {
+  padding: 0.875rem;
+
+  border: 1px solid rgba(0, 0, 0, 0.065);
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.78);
+
+  font-size: 0.86rem;
+  line-height: 1.35;
+
+  color: rgba(0, 0, 0, 0.66);
+}
+
+.goal-closeout-panel__stats strong {
+  display: inline-block;
+  margin-right: 0.15rem;
+
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+
+  color: #3f51b5;
+}
+
+.goal-closeout-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+
+  padding-top: 0.875rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.075);
+}
+
+.goal-closeout-panel__actions button {
+  white-space: nowrap;
+}
+
+.goal-closeout-panel__stat {
+  padding: 0.875rem;
+
+  border: 1px solid rgba(0, 0, 0, 0.065);
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.78);
+
+  font-size: 0.86rem;
+  line-height: 1.35;
+
+  color: rgba(0, 0, 0, 0.66);
+}
+
+.goal-closeout-panel__stat-value {
+  display: inline-block;
+  margin-right: 0.15rem;
+
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+
+  color: #3f51b5;
+}
+
+.goal-closeout-panel__stat-label {
+  color: rgba(0, 0, 0, 0.64);
+}

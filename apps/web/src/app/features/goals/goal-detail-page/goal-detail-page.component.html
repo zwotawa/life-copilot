@@ -13,6 +13,83 @@
       <mat-tab label="Overview">
         <div class="goal-detail-tab-panel">
           <app-goal-form [goal]="goal"></app-goal-form>
+          <section class="goal-closeout-panel" *ngIf="vm.goalCloseoutSummary as goalCloseoutSummary">
+          <div class="goal-closeout-panel__header">
+            <h3>Review & Close</h3>
+            <p>
+              Change this goal’s status when it is done, paused, or no longer part of active planning.
+            </p>
+          </div>
+
+          <div class="goal-closeout-panel__stats">
+            <div class="goal-closeout-panel__stat">
+              <strong class="goal-closeout-panel__stat-value">
+                {{ goalCloseoutSummary.completedMilestonesCount }}
+              </strong>
+              <span class="goal-closeout-panel__stat-label">
+                / {{ goalCloseoutSummary.totalMilestonesCount }} milestones complete
+              </span>
+            </div>
+
+            <div class="goal-closeout-panel__stat">
+              <strong class="goal-closeout-panel__stat-value">
+                {{ goalCloseoutSummary.completedTinyTasksCount }}
+              </strong>
+              <span class="goal-closeout-panel__stat-label">
+                / {{ goalCloseoutSummary.totalTinyTasksCount }} tiny tasks complete
+              </span>
+            </div>
+
+            <div class="goal-closeout-panel__stat">
+              <strong class="goal-closeout-panel__stat-value">
+                {{ goalCloseoutSummary.recentProgressCount }}
+              </strong>
+              <span class="goal-closeout-panel__stat-label">
+                recent progress events
+              </span>
+            </div>
+          </div>
+
+          <div class="goal-closeout-panel__actions">
+            <button
+              mat-stroked-button
+              color="primary"
+              type="button"
+              (click)="updateGoalStatus(goal, 'completed')"
+              [disabled]="isSavingGoalStatus"
+            >
+              Mark Completed
+            </button>
+
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="updateGoalStatus(goal, 'paused')"
+              [disabled]="isSavingGoalStatus"
+            >
+              Pause
+            </button>
+
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="updateGoalStatus(goal, 'someday')"
+              [disabled]="isSavingGoalStatus"
+            >
+              Move to Someday
+            </button>
+
+            <button
+              mat-button
+              color="warn"
+              type="button"
+              (click)="updateGoalStatus(goal, 'archived')"
+              [disabled]="isSavingGoalStatus"
+            >
+              Archive
+            </button>
+          </div>
+        </section>
         </div>
       </mat-tab>
       <mat-tab label="Roadmap">
