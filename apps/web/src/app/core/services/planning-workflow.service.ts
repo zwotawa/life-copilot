@@ -18,7 +18,6 @@ import { GoalMilestone } from '../models/goal-milestone.model';
 import { GoalTinyTask } from '../models/goal-tiny-task.model';
 import { Goal } from '../models/goal.model';
 import { GoalProgressEvent } from '../models/goal-progress-event.model';
-import { get } from 'http';
 import { getLocalDateKey } from 'src/app/shared/utility/get-today-key';
 
 export interface ReplacementResponse {

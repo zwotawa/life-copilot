@@ -4,6 +4,7 @@ import { DailyRotationItem } from '../models/daily-rotation.model';
 import { WeeklyReviewState } from '../models/weekly-review.model';
 import { GoalBehaviorEvidence, GoalSurfacingResult, GoalSurfacingService, SuggestedDailyCategory } from './goal-surfacing.service';
 import { GoalExecutionContext } from '../models/goal-execution-context.model';
+import { isGoalExecutionEligible } from 'src/app/features/goals/utils/goal-status.util';
 
 interface ScoredGoalCandidate {
   goal: Goal;
@@ -51,9 +52,9 @@ export class RotationEngineService {
   evidenceByGoalId: Record<string, GoalBehaviorEvidence>,
   executionContextByGoalId: Record<string, GoalExecutionContext> = {}
 ): DailyRotationItem[] {
-  const activeGoals = goals.filter(goal => goal.status === 'active');
+  const executionEligibleGoals = goals.filter(isGoalExecutionEligible);
 
-  const scoredCandidates: ScoredGoalCandidate[] = activeGoals.map(goal => {
+  const scoredCandidates: ScoredGoalCandidate[] = executionEligibleGoals.map(goal => {
     const result = this.getAdjustedDailySurfacingResult(goal, weeklyReview, evidenceByGoalId);
 
     return {

@@ -31,6 +31,7 @@ import { GoalRoadmapInsights, GoalRoadmapProgressItem } from 'src/app/core/model
 import { GoalRoadmapStatusService } from 'src/app/core/services/goal-roadmap-status.service';
 import { GoalRoadmapStatus, RoadmapGoalStatus } from 'src/app/core/models/goal-roadmap-status.model';
 import { getGuidanceForStatus } from 'src/app/shared/utility/roadmap-guidance-helper';
+import { isGoalPlanningEligible } from '../../goals/utils/goal-status.util';
 
 
 interface GoalFreshnessView {
@@ -142,9 +143,9 @@ export class DashboardPageComponent {
     public readonly roadmapDataState$: Observable<Loadable<DashboardRoadmapData>> =
       this.goalsState$.pipe(
         switchMap(goalState => {
-          const goals = goalState.data ?? [];
+          const activeGoals = goalState.data?.filter(isGoalPlanningEligible) ?? [];
 
-          if (goals.length === 0) {
+          if (activeGoals.length === 0) {
             return of({
               loading: false,
               data: {
@@ -156,13 +157,13 @@ export class DashboardPageComponent {
             });
           }
 
-          return this.loadMilestonesForGoals(goals).pipe(
+          return this.loadMilestonesForGoals(activeGoals).pipe(
             switchMap(milestones =>
               this.loadTinyTasksForMilestones(milestones).pipe(
                 map(tinyTasks => ({
                   loading: false,
                   data: {
-                    goals,
+                    goals: activeGoals,
                     milestones,
                     tinyTasks
                   },

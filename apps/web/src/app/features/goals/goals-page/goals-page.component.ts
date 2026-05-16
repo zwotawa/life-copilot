@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, forkJoin, of } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { GoalMilestone } from 'src/app/core/models/goal-milestone.model';
 import { GoalRoadmapStatus } from 'src/app/core/models/goal-roadmap-status.model';
@@ -12,6 +12,7 @@ import { GoalRoadmapStatusService } from 'src/app/core/services/goal-roadmap-sta
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { GoalTinyTaskStoreService } from 'src/app/core/services/goal-tiny-task-store.service';
 import { toLoadable } from 'src/app/core/utils/loadable-helpers';
+import { isGoalVisibleByDefault } from '../utils/goal-status.util';
 
 interface GoalsPageViewModel {
   goalsState: Loadable<Goal[]>;
@@ -162,7 +163,7 @@ export class GoalsPageComponent {
       const goals = goalsState.data ?? [];
       const filteredGoals = goals.filter(goal => {
         return (
-          (statusFilter ? goal.status === statusFilter : true) &&
+          (statusFilter ? goal.status === statusFilter : isGoalVisibleByDefault(goal)) &&
           (laneFilter ? goal.lane === laneFilter : true) &&
           (typeFilter ? goal.type === typeFilter : true)
         );
