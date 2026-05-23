@@ -611,9 +611,7 @@ private pickAdditionalDailyItems(
   usedGoalIds: Set<string>,
   maxItems: number
 ): DailyRotationItem[] {
-  const availableItems = freshItems.filter(item =>
-    !!item.goalId && !usedGoalIds.has(item.goalId)
-  );
+  const availableItems = freshItems.filter(item => !!item.goalId);
 
   const pickOne = (category: DailyRotationItem['category']): DailyRotationItem | null => {
     const match = availableItems.find(item => item.category === category);
