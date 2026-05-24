@@ -31,6 +31,28 @@ export class AppComponent {
     return this.themeService.isDarkMode;
   }
 
+  public get nextThemeLabel(): string {
+    switch (this.themeService.theme) {
+      case 'light':
+        return 'Dark mode';
+      case 'dark':
+        return 'Pink mode';
+      case 'pink':
+        return 'Light mode';
+    }
+  }
+
+  public get nextThemeIcon(): string {
+    switch (this.themeService.theme) {
+      case 'light':
+        return 'dark_mode';
+      case 'dark':
+        return 'favorite';
+      case 'pink':
+        return 'light_mode';
+    }
+  }
+
   public toggleTheme(): void {
     this.themeService.toggleTheme();
   }

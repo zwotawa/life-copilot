@@ -109,6 +109,43 @@ $life-copilot-theme: mat.define-light-theme((
   --app-progress-track: #415166;
 }
 
+:root.app-pink-theme {
+  color-scheme: light;
+
+  --app-bg: #fff5f8;
+  --app-surface: #ffffff;
+  --app-surface-muted: #fff9fb;
+  --app-surface-subtle: #ffeef4;
+  --app-surface-raised: #ffffff;
+  --app-border: #f7c9d8;
+  --app-border-strong: #ef9fba;
+  --app-border-subtle: #fde2eb;
+  --app-text: #3b1724;
+  --app-text-strong: #2b101a;
+  --app-text-heading: #4a1d2c;
+  --app-text-muted: #7f4a5d;
+  --app-text-subtle: #8f5870;
+  --app-text-soft: #936375;
+  --app-primary-soft: #ffe4ef;
+  --app-primary-soft-strong: #ffc9dd;
+  --app-primary-text: #b01655;
+  --app-shadow-soft: 0 4px 16px rgba(176, 22, 85, 0.08);
+  --app-shadow-card: 0 10px 26px rgba(105, 22, 56, 0.1);
+  --app-danger-bg: rgba(211, 47, 47, 0.08);
+  --app-danger-text: #b3261e;
+  --app-warning-bg: #fff7ed;
+  --app-warning-border: #fdba74;
+  --app-warning-text: #9a3412;
+  --app-success-bg: #dcfce7;
+  --app-success-border: #bbf7d0;
+  --app-success-text: #166534;
+  --app-info-bg: #dff7f4;
+  --app-info-text: #0f766e;
+  --app-purple-bg: #f3e8ff;
+  --app-purple-text: #7e22ce;
+  --app-progress-track: #f8d7e2;
+}
+
 html, body { min-height: 100%; }
 body {
   margin: 0;
@@ -207,6 +244,115 @@ body {
   .mat-stroked-button.mat-button-disabled,
   .mat-raised-button.mat-button-disabled {
     color: #8997a8;
+  }
+
+  .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick,
+  .mat-focused .mat-form-field-label,
+  .mat-tab-label-active,
+  .mat-tab-link-active {
+    color: var(--app-primary-text);
+  }
+
+  .mat-option,
+  .mat-select-panel,
+  .mat-card {
+    background: var(--app-surface);
+    color: var(--app-text);
+  }
+
+  .mat-divider {
+    border-top-color: var(--app-border);
+  }
+
+  .goal-card__badge,
+  .goal-roadmap-badge--loading,
+  .goal-debug,
+  .goal-debug__factor,
+  .planning-suggestion {
+    background: var(--app-surface-subtle);
+    color: var(--app-text);
+  }
+}
+
+.app-pink-theme {
+  .mat-toolbar.mat-primary {
+    background: #c2185b;
+    color: #ffffff;
+  }
+
+  .mat-form-field-label,
+  .mat-hint,
+  .mat-select-value,
+  .mat-select-arrow,
+  .mat-input-element,
+  .mat-tab-label,
+  .mat-tab-link,
+  .mat-menu-item,
+  .mat-dialog-content {
+    color: var(--app-text-muted);
+  }
+
+  .mat-input-element,
+  .mat-select-value,
+  .mat-checkbox-label,
+  .mat-radio-label-content,
+  .mat-button {
+    color: var(--app-text);
+  }
+
+  .mat-form-field-appearance-outline .mat-form-field-outline,
+  .mat-form-field-appearance-outline .mat-form-field-outline-thick {
+    color: var(--app-border-strong);
+  }
+
+  .mat-button:not(.mat-button-disabled),
+  .mat-icon-button:not(.mat-button-disabled) {
+    color: var(--app-text);
+  }
+
+  .mat-toolbar .mat-button:not(.mat-button-disabled),
+  .mat-toolbar .mat-icon-button:not(.mat-button-disabled) {
+    color: inherit;
+  }
+
+  .mat-button.mat-primary:not(.mat-button-disabled),
+  .mat-icon-button.mat-primary:not(.mat-button-disabled) {
+    color: var(--app-primary-text);
+  }
+
+  .mat-button.mat-warn:not(.mat-button-disabled),
+  .mat-icon-button.mat-warn:not(.mat-button-disabled) {
+    color: var(--app-danger-text);
+  }
+
+  .mat-stroked-button:not(.mat-button-disabled) {
+    border-color: var(--app-border-strong);
+    color: var(--app-text);
+    background: rgba(255, 255, 255, 0.62);
+  }
+
+  .mat-stroked-button.mat-primary:not(.mat-button-disabled) {
+    border-color: rgba(176, 22, 85, 0.38);
+    color: var(--app-primary-text);
+    background: var(--app-primary-soft);
+  }
+
+  .mat-stroked-button.mat-warn:not(.mat-button-disabled) {
+    border-color: rgba(179, 38, 30, 0.34);
+    color: var(--app-danger-text);
+    background: var(--app-danger-bg);
+  }
+
+  .mat-raised-button.mat-primary:not(.mat-button-disabled) {
+    background: #c2185b;
+    color: #ffffff;
+  }
+
+  .mat-button-disabled,
+  .mat-icon-button.mat-button-disabled,
+  .mat-stroked-button.mat-button-disabled,
+  .mat-raised-button.mat-button-disabled {
+    color: #ad7b8d;
   }
 
   .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick,

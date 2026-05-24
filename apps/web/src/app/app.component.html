@@ -16,10 +16,10 @@
       type="button"
       class="app-toolbar__theme-button"
       (click)="toggleTheme()"
-      [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-      [title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+      [attr.aria-label]="'Switch to ' + nextThemeLabel"
+      [title]="'Switch to ' + nextThemeLabel"
     >
-      <mat-icon>{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      <mat-icon>{{ nextThemeIcon }}</mat-icon>
     </button>
     <button mat-button type="button" (click)="logout()">Logout</button>
   </nav>
@@ -61,8 +61,8 @@
     </a>
 
     <button mat-menu-item type="button" (click)="toggleTheme()">
-      <mat-icon>{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
-      <span>{{ isDarkMode ? 'Light mode' : 'Dark mode' }}</span>
+      <mat-icon>{{ nextThemeIcon }}</mat-icon>
+      <span>{{ nextThemeLabel }}</span>
     </button>
 
     <button mat-menu-item type="button" (click)="logout()">
