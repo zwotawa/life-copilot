@@ -513,7 +513,9 @@ export class GoalDetailPageComponent implements AfterViewInit {
 
     const milestone = createGoalMilestone(goal.id, title, milestones.length);
 
-    if (milestones.length === 0) {
+    const activeMilestoneExists = milestones.some(m => m.status === 'active');
+
+    if (!activeMilestoneExists) {
       milestone.status = 'active';
     }
 
