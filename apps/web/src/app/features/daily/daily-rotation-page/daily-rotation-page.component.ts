@@ -61,6 +61,7 @@ export class DailyRotationPageComponent {
     this.activeCompletionDays$
   ]).pipe(
     map(([rotationState, completionDaysState, currentRotationItems, currentCompletionDays]) => {
+      // Prefer locally updated state after an action, but fall back to the initial load.
       const rotationItems = currentRotationItems.length > 0 || rotationState.data === null
         ? currentRotationItems
         : (rotationState.data ?? []);
@@ -253,6 +254,7 @@ export class DailyRotationPageComponent {
   }
 
   private loadInitialData(): void {
+    // Seed the mutable subjects from the loadable streams so later user actions can replace them.
     this.rotationState$.subscribe({
       next: state => {
         if (state.data) {

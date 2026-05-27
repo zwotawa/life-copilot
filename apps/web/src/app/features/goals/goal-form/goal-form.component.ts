@@ -33,6 +33,7 @@ export class GoalFormComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['goal']?.currentValue) {
+      // Reset the editable draft whenever the route supplies a different goal.
       const initializedGoal = this.buildInitialGoal(changes['goal'].currentValue as Goal);
       this.goalDraft.initialize(initializedGoal);
       this.saveError = null;
@@ -258,6 +259,7 @@ export class GoalFormComponent implements OnChanges {
   private buildInitialGoal(goal: Goal): Goal {
     const initializedGoal: Goal = this.cloneGoal(goal);
 
+    // New or older stored goals may be missing defaults that the form expects to edit.
     if (!initializedGoal.status) initializedGoal.status = 'active';
     if (!initializedGoal.type) initializedGoal.type = 'project';
     if (!initializedGoal.dueStyle) initializedGoal.dueStyle = 'cadence_only';

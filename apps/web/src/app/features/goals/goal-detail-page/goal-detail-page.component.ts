@@ -244,6 +244,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
     );
   }),
   scan((previous, current) => {
+    // Keep the existing list visible while a reload is in flight after edits or reordering.
     if (current.loading && previous.data) {
       return {
         ...current,
@@ -396,6 +397,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
     this.roadmapStatusAndGuidanceState$
   ]).pipe(
     map(([goalId, goalState, progressEventsState, milestonesState, activeMilestone, tinyTasksState, roadmapStatusAndGuidanceState]) => {
+      // Collapse independent load/action errors into one list for the page alert area.
       const pageErrorMessages = [
         goalState.error,
         progressEventsState.error,
@@ -575,6 +577,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
     const sortedMilestones = [...milestones].sort((a, b) => a.order - b.order);
     const currentIndex = sortedMilestones.findIndex(m => m.id === milestone.id);
 
+    // Completing the active milestone promotes the next not-started milestone, if one exists.
     const nextMilestone = sortedMilestones
       .slice(currentIndex + 1)
       .find(m => m.status === 'not_started');
@@ -1044,6 +1047,7 @@ export class GoalDetailPageComponent implements AfterViewInit {
       return;
     }
 
+    // Save each reordered task in sequence because the store exposes single-task updates.
     this.goalTinyTaskStoreService.updateTask(tasks[index]).subscribe({
       next: () => {
         this.saveReorderedTinyTasks(tasks, index + 1);

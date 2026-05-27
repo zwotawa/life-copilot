@@ -71,6 +71,7 @@ export class PlanningWorkflowService {
   private regenerateDailyRotation(): Observable<DailyRotationItem[]> {
     const today = this.getTodayKey();
 
+    // Build a full planning context before asking the rotation store to persist today's generated plan.
     return combineLatest([
       this.goalStoreService.getGoals(),
       this.weeklyReviewStoreService.getCurrentWeeklyReview(),
@@ -125,7 +126,7 @@ export class PlanningWorkflowService {
   }
 
 
-  //wrapper functions for wording clarity
+  // Public and private names mirror how the UI talks about the two regeneration modes.
   public refreshTodayPlan(): Observable<DailyRotationItem[]> {
     return this.regenerateDailyRotationPreservingCompleted();
   }
@@ -137,6 +138,7 @@ export class PlanningWorkflowService {
   private regenerateDailyRotationPreservingCompleted(): Observable<DailyRotationItem[]> {
   const today = this.getTodayKey();
 
+  // Keep completed items stable so refreshing the list does not erase work already done today.
   return combineLatest([
     this.dailyRotationStoreService.loadRotationItemsForDate(today),
     this.buildFreshRotationCandidates()
@@ -221,7 +223,7 @@ export class PlanningWorkflowService {
             : item
         );
 
-        //persisting the item change doesn't require any feedback from the further services
+        // Persist the rotation after related goal/task side effects have been recorded.
         const persistUpdatedItems = (): Observable<DailyRotationItem[]> => {
           return this.dailyRotationStoreService.saveRotationItemsForDate(today, updatedItems).pipe(
             switchMap(latestRotation => this.saveDailyCompletionSummary(latestRotation).pipe(
@@ -230,7 +232,7 @@ export class PlanningWorkflowService {
           );
         };
 
-        //if completed mark it the goal touch and save progress event
+        // Completing a daily item counts as both a goal touch and a progress event.
         if (completed && target.goalId) {
           return this.goalStoreService.markGoalTouched(target.goalId).pipe(
             switchMap(() => {
@@ -249,6 +251,7 @@ export class PlanningWorkflowService {
                 sourceItemId: target.id
               }).pipe(
                 switchMap(() => {
+                  // A daily item can be backed by a tiny task, so keep both completion states in sync.
                   return this.completeLinkedTinyTask(target).pipe(
                     switchMap(() => persistUpdatedItems())
                   );
@@ -258,7 +261,7 @@ export class PlanningWorkflowService {
           );
         }
 
-        //mark as uncompleted
+        // Uncompleting reverses linked task state and records the correction in progress history.
         return this.uncompleteLinkedTinyTask(target).pipe(
           switchMap( () => {
             if (!target.goalId) {
@@ -458,6 +461,7 @@ export class PlanningWorkflowService {
       return null;
     }
 
+    // Preserve the UI identity of the slot while swapping in the replacement content.
     return {
       ...chosen,
       id: itemToReplace.id,
@@ -497,6 +501,7 @@ export class PlanningWorkflowService {
     return null;
   }
 
+  // Preserve the current slot's id so templates and busy-state sets keep pointing at the same row.
   return {
     ...chosen,
     id: currentItem.id,
@@ -506,6 +511,7 @@ export class PlanningWorkflowService {
 }
 
 private buildFreshRotationCandidates(): Observable<DailyRotationItem[]> {
+  // Generate candidates without saving them; callers decide which items to keep or append.
   return combineLatest([
     this.goalStoreService.getGoals(),
     this.weeklyReviewStoreService.getCurrentWeeklyReview(),
@@ -558,13 +564,9 @@ private isWithinPast7Days(dateString: string): boolean {
   const inputDate = new Date(dateString);
   const now = new Date();
   
-  // Calculate difference in milliseconds
   const diffInMs = now.getTime() - inputDate.getTime();
-  
-  // Convert to days (1000ms * 60s * 60m * 24h = 86,400,000)
   const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
   
-  // Return true if between 0 and 7 days ago
   return diffInDays >= 0 && diffInDays <= 7;
 }
 
@@ -630,6 +632,7 @@ private pickAdditionalDailyItems(
 
   const selected: DailyRotationItem[] = [];
 
+  // Favor a balanced set of categories before filling any remaining slots.
   const preferredOrder: DailyRotationItem['category'][] = [
     'momentum',
     'maintenance',
