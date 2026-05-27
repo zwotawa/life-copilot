@@ -768,8 +768,24 @@ export class GoalDetailPageComponent implements AfterViewInit {
 
     this.goalTinyTaskStoreService.updateTask(updatedTask).subscribe({
       next: () => {
-        this.isSavingTinyTask = false;
-        this.tinyTaskReloadSubject.next();
+        this.goalStoreService.markGoalTouched(task.goalId).pipe(
+          switchMap(() => {
+            const progressEvent = this.buildTinyTaskCompletedProgressEvent(task);
+
+            return this.goalProgressStoreService.addEvent(progressEvent);
+          })
+        ).subscribe({
+          next: () => {
+            this.isSavingTinyTask = false;
+            this.tinyTaskReloadSubject.next();
+            this.progressEventReloadSubject.next();
+            this.goalReloadSubject.next();
+          },
+          error: () => {
+            this.tinyTaskError = 'Could not record tiny task progress.';
+            this.isSavingTinyTask = false;
+          }
+        });
       },
       error: () => {
         this.tinyTaskError = 'Could not complete tiny task.';
@@ -1074,6 +1090,25 @@ export class GoalDetailPageComponent implements AfterViewInit {
       taskText: milestone.title,
       milestoneId: milestone.id,
       milestoneTitle: milestone.title
+    };
+  }
+
+  private buildTinyTaskCompletedProgressEvent(
+    task: GoalTinyTask
+  ): GoalProgressEvent {
+    return {
+      id: crypto.randomUUID(),
+      goalId: task.goalId,
+      type: 'tiny_task_completed',
+      date: this.getTodayKey(),
+      createdAt: new Date().toISOString(),
+      source: 'goal_detail',
+      sourceItemId: task.id,
+      taskText: task.title,
+      tinyTaskId: task.id,
+      tinyTaskTitle: task.title,
+      milestoneId: task.milestoneId,
+      milestoneTitle: null
     };
   }
 
