@@ -2,12 +2,14 @@ import { Component } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 import { GoalMilestone } from 'src/app/core/models/goal-milestone.model';
+import { GoalExecutionContext } from 'src/app/core/models/goal-execution-context.model';
 import { GoalRoadmapStatus } from 'src/app/core/models/goal-roadmap-status.model';
 import { GoalTinyTask } from 'src/app/core/models/goal-tiny-task.model';
 
 import { Goal } from 'src/app/core/models/goal.model';
 import { Loadable } from 'src/app/core/models/loadable.model';
 import { GoalMilestoneStoreService } from 'src/app/core/services/goal-milestone-store.service';
+import { GoalExecutionContextService } from 'src/app/core/services/goal-execution-context.service';
 import { GoalRoadmapStatusService } from 'src/app/core/services/goal-roadmap-status.service';
 import { GoalStoreService } from 'src/app/core/services/goal-store.service';
 import { GoalTinyTaskStoreService } from 'src/app/core/services/goal-tiny-task-store.service';
@@ -19,6 +21,8 @@ interface GoalsPageViewModel {
   goals: Goal[];
   roadmapStatusByGoalIdState: Loadable<Record<string, GoalRoadmapStatus>>;
   roadmapStatusByGoalId: Record<string, GoalRoadmapStatus>;
+  executionContextByGoalIdState: Loadable<Record<string, GoalExecutionContext>>;
+  executionContextByGoalId: Record<string, GoalExecutionContext>;
   filteredGoals: Goal[];
   filteredGoalCount: number;
   statusFilter: string;
@@ -152,14 +156,50 @@ export class GoalsPageComponent {
     shareReplay({ bufferSize: 1, refCount: true })
   );
 
+  public readonly executionContextByGoalIdState$: Observable<Loadable<Record<string, GoalExecutionContext>>> =
+    this.roadmapDataState$
+      .pipe(
+        map((roadmapDataState) => {
+          if (roadmapDataState.loading) {
+            return {
+              loading: true,
+              data: null,
+              error: null
+            };
+          }
+
+          if (roadmapDataState.error) {
+            return {
+              loading: false,
+              data: null,
+              error: roadmapDataState.error
+            };
+          }
+
+          const milestones = roadmapDataState.data?.milestones ?? [];
+          const tinyTasks = roadmapDataState.data?.tinyTasks ?? [];
+
+          return {
+            loading: false,
+            error: null,
+            data: this.goalExecutionContextService.buildExecutionContextByGoalId(
+              milestones,
+              tinyTasks
+            )
+          };
+        }),
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
+
   public readonly vm$: Observable<GoalsPageViewModel> = combineLatest([
     this.goalsState$,
     this.roadmapStatusByGoalIdState$,
+    this.executionContextByGoalIdState$,
     this.statusFilter$,
     this.laneFilter$,
     this.typeFilter$
   ]).pipe(
-    map(([goalsState, roadmapStatusByGoalIdState, statusFilter, laneFilter, typeFilter]) => {
+    map(([goalsState, roadmapStatusByGoalIdState, executionContextByGoalIdState, statusFilter, laneFilter, typeFilter]) => {
       const goals = goalsState.data ?? [];
       const filteredGoals = goals.filter(goal => {
         return (
@@ -169,9 +209,12 @@ export class GoalsPageComponent {
         );
       });
       const roadmapStatusByGoalId = roadmapStatusByGoalIdState.data ?? {};
+      const executionContextByGoalId = executionContextByGoalIdState.data ?? {};
 
       const pageErrorMessages = [
-        goalsState.error
+        goalsState.error,
+        roadmapStatusByGoalIdState.error,
+        executionContextByGoalIdState.error
       ].filter((message): message is string => !!message);
 
       return {
@@ -179,12 +222,14 @@ export class GoalsPageComponent {
         goals,
         roadmapStatusByGoalIdState,
         roadmapStatusByGoalId,
+        executionContextByGoalIdState,
+        executionContextByGoalId,
         filteredGoals,
         filteredGoalCount: filteredGoals.length,
         statusFilter,
         laneFilter,
         typeFilter,
-        pageLoading: goalsState.loading,
+        pageLoading: goalsState.loading || roadmapStatusByGoalIdState.loading || executionContextByGoalIdState.loading,
         pageErrorMessages
       };
     }),
@@ -195,6 +240,7 @@ export class GoalsPageComponent {
     private readonly goalStoreService: GoalStoreService,
     private readonly goalMilestoneStoreService: GoalMilestoneStoreService,
     private readonly goalTinyTaskStoreService: GoalTinyTaskStoreService,
+    private readonly goalExecutionContextService: GoalExecutionContextService,
     private readonly goalRoadmapStatusService: GoalRoadmapStatusService
   ) {}
 

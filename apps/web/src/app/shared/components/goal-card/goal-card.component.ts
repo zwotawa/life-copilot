@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { GoalExecutionContext } from 'src/app/core/models/goal-execution-context.model';
 import { GoalRoadmapStatus, RoadmapGoalStatus } from 'src/app/core/models/goal-roadmap-status.model';
 import { Goal } from 'src/app/core/models/goal.model';
 
@@ -10,6 +11,7 @@ import { Goal } from 'src/app/core/models/goal.model';
 export class GoalCardComponent {
   @Input() goal!: Goal;
   @Input() roadmapStatusByGoalId: Record<string, GoalRoadmapStatus> = {};
+  @Input() executionContextByGoalId: Record<string, GoalExecutionContext> = {};
 
   public getDisplayLabel(value: string): string {
   return value
@@ -37,6 +39,14 @@ export class GoalCardComponent {
       this.goal.resistance ||
       this.goal.excitement
     );
+  }
+
+  get currentMilestoneTitle(): string | null {
+    return this.roadmapStatusByGoalId[this.goal.id]?.activeMilestoneTitle ?? null;
+  }
+
+  get nextTinyTaskTitle(): string | null {
+    return this.executionContextByGoalId[this.goal.id]?.nextTinyTaskTitle ?? null;
   }
 
   public getRoadmapBadgeClass(planningState: RoadmapGoalStatus): string {

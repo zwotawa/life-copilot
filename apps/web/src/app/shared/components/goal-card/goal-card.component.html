@@ -16,14 +16,14 @@
     </div>
   </div>
 
-  <div class="goal-card__section" *ngIf="goal.currentMilestone">
+  <div class="goal-card__section" *ngIf="currentMilestoneTitle as milestoneTitle">
     <div class="goal-card__label">Current milestone</div>
-    <div class="goal-card__value">{{ goal.currentMilestone }}</div>
+    <div class="goal-card__value">{{ milestoneTitle }}</div>
   </div>
 
-  <div class="goal-card__section" *ngIf="goal.nextTinyAction">
+  <div class="goal-card__section" *ngIf="nextTinyTaskTitle as tinyTaskTitle">
     <div class="goal-card__label">Next tiny action</div>
-    <div class="goal-card__value">{{ goal.nextTinyAction }}</div>
+    <div class="goal-card__value">{{ tinyTaskTitle }}</div>
   </div>
 
   <div class="goal-card__section" *ngIf="dueLabel">

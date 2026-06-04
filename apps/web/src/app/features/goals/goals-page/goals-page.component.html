@@ -100,6 +100,7 @@
           *ngFor="let goal of vm.filteredGoals; trackBy: trackByGoalId"
           [goal]="goal"
           [roadmapStatusByGoalId]="vm.roadmapStatusByGoalId"
+          [executionContextByGoalId]="vm.executionContextByGoalId"
         ></app-goal-card>
       </section>
     </ng-container>
